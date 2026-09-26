@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>YOU GAMES - Trivia en Directo</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 100%; height: 100%; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: linear-gradient(135deg, #0f172a 0%, #1a3a1a 50%, #0f2410 100%);
+    color: #fff;
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+  }
+  #app {
+    max-width: 480px;
+    margin: 0 auto;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    padding: 24px 16px 90px 16px;
+    position: relative;
+  }
+  .brand-green { color: #4ade80; }
+  .bg-green { background-color: #1E5A00; }
+  .box-green {
+    background-color: rgba(30, 90, 0, 0.15);
+    border: 2px solid rgba(30, 90, 0, 0.6);
+  }
+  h1, h2, h3 { line-height: 1.2; }
+  .center { text-align: center; }
+  .stack { display: flex; flex-direction: column; gap: 16px; }
+  .row { display: flex; gap: 10px; }
+  .logo-title { font-size: 42px; font-weight: 900; letter-spacing: -1px; }
+  .subtitle { color: #94a3b8; font-size: 14px; margin-top: 4px; }
+  label {
+    display: block; font-size: 11px; text-transform: uppercase;
+    letter-spacing: 1.5px; color: #cbd5e1; font-weight: 700; margin-bottom: 8px;
+  }
+  input[type=text] {
+    width: 100%; padding: 14px 16px; border-radius: 10px;
+    background: #1e293b; border: 2px solid #1E5A00; color: #fff;
+    font-size: 17px; font-weight: 600; outline: none;
+  }
+  input[type=text]::placeholder { color: #64748b; }
+  .error-text { color: #f87171; font-size: 12px; margin-top: 6px; }
+  .info-text { color: #94a3b8; font-size: 12px; margin-top: 6px; }
+  .btn {
+    width: 100%; padding: 16px; border-radius: 10px; border: none;
+    background: linear-gradient(135deg, #2d7a00 0%, #0d3000 100%);
+    color: #fff; font-weight: 900; text-transform: uppercase;
+    letter-spacing: 1.5px; font-size: 16px; cursor: pointer;
+  }
+  .btn:active { transform: scale(0.97); }
+  .btn:disabled { opacity: 0.6; cursor: not-allowed; }
+  .btn-outline {
+    background: #1e293b; border: 2px solid #475569; color: #cbd5e1;
+    font-weight: 700; border-radius: 10px; padding: 12px; font-size: 13px; cursor: pointer;
+  }
+  .btn-outline.active { background-color: #1E5A00; border-color: #1E5A00; color: #fff; }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+  .footer {
+    position: fixed; bottom: 0; left: 0; right: 0; text-align: center;
+    font-size: 11px; color: #64748b; padding: 12px;
+    background: rgba(15, 23, 42, 0.9); border-top: 1px solid #1e293b;
+  }
+  .timer {
+    font-size: 56px; font-weight: 900; font-family: 'Courier New', monospace;
+    text-align: center; letter-spacing: 3px;
+  }
+  .timer-box {
+    border: 2px solid #1E5A00; border-radius: 16px; padding: 24px;
+    background: rgba(15, 23, 42, 0.6); box-shadow: 0 0 25px rgba(30, 90, 0, 0.5);
+  }
+  .fill-center {
+    flex: 1; display: flex; flex-direction: column;
+    justify-content: center; align-items: center; gap: 28px;
+  }
+  .progress-track {
+    width: 100%; height: 6px; background: #1e293b; border-radius: 4px;
+    overflow: hidden; margin-bottom: 24px;
+  }
+  .progress-fill { height: 100%; background: #1E5A00; transition: width 0.3s ease; }
+  .question-text { font-size: 24px; font-weight: 800; margin-bottom: 24px; }
+  .option {
+    width: 100%; text-align: left; padding: 16px; border-radius: 10px;
+    border: 2px solid rgba(30, 90, 0, 0.4); background: rgba(30, 90, 0, 0.1);
+    color: #fff; font-size: 16px; font-weight: 600; cursor: pointer;
+    display: flex; gap: 12px; align-items: flex-start; margin-bottom: 12px;
+  }
+  .option .letter {
+    width: 30px; height: 30px; background: #1E5A00; border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 900; flex-shrink: 0; font-size: 14px;
+  }
+  .option.correct { background: rgba(34,197,94,0.25); border-color: #22c55e; }
+  .option.incorrect { background: rgba(239,68,68,0.25); border-color: #ef4444; }
+  .feedback { text-align: center; padding: 14px; border-radius: 10px; font-weight: 800; font-size: 16px; }
+  .feedback.ok { color: #4ade80; }
+  .feedback.bad { color: #f87171; }
+  .lb-item {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 14px; border-radius: 10px; background: #1e293b;
+    border: 2px solid #334155; margin-bottom: 8px;
+  }
+  .lb-item.me { background: rgba(30,90,0,0.4); border-color: #1E5A00; }
+  .lb-item.winner { background: rgba(250,204,21,0.15); border-color: #facc15; }
+  .lb-left { display: flex; align-items: center; gap: 12px; }
+  .lb-rank { font-weight: 900; font-size: 18px; width: 30px; }
+  .lb-name { font-weight: 700; }
+  .lb-plat { font-size: 11px; color: #94a3b8; text-transform: capitalize; }
+  .lb-score { font-weight: 900; font-size: 20px; text-align: right; }
+  .lb-time { font-size: 11px; color: #94a3b8; text-align: right; }
+  .badge {
+    display: inline-block; background: rgba(30,90,0,0.2);
+    border: 1px solid rgba(30,90,0,0.6); padding: 4px 10px;
+    border-radius: 6px; font-size: 12px; margin: 3px;
+  }
+  .code-display {
+    font-size: 40px; font-weight: 900; letter-spacing: 6px; text-align: center;
+    padding: 20px; background: #fff; color: #1E5A00; border-radius: 12px;
+  }
+  .stat-box {
+    background: rgba(30,90,0,0.15); border: 2px solid rgba(30,90,0,0.6);
+    border-radius: 10px; padding: 14px; text-align: center;
+  }
+  .stat-num { font-size: 26px; font-weight: 900; color: #4ade80; }
+  .stat-label { font-size: 10px; color: #cbd5e1; text-transform: uppercase; letter-spacing: 1px; }
+  .spinner {
+    width: 40px; height: 40px; border: 4px solid rgba(30,90,0,0.3);
+    border-top-color: #1E5A00; border-radius: 50%;
+    animation: spin 0.8s linear infinite; margin: 0 auto;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<script>
+// ============================================
+// YOU GAMES - Conectado a Supabase (base de datos real)
+// ============================================
+
+const SUPABASE_URL = 'https://evcearuijddrkcdmekwl.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV2Y2VhcnVpamRkcmtjZG1la3dsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA0MDc2OTYsImV4cCI6MjEwNTk4MzY5Nn0.i-Pyluf-ZhWYtMxaJzFC4L-1pWd9dzVEifjl0c4tbP4';
+
+const sbHeaders = {
+  'apikey': SUPABASE_ANON_KEY,
+  'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
+  'Content-Type': 'application/json',
+};
+
+async function sbFetchGame(code) {
+  const res = await fetch(SUPABASE_URL + '/rest/v1/games?id=eq.' + encodeURIComponent(code) + '&select=*', { headers: sbHeaders });
+  if (!res.ok) throw new Error('Error consultando el reto');
+  const rows = await res.json();
+  return rows[0] || null;
+}
+
+async function sbFetchQuestions(gameId) {
+  const res = await fetch(SUPABASE_URL + '/rest/v1/questions?game_id=eq.' + encodeURIComponent(gameId) + '&select=*&order=display_order.asc', { headers: sbHeaders });
+  if (!res.ok) throw new Error('Error consultando preguntas');
+  return await res.json();
+}
+
+async function sbInsertParticipation(record) {
+  const res = await fetch(SUPABASE_URL + '/rest/v1/participations', {
+    method: 'POST',
+    headers: Object.assign({}, sbHeaders, { 'Prefer': 'return=representation' }),
+    body: JSON.stringify(record),
+  });
+  if (!res.ok) throw new Error('Error guardando tu resultado');
+  return await res.json();
+}
+
+async function sbFetchLeaderboard(gameId, limit) {
+  limit = limit || 10;
+  const res = await fetch(SUPABASE_URL + '/rest/v1/participations?game_id=eq.' + encodeURIComponent(gameId) + '&select=*&order=correct_answers.desc,time_taken_ms.asc&limit=' + limit, { headers: sbHeaders });
+  if (!res.ok) throw new Error('Error consultando ranking');
+  return await res.json();
+}
+
+let state = {
+  screen: 'home',
+  mode: 'spectator',
+  gameCodeInput: '',
+  usernameInput: '',
+  platformInput: 'twitch',
+  gameCode: '',
+  username: '',
+  platform: 'twitch',
+  currentGame: null,
+  questions: [],
+  questionIndex: 0,
+  userAnswers: [],
+  leaderboard: [],
+  selectedAnswer: null,
+  showFeedback: false,
+  countdownEndTime: 0,
+  quizEndTime: 0,
+  quizStartedAt: 0,
+  errors: {},
+  loading: false,
+  loadError: '',
+  myResult: null,
+};
+
+let timers = { countdown: null, quiz: null, poll: null };
+
+function clearTimers() {
+  if (timers.countdown) clearInterval(timers.countdown);
+  if (timers.quiz) clearInterval(timers.quiz);
+  if (timers.poll) clearInterval(timers.poll);
+  timers.countdown = null;
+  timers.quiz = null;
+  timers.poll = null;
+}
+
+function fmtTime(totalSeconds) {
+  totalSeconds = Math.max(0, Math.floor(totalSeconds));
+  const m = Math.floor(totalSeconds / 60);
+  const s = totalSeconds % 60;
+  return String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
+}
+
+function fmtMs(ms) {
+  return fmtTime(ms / 1000);
+}
+
+function goHome() {
+  clearTimers();
+  state = {
+    screen: 'home', mode: 'spectator', gameCodeInput: '', usernameInput: '',
+    platformInput: 'twitch', gameCode: '', username: '', platform: 'twitch',
+    currentGame: null, questions: [], questionIndex: 0, userAnswers: [],
+    leaderboard: [], selectedAnswer: null, showFeedback: false,
+    countdownEndTime: 0, quizEndTime: 0, quizStartedAt: 0, errors: {},
+    loading: false, loadError: '', myResult: null,
+  };
+  render();
+}
+
+async function startGame() {
+  const errors = {};
+  const code = state.gameCodeInput.trim().toUpperCase();
+  if (!code) errors.gameCode = 'Ingresa el código del reto';
+  if (state.mode === 'spectator' && !state.usernameInput.trim()) errors.username = 'Ingresa tu nombre';
+
+  if (Object.keys(errors).length > 0) {
+    state.errors = errors;
+    render();
+    return;
+  }
+
+  state.errors = {};
+  state.loading = true;
+  state.loadError = '';
+  render();
+
+  try {
+    const game = await sbFetchGame(code);
+    if (!game) {
+      state.loading = false;
+      state.errors = { gameCode: 'Ese código no existe. Verifica con el streamer.' };
+      render();
+      return;
+    }
+    const questions = await sbFetchQuestions(code);
+
+    state.gameCode = code;
+    state.currentGame = game;
+    state.questions = questions;
+    state.loading = false;
+
+    if (state.mode === 'streamer') {
+      state.screen = 'streamer';
+      render();
+      startStreamerPolling();
+      return;
+    }
+
+    state.username = state.usernameInput.trim();
+    state.platform = state.platformInput;
+    state.screen = 'waiting';
+    state.countdownEndTime = new Date(game.start_time).getTime();
+    render();
+    startCountdown();
+  } catch (err) {
+    state.loading = false;
+    state.loadError = 'No se pudo conectar. Revisa tu internet e intenta de nuevo.';
+    render();
+  }
+}
+
+function startCountdown() {
+  timers.countdown = setInterval(() => {
+    const remaining = Math.round((state.countdownEndTime - Date.now()) / 1000);
+    const el = document.getElementById('countdown-timer');
+    if (el) el.textContent = fmtTime(remaining);
+    if (remaining <= 0) {
+      clearInterval(timers.countdown);
+      timers.countdown = null;
+      startQuiz();
+    }
+  }, 200);
+}
+
+function startQuiz() {
+  state.screen = 'quiz';
+  state.questionIndex = 0;
+  state.userAnswers = [];
+  state.selectedAnswer = null;
+  state.showFeedback = false;
+  state.quizStartedAt = Date.now();
+  state.quizEndTime = Date.now() + (state.currentGame.game_duration_seconds || 300) * 1000;
+  render();
+  timers.quiz = setInterval(() => {
+    const remaining = Math.round((state.quizEndTime - Date.now()) / 1000);
+    const el = document.getElementById('quiz-timer');
+    if (el) el.textContent = fmtTime(remaining);
+    if (remaining <= 0) {
+      clearInterval(timers.quiz);
+      timers.quiz = null;
+      finishQuiz();
+    }
+  }, 500);
+}
+
+function answerQuestion(index) {
+  if (state.showFeedback) return;
+  state.selectedAnswer = index;
+  state.showFeedback = true;
+  render();
+
+  setTimeout(function () {
+    state.userAnswers.push(index);
+    state.selectedAnswer = null;
+    state.showFeedback = false;
+
+    if (state.questionIndex < state.questions.length - 1) {
+      state.questionIndex++;
+      render();
+    } else {
+      finishQuiz();
+    }
+  }, 700);
+}
+
+async function finishQuiz() {
+  if (timers.quiz) { clearInterval(timers.quiz); timers.quiz = null; }
+  const correctCount = state.userAnswers.filter(function (a, i) { return a === state.questions[i].correct_index; }).length;
+  const timeTakenMs = Date.now() - state.quizStartedAt;
+
+  state.screen = 'saving';
+  render();
+
+  try {
+    await sbInsertParticipation({
+      game_id: state.gameCode,
+      username: state.username,
+      platform: state.platform,
+      correct_answers: correctCount,
+      time_taken_ms: timeTakenMs,
+    });
+    const lb = await sbFetchLeaderboard(state.gameCode, 10);
+    state.leaderboard = lb;
+    state.loadError = '';
+  } catch (err) {
+    state.loadError = 'Se guardó tu resultado, pero no pudimos cargar el ranking completo.';
+    state.leaderboard = [{ username: state.username, platform: state.platform, correct_answers: correctCount, time_taken_ms: timeTakenMs }];
+  }
+
+  state.myResult = { correct: correctCount, timeMs: timeTakenMs };
+  state.screen = 'results';
+  render();
+}
+
+function startStreamerPolling() {
+  refreshStreamerData();
+  timers.poll = setInterval(refreshStreamerData, 4000);
+}
+
+async function refreshStreamerData() {
+  try {
+    const lb = await sbFetchLeaderboard(state.gameCode, 3);
+    state.leaderboard = lb;
+    const el = document.getElementById('streamer-live-area');
+    if (el) el.innerHTML = streamerLiveHtml();
+  } catch (err) {
+    // silencioso, se reintenta en el siguiente ciclo
+  }
+}
+
+function render() {
+  const app = document.getElementById('app');
+  app.innerHTML = getScreenHtml() + '<div class="footer">YOU Inc. \u00A9\uFE0F All rights reserved.</div>';
+  attachHandlers();
+}
+
+function getScreenHtml() {
+  switch (state.screen) {
+    case 'home': return htmlHome();
+    case 'waiting': return htmlWaiting();
+    case 'quiz': return htmlQuiz();
+    case 'saving': return htmlSaving();
+    case 'results': return htmlResults();
+    case 'streamer': return htmlStreamer();
+    default: return htmlHome();
+  }
+}
+
+function htmlHome() {
+  const e = state.errors;
+  return '' +
+    '<div class="center" style="margin-bottom:32px;">' +
+      '<div class="logo-title"><span class="brand-green">YOU</span> GAMES</div>' +
+      '<div class="subtitle">Trivia Interactiva en Directo</div>' +
+    '</div>' +
+    '<div class="stack">' +
+      '<div>' +
+        '<label>¿Qué eres?</label>' +
+        '<div class="grid2">' +
+          '<button class="btn-outline ' + (state.mode === 'spectator' ? 'active' : '') + '" data-action="set-mode" data-mode="spectator">👁️ Espectador</button>' +
+          '<button class="btn-outline ' + (state.mode === 'streamer' ? 'active' : '') + '" data-action="set-mode" data-mode="streamer">📺 Streamer</button>' +
+        '</div>' +
+      '</div>' +
+      '<div>' +
+        '<label>Código del Reto</label>' +
+        '<input type="text" id="input-code" placeholder="YG001" maxlength="10" value="' + state.gameCodeInput + '">' +
+        (e.gameCode ? '<div class="error-text">' + e.gameCode + '</div>' : '') +
+      '</div>' +
+      (state.mode === 'spectator' ? (
+        '<div>' +
+          '<label>Nombre de Usuario</label>' +
+          '<input type="text" id="input-username" placeholder="Tu nombre en el chat" maxlength="20" value="' + state.usernameInput + '">' +
+          (e.username ? '<div class="error-text">' + e.username + '</div>' : '') +
+        '</div>' +
+        '<div>' +
+          '<label>Tu Plataforma</label>' +
+          '<div class="grid3">' +
+            '<button class="btn-outline ' + (state.platformInput === 'twitch' ? 'active' : '') + '" data-action="set-platform" data-platform="twitch">📺 Twitch</button>' +
+            '<button class="btn-outline ' + (state.platformInput === 'tiktok' ? 'active' : '') + '" data-action="set-platform" data-platform="tiktok">🎵 TikTok</button>' +
+            '<button class="btn-outline ' + (state.platformInput === 'youtube' ? 'active' : '') + '" data-action="set-platform" data-platform="youtube">▶️ YouTube</button>' +
+          '</div>' +
+        '</div>'
+      ) : '') +
+      '<button class="btn" data-action="play" ' + (state.loading ? 'disabled' : '') + '>' +
+        (state.loading ? 'Cargando...' : (state.mode === 'spectator' ? '⚡ Entrar al Reto' : '📊 Ver Dashboard')) +
+      '</button>' +
+      (state.loadError ? '<div class="error-text center">' + state.loadError + '</div>' : '') +
+      '<div class="box-green" style="border-radius:10px; padding:14px;">' +
+        '<div style="font-size:12px; color:#cbd5e1; margin-bottom:6px;">📌 Códigos de prueba disponibles:</div>' +
+        '<span class="badge">YG001</span><span class="badge">YG002</span>' +
+      '</div>' +
+    '</div>';
+}
+
+function htmlWaiting() {
+  const g = state.currentGame;
+  const remaining = Math.round((state.countdownEndTime - Date.now()) / 1000);
+  return '' +
+    '<div class="center" style="margin-bottom:8px;">' +
+      '<div class="subtitle">Reto #' + g.id + '</div>' +
+      '<h1 class="brand-green" style="font-size:24px; font-weight:900;">' + g.title + '</h1>' +
+    '</div>' +
+    '<div class="fill-center">' +
+      '<div class="center">' +
+        '<div class="subtitle">Premio</div>' +
+        '<div style="font-size:44px; font-weight:900; color:#facc15;">💰 ' + g.prize + '</div>' +
+      '</div>' +
+      '<div class="timer-box" style="width:100%;">' +
+        '<div class="timer brand-green" id="countdown-timer">' + fmtTime(remaining) + '</div>' +
+      '</div>' +
+      '<div class="center">' +
+        '<div style="font-weight:700;">🔒 El juego inicia automáticamente</div>' +
+        '<div class="subtitle">cuando llegue a 00:00</div>' +
+      '</div>' +
+    '</div>';
+}
+
+function htmlQuiz() {
+  const q = state.questions[state.questionIndex];
+  const qNum = state.questionIndex + 1;
+  const total = state.questions.length;
+  const remaining = Math.round((state.quizEndTime - Date.now()) / 1000);
+  const progress = (qNum / total) * 100;
+
+  let optionsHtml = '';
+  q.options.forEach(function (opt, i) {
+    let cls = 'option';
+    if (state.showFeedback && state.selectedAnswer === i) {
+      cls += (i === q.correct_index) ? ' correct' : ' incorrect';
+    }
+    optionsHtml += '' +
+      '<button class="' + cls + '" data-action="answer" data-index="' + i + '" ' + (state.showFeedback ? 'disabled' : '') + '>' +
+        '<span class="letter">' + String.fromCharCode(65 + i) + '</span>' +
+        '<span>' + opt + '</span>' +
+      '</button>';
+  });
+
+  let feedbackHtml = '';
+  if (state.showFeedback) {
+    const ok = state.selectedAnswer === q.correct_index;
+    feedbackHtml = '<div class="feedback ' + (ok ? 'ok' : 'bad') + '">' + (ok ? '✅ ¡Correcto!' : '❌ Incorrecto') + '</div>';
+  }
+
+  return '' +
+    '<div class="row" style="justify-content:space-between; align-items:center; margin-bottom:16px;">' +
+      '<div class="subtitle" style="margin:0;">Pregunta ' + qNum + '/' + total + '</div>' +
+      '<div style="font-family:\'Courier New\',monospace; font-weight:900; font-size:18px;" class="brand-green" id="quiz-timer">' + fmtTime(remaining) + '</div>' +
+    '</div>' +
+    '<div class="progress-track"><div class="progress-fill" style="width:' + progress + '%;"></div></div>' +
+    '<div class="question-text">' + q.question_text + '</div>' +
+    '<div>' + optionsHtml + '</div>' +
+    feedbackHtml;
+}
+
+function htmlSaving() {
+  return '' +
+    '<div class="fill-center">' +
+      '<div class="spinner"></div>' +
+      '<div class="center subtitle">Guardando tu resultado...</div>' +
+    '</div>';
+}
+
+function htmlResults() {
+  const me = state.myResult;
+  let items = '';
+  let meShown = false;
+  state.leaderboard.forEach(function (p, i) {
+    const isMe = (!meShown) && p.username === state.username;
+    if (isMe) meShown = true;
+    const isWinner = i === 0;
+    let cls = 'lb-item' + (isMe ? ' me' : '') + (isWinner && !isMe ? ' winner' : '');
+    items += '' +
+      '<div class="' + cls + '">' +
+        '<div class="lb-left">' +
+          '<div class="lb-rank">' + (isWinner ? '👑' : '#' + (i + 1)) + '</div>' +
+          '<div>' +
+            '<div class="lb-name">' + p.username + '</div>' +
+            '<div class="lb-plat">' + p.platform + '</div>' +
+          '</div>' +
+        '</div>' +
+        '<div>' +
+          '<div class="lb-score">' + p.correct_answers + '</div>' +
+          '<div class="lb-time">' + (p.time_taken_ms ? fmtMs(p.time_taken_ms) : '') + '</div>' +
+        '</div>' +
+      '</div>';
+  });
+
+  return '' +
+    '<div class="center" style="margin-bottom:20px;">' +
+      '<div style="font-size:44px;">🎉</div>' +
+      '<h1 style="font-size:26px; font-weight:900;">¡Juego Finalizado!</h1>' +
+    '</div>' +
+    (me ? (
+      '<div class="bg-green" style="border-radius:14px; padding:22px; text-align:center; margin-bottom:24px;">' +
+        '<div style="font-size:12px; text-transform:uppercase; letter-spacing:1px; margin-bottom:8px;">Tu Resultado</div>' +
+        '<div style="font-size:32px; font-weight:900;">' + me.correct + '/' + state.questions.length + ' ✅</div>' +
+        '<div style="margin-top:6px;">⏱️ ' + fmtMs(me.timeMs) + '</div>' +
+      '</div>'
+    ) : '') +
+    (state.loadError ? '<div class="error-text center" style="margin-bottom:12px;">' + state.loadError + '</div>' : '') +
+    '<div style="font-size:16px; font-weight:900; text-transform:uppercase; letter-spacing:1px;" class="brand-green">🏆 Top 10</div>' +
+    '<div style="margin-top:12px; max-height:360px; overflow-y:auto;">' + items + '</div>' +
+    '<button class="btn" data-action="home" style="margin-top:20px;">🏠 Volver al Inicio</button>';
+}
+
+function streamerLiveHtml() {
+  let rows = '';
+  const medals = ['🥇', '🥈', '🥉'];
+  state.leaderboard.forEach(function (p, i) {
+    rows += '' +
+      '<div class="box-green" style="border-radius:10px; padding:14px; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center;">' +
+        '<div>' + (medals[i] || ('#' + (i + 1))) + ' <strong>' + p.username + '</strong></div>' +
+        '<div style="font-weight:900; font-size:20px;">' + p.correct_answers + '</div>' +
+      '</div>';
+  });
+  if (!rows) {
+    rows = '<div class="subtitle center">Todavía nadie ha terminado el reto...</div>';
+  }
+  return rows;
+}
+
+function htmlStreamer() {
+  return '' +
+    '<div class="center" style="margin-bottom:24px;">' +
+      '<h1 class="brand-green" style="font-size:24px; font-weight:900;">STREAMER DASHBOARD</h1>' +
+      '<div class="subtitle">Reto: ' + state.gameCode + ' — se actualiza solo cada 4 seg</div>' +
+    '</div>' +
+    '<div class="code-display" style="margin-bottom:20px;">' + state.gameCode + '</div>' +
+    '<div class="subtitle center" style="margin-bottom:24px;">Muestra este código en tu pantalla en directo para que tus seguidores lo escriban</div>' +
+    '<div style="font-size:18px; font-weight:900;" class="brand-green">🔴 Top 3 en vivo (real)</div>' +
+    '<div id="streamer-live-area" style="margin-top:12px;">' + streamerLiveHtml() + '</div>' +
+    '<button class="btn" data-action="home" style="margin-top:24px;">🏠 Volver</button>';
+}
+
+function attachHandlers() {
+  const app = document.getElementById('app');
+
+  const codeInput = document.getElementById('input-code');
+  if (codeInput) {
+    codeInput.addEventListener('input', function (e) {
+      state.gameCodeInput = e.target.value.toUpperCase();
+      e.target.value = state.gameCodeInput;
+    });
+  }
+  const userInput = document.getElementById('input-username');
+  if (userInput) {
+    userInput.addEventListener('input', function (e) {
+      state.usernameInput = e.target.value;
+    });
+  }
+
+  app.querySelectorAll('[data-action]').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      const action = btn.getAttribute('data-action');
+      if (action === 'set-mode') {
+        state.mode = btn.getAttribute('data-mode');
+        render();
+      } else if (action === 'set-platform') {
+        state.platformInput = btn.getAttribute('data-platform');
+        render();
+      } else if (action === 'play') {
+        startGame();
+      } else if (action === 'answer') {
+        answerQuestion(parseInt(btn.getAttribute('data-index'), 10));
+      } else if (action === 'home') {
+        goHome();
+      }
+    });
+  });
+}
+
+render();
+</script>
+</body>
+</html>
