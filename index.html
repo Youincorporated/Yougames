@@ -250,6 +250,13 @@ async function sbFetchQuestions(gameId) {
   return await res.json();
 }
 
+async function sbCheckAlreadyPlayed(gameId, username) {
+  const res = await fetch(SUPABASE_URL + '/rest/v1/participations?game_id=eq.' + encodeURIComponent(gameId) + '&username=eq.' + encodeURIComponent(username) + '&select=id&limit=1', { headers: sbHeaders });
+  if (!res.ok) throw new Error('Error verificando participación');
+  const rows = await res.json();
+  return rows.length > 0;
+}
+
 async function sbInsertParticipation(record) {
   const res = await fetch(SUPABASE_URL + '/rest/v1/participations', {
     method: 'POST',
@@ -376,16 +383,26 @@ async function startGame() {
     state.gameCode = code;
     state.currentGame = game;
     state.questions = questions;
-    state.loading = false;
 
     if (state.mode === 'streamer') {
+      state.loading = false;
       state.screen = 'streamer';
       render();
       startStreamerPolling();
       return;
     }
 
-    state.username = state.usernameInput.trim();
+    const username = state.usernameInput.trim();
+    const alreadyPlayed = await sbCheckAlreadyPlayed(code, username);
+    if (alreadyPlayed) {
+      state.loading = false;
+      state.errors = { username: 'Ese nombre ya jugó este reto. Usa el mismo nombre con el que sigues al streamer, no puedes repetir.' };
+      render();
+      return;
+    }
+
+    state.loading = false;
+    state.username = username;
     state.platform = state.platformInput;
     state.screen = 'waiting';
     state.countdownEndTime = new Date(game.start_time).getTime();
@@ -692,7 +709,10 @@ function streamerLiveHtml() {
     rows += '' +
       '<div class="box-green" style="border-radius:10px; padding:14px; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center;">' +
         '<div>' + (medals[i] || ('#' + (i + 1))) + ' <strong>' + p.username + crownsFor(p.username) + '</strong></div>' +
-        '<div style="font-weight:900; font-size:20px;">' + p.correct_answers + '</div>' +
+        '<div style="text-align:right;">' +
+          '<div style="font-weight:900; font-size:20px;">' + p.correct_answers + '</div>' +
+          '<div class="lb-time">' + (p.time_taken_ms ? fmtMs(p.time_taken_ms) : '') + '</div>' +
+        '</div>' +
       '</div>';
   });
   if (!rows) {
