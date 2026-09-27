@@ -206,11 +206,11 @@
     font-size: 32px; letter-spacing: 2px;
     color: var(--brand-neon);
     text-shadow: 0 0 18px rgba(124,255,60,0.5);
-    margin-bottom: 10px;
+    margin-bottom: 4px;
   }
   .hero-desc {
-    color: #cfe8c9; font-size: 14px; line-height: 1.5;
-    max-width: 340px; margin: 0 auto;
+    color: #eafbe3; font-size: 17px; font-weight: 600; line-height: 1.5;
+    max-width: 320px; margin: 22px auto 0 auto;
   }
   .form-card {
     background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.15));
@@ -236,23 +236,79 @@
     100% { left: 130%; }
   }
 
-  /* ---- BOTONES DE PLATAFORMA CON COLOR DE MARCA ---- */
+  /* ---- BOTONES MODO (Jugador / Espectador) - mismo nivel de pulido ---- */
+  .mode-btn {
+    background: linear-gradient(135deg, rgba(124,255,60,0.14), rgba(18,51,0,0.3));
+    border: 2px solid rgba(124,255,60,0.4); color: #d7ffc9;
+  }
+  .mode-btn.active {
+    background: linear-gradient(135deg, rgba(63,174,0,0.95), rgba(18,51,0,0.95));
+    border-color: #7CFF3C; color: #fff;
+    box-shadow: 0 0 16px rgba(124,255,60,0.55);
+  }
+
+  /* ---- BOTONES DE PLATAFORMA: color de marca SIEMPRE visible ---- */
   .plat-btn { display: flex; align-items: center; justify-content: center; gap: 6px; }
   .plat-btn svg { flex-shrink: 0; }
+  .plat-twitch {
+    background: linear-gradient(135deg, rgba(145,70,255,0.28), rgba(91,31,179,0.2));
+    border: 2px solid rgba(145,70,255,0.55); color: #e9dcff;
+  }
   .plat-twitch.active {
     background: linear-gradient(135deg, #9146FF, #5b1fb3);
-    border-color: #9146FF; color: #fff;
-    box-shadow: 0 0 14px rgba(145,70,255,0.45);
+    border-color: #b489ff; color: #fff;
+    box-shadow: 0 0 16px rgba(145,70,255,0.6);
+  }
+  .plat-tiktok {
+    background: linear-gradient(135deg, rgba(70,70,70,0.55), rgba(15,15,15,0.6));
+    border: 2px solid rgba(37,244,238,0.5); color: #e6ffff;
   }
   .plat-tiktok.active {
-    background: linear-gradient(135deg, #1a1a1a, #000000);
+    background: linear-gradient(135deg, #3a3a3a, #121212);
     border-color: #25F4EE; color: #fff;
-    box-shadow: 0 0 14px rgba(37,244,238,0.35);
+    box-shadow: 0 0 16px rgba(37,244,238,0.55);
+  }
+  .plat-youtube {
+    background: linear-gradient(135deg, rgba(255,0,0,0.28), rgba(179,0,0,0.2));
+    border: 2px solid rgba(255,0,0,0.55); color: #ffdada;
   }
   .plat-youtube.active {
     background: linear-gradient(135deg, #FF0000, #b30000);
-    border-color: #FF0000; color: #fff;
-    box-shadow: 0 0 14px rgba(255,0,0,0.45);
+    border-color: #ff5c5c; color: #fff;
+    box-shadow: 0 0 16px rgba(255,0,0,0.6);
+  }
+
+  /* ---- MENÚ SUPERIOR ---- */
+  .menu-btn {
+    position: fixed; top: calc(env(safe-area-inset-top, 0px) + 14px); right: 14px;
+    z-index: 50; width: 42px; height: 42px; border-radius: 10px;
+    background: rgba(6,18,10,0.85); border: 1.5px solid rgba(124,255,60,0.5);
+    color: var(--brand-neon); font-size: 18px; display: flex;
+    align-items: center; justify-content: center; cursor: pointer;
+  }
+  .menu-overlay {
+    position: fixed; inset: 0; z-index: 60;
+    background: rgba(3,10,6,0.97); overflow-y: auto;
+    padding: 70px 20px 40px 20px;
+  }
+  .menu-item {
+    width: 100%; text-align: left; padding: 16px; border-radius: 12px;
+    background: rgba(255,255,255,0.03); border: 1.5px solid rgba(124,255,60,0.25);
+    color: #fff; font-size: 15px; font-weight: 700; cursor: pointer;
+    margin-bottom: 10px;
+  }
+  .menu-content {
+    color: #d7ffc9; font-size: 14px; line-height: 1.7;
+    max-width: 480px; margin: 0 auto;
+  }
+  .menu-content h2 {
+    font-family: 'Bebas Neue', sans-serif; letter-spacing: 1px;
+    font-size: 26px; color: var(--brand-neon); margin-bottom: 16px;
+  }
+  .menu-content ul { padding-left: 18px; margin: 10px 0; }
+  .menu-back {
+    background: none; border: none; color: var(--brand-neon);
+    font-weight: 700; font-size: 14px; cursor: pointer; margin-bottom: 20px;
   }
 </style>
 </head>
@@ -337,10 +393,10 @@ let state = {
   mode: 'spectator',
   gameCodeInput: '',
   usernameInput: '',
-  platformInput: 'twitch',
+  platformSelected: { twitch: false, tiktok: false, youtube: false },
   gameCode: '',
   username: '',
-  platform: 'twitch',
+  platform: '',
   currentGame: null,
   questions: [],
   questionIndex: 0,
@@ -356,6 +412,8 @@ let state = {
   loadError: '',
   myResult: null,
   winsMap: {},
+  menuOpen: false,
+  menuSection: null,
 };
 
 let timers = { countdown: null, quiz: null, poll: null };
@@ -382,13 +440,16 @@ function fmtMs(ms) {
 
 function goHome() {
   clearTimers();
+  const keepMenu = state.menuOpen;
   state = {
     screen: 'home', mode: 'spectator', gameCodeInput: '', usernameInput: '',
-    platformInput: 'twitch', gameCode: '', username: '', platform: 'twitch',
+    platformSelected: { twitch: false, tiktok: false, youtube: false },
+    gameCode: '', username: '', platform: '',
     currentGame: null, questions: [], questionIndex: 0, userAnswers: [],
     leaderboard: [], selectedAnswer: null, showFeedback: false,
     countdownEndTime: 0, quizEndTime: 0, quizStartedAt: 0, errors: {},
     loading: false, loadError: '', myResult: null, winsMap: {},
+    menuOpen: false, menuSection: null,
   };
   render();
 }
@@ -398,6 +459,8 @@ async function startGame() {
   const code = state.gameCodeInput.trim().toUpperCase();
   if (!code) errors.gameCode = 'Ingresa el código del reto';
   if (state.mode === 'spectator' && !state.usernameInput.trim()) errors.username = 'Ingresa tu nombre';
+  const chosenPlatforms = Object.keys(state.platformSelected).filter(function (k) { return state.platformSelected[k]; });
+  if (state.mode === 'spectator' && chosenPlatforms.length === 0) errors.platform = 'Selecciona al menos una plataforma';
 
   if (Object.keys(errors).length > 0) {
     state.errors = errors;
@@ -452,7 +515,7 @@ async function startGame() {
 
     state.loading = false;
     state.username = username;
-    state.platform = state.platformInput;
+    state.platform = chosenPlatforms.join(', ');
     state.screen = 'waiting';
     state.countdownEndTime = new Date(game.start_time).getTime();
     render();
@@ -577,7 +640,7 @@ async function refreshStreamerData() {
 
 function render() {
   const app = document.getElementById('app');
-  app.innerHTML = getScreenHtml() + '<div class="footer">YOU Inc. \u00A9\uFE0F All rights reserved.</div>';
+  app.innerHTML = getScreenHtml() + '<div class="footer">YOU Inc. \u00A9\uFE0F All rights reserved.</div>' + htmlMenu();
   attachHandlers();
 }
 
@@ -595,6 +658,7 @@ function getScreenHtml() {
 
 function htmlHome() {
   const e = state.errors;
+  const ps = state.platformSelected;
   return '' +
     '<div class="hero" style="margin-bottom:22px;">' +
       '<div class="hero-logo-wrap">' +
@@ -609,34 +673,94 @@ function htmlHome() {
       '<div>' +
         '<label>¿Qué eres?</label>' +
         '<div class="grid2">' +
-          '<button class="btn-outline ' + (state.mode === 'spectator' ? 'active' : '') + '" data-action="set-mode" data-mode="spectator">💪🏼 Jugador</button>' +
-          '<button class="btn-outline ' + (state.mode === 'streamer' ? 'active' : '') + '" data-action="set-mode" data-mode="streamer">📺 Espectador</button>' +
+          '<button class="btn-outline mode-btn ' + (state.mode === 'spectator' ? 'active' : '') + '" data-action="set-mode" data-mode="spectator">💪🏼 Jugador</button>' +
+          '<button class="btn-outline mode-btn ' + (state.mode === 'streamer' ? 'active' : '') + '" data-action="set-mode" data-mode="streamer">📺 Espectador</button>' +
         '</div>' +
       '</div>' +
       '<div>' +
         '<label>Código del Reto</label>' +
-        '<input type="text" id="input-code" placeholder="YG001" maxlength="10" value="' + state.gameCodeInput + '">' +
+        '<input type="text" id="input-code" placeholder="" maxlength="10" value="' + state.gameCodeInput + '">' +
         (e.gameCode ? '<div class="error-text">' + e.gameCode + '</div>' : '') +
       '</div>' +
       (state.mode === 'spectator' ? (
         '<div>' +
           '<label>Nombre de Usuario</label>' +
-          '<input type="text" id="input-username" placeholder="Tu nombre en el chat" maxlength="20" value="' + state.usernameInput + '">' +
+          '<input type="text" id="input-username" placeholder="Tu nombre de usuario real" maxlength="20" value="' + state.usernameInput + '">' +
           (e.username ? '<div class="error-text">' + e.username + '</div>' : '') +
         '</div>' +
         '<div>' +
-          '<label>¿De dónde nos ves? 👀</label>' +
+          '<label>¿De dónde nos ves? 👀 <span style="text-transform:none; font-weight:400; color:#9db89a;">(puedes elegir varias)</span></label>' +
           '<div class="grid3">' +
-            '<button class="btn-outline plat-btn plat-twitch ' + (state.platformInput === 'twitch' ? 'active' : '') + '" data-action="set-platform" data-platform="twitch">' + ICON_TWITCH + ' Twitch</button>' +
-            '<button class="btn-outline plat-btn plat-tiktok ' + (state.platformInput === 'tiktok' ? 'active' : '') + '" data-action="set-platform" data-platform="tiktok">' + ICON_TIKTOK + ' TikTok</button>' +
-            '<button class="btn-outline plat-btn plat-youtube ' + (state.platformInput === 'youtube' ? 'active' : '') + '" data-action="set-platform" data-platform="youtube">' + ICON_YOUTUBE + ' YouTube</button>' +
+            '<button class="btn-outline plat-btn plat-twitch ' + (ps.twitch ? 'active' : '') + '" data-action="toggle-platform" data-platform="twitch">' + ICON_TWITCH + ' Twitch</button>' +
+            '<button class="btn-outline plat-btn plat-tiktok ' + (ps.tiktok ? 'active' : '') + '" data-action="toggle-platform" data-platform="tiktok">' + ICON_TIKTOK + ' TikTok</button>' +
+            '<button class="btn-outline plat-btn plat-youtube ' + (ps.youtube ? 'active' : '') + '" data-action="toggle-platform" data-platform="youtube">' + ICON_YOUTUBE + ' YouTube</button>' +
           '</div>' +
+          (e.platform ? '<div class="error-text">' + e.platform + '</div>' : '') +
         '</div>'
       ) : '') +
       '<button class="btn btn-lg btn-shine" data-action="play" ' + (state.loading ? 'disabled' : '') + '>' +
         (state.loading ? 'Cargando...' : (state.mode === 'spectator' ? '⚡ JUGAR AHORA' : '📊 Ver Panel en Vivo')) +
       '</button>' +
       (state.loadError ? '<div class="error-text center">' + state.loadError + '</div>' : '') +
+    '</div>';
+}
+
+function htmlMenu() {
+  const btn = '<button class="menu-btn" data-action="menu-toggle">☰</button>';
+  if (!state.menuOpen) return btn;
+
+  if (!state.menuSection) {
+    return btn + '' +
+      '<div class="menu-overlay">' +
+        '<div class="menu-content">' +
+          '<h2>Menú</h2>' +
+          '<button class="menu-item" data-action="menu-section" data-section="reglas">📜 Reglas del Juego</button>' +
+          '<button class="menu-item" data-action="menu-section" data-section="nosotros">🎮 Quiénes Somos</button>' +
+          '<button class="menu-item" data-action="menu-section" data-section="contacto">✉️ Contacto</button>' +
+          '<button class="menu-item" data-action="menu-section" data-section="legal">⚖️ Aviso Legal</button>' +
+          '<button class="menu-item" data-action="menu-close" style="text-align:center; margin-top:20px;">✕ Cerrar</button>' +
+        '</div>' +
+      '</div>';
+  }
+
+  const sections = {
+    reglas: {
+      title: '📜 Reglas del Juego',
+      html: '<ul>' +
+        '<li>Escribe el código del reto que el streamer muestra en directo.</li>' +
+        '<li>Usa tu nombre de usuario real, el mismo con el que sigues al canal.</li>' +
+        '<li>Solo puedes participar una vez por reto con el mismo nombre.</li>' +
+        '<li>Una vez el reto cierra (pasado su tiempo), ya no se puede entrar.</li>' +
+        '<li>Gana quien conteste más preguntas correctas; si hay empate, gana quien las respondió en menos tiempo.</li>' +
+        '<li>El streamer entrega el premio anunciado por sus propios medios (transferencia, efectivo, etc).</li>' +
+      '</ul>',
+    },
+    nosotros: {
+      title: '🎮 Quiénes Somos',
+      html: '<p>YOU GAMES es una plataforma de trivia interactiva pensada para que streamers premien a su comunidad en vivo, con retos rápidos y divertidos.</p>',
+    },
+    contacto: {
+      title: '✉️ Contacto',
+      html: '<p>¿Tienes dudas o sugerencias? Escríbenos:</p><p style="margin-top:10px; font-weight:700;">contacto@yougames.app</p>',
+    },
+    legal: {
+      title: '⚖️ Aviso Legal',
+      html: '<p>YOU GAMES es una plataforma independiente y no está afiliada a Twitch, TikTok ni YouTube.</p>' +
+        '<p style="margin-top:10px;">Los premios ofrecidos en cada reto son entregados voluntariamente por el streamer organizador, no por YOU GAMES. No se requiere compra ni pago alguno para participar.</p>' +
+        '<p style="margin-top:10px;">El streamer organizador es responsable de la entrega del premio y de cumplir la normativa local que aplique a sorteos o promociones en su país.</p>' +
+        '<p style="margin-top:10px;">Nos reservamos el derecho de descalificar participaciones fraudulentas o repetidas.</p>' +
+        '<p style="margin-top:10px; font-weight:700;">Este texto es una base general y no reemplaza asesoría legal profesional.</p>',
+    },
+  };
+
+  const sec = sections[state.menuSection];
+  return btn + '' +
+    '<div class="menu-overlay">' +
+      '<div class="menu-content">' +
+        '<button class="menu-back" data-action="menu-back">← Volver</button>' +
+        '<h2>' + sec.title + '</h2>' +
+        sec.html +
+      '</div>' +
     '</div>';
 }
 
@@ -806,8 +930,9 @@ function attachHandlers() {
       if (action === 'set-mode') {
         state.mode = btn.getAttribute('data-mode');
         render();
-      } else if (action === 'set-platform') {
-        state.platformInput = btn.getAttribute('data-platform');
+      } else if (action === 'toggle-platform') {
+        const p = btn.getAttribute('data-platform');
+        state.platformSelected[p] = !state.platformSelected[p];
         render();
       } else if (action === 'play') {
         startGame();
@@ -815,6 +940,20 @@ function attachHandlers() {
         answerQuestion(parseInt(btn.getAttribute('data-index'), 10));
       } else if (action === 'home') {
         goHome();
+      } else if (action === 'menu-toggle') {
+        state.menuOpen = !state.menuOpen;
+        state.menuSection = null;
+        render();
+      } else if (action === 'menu-close') {
+        state.menuOpen = false;
+        state.menuSection = null;
+        render();
+      } else if (action === 'menu-section') {
+        state.menuSection = btn.getAttribute('data-section');
+        render();
+      } else if (action === 'menu-back') {
+        state.menuSection = null;
+        render();
       }
     });
   });
