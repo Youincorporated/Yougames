@@ -6,7 +6,7 @@
 <title>YOU GAMES - Trivia en Directo</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400..800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 <style>
   :root {
     --brand-black: #05130a;
@@ -50,7 +50,7 @@
   .stack { display: flex; flex-direction: column; gap: 16px; }
   .row { display: flex; gap: 10px; }
   .display-font { font-family: 'Bebas Neue', 'Inter', sans-serif; letter-spacing: 1px; }
-  .logo-title { font-size: 42px; font-weight: 900; letter-spacing: -1px; }
+  .logo-title { font-size: 42px; font-weight: 800; letter-spacing: -1px; }
   .subtitle { color: var(--text-dim); font-size: 14px; margin-top: 4px; }
   .divider {
     height: 1px; width: 100%; margin: 8px 0;
@@ -73,7 +73,7 @@
   .btn {
     width: 100%; padding: 17px; border-radius: 12px; border: none;
     background: linear-gradient(135deg, var(--brand-green-bright) 0%, var(--brand-green-deep) 100%);
-    color: #fff; font-weight: 900; text-transform: uppercase;
+    color: #fff; font-weight: 800; text-transform: uppercase;
     letter-spacing: 1.5px; font-size: 16px; cursor: pointer;
     box-shadow: 0 6px 20px rgba(30,90,0,0.45), inset 0 1px 0 rgba(255,255,255,0.15);
     transition: transform 0.15s ease, box-shadow 0.15s ease;
@@ -98,8 +98,9 @@
     background: rgba(3, 10, 6, 0.92); border-top: 1px solid rgba(124,255,60,0.15);
     backdrop-filter: blur(6px);
   }
+  .timer, .lb-score, .lb-time, .stat-num, .code-display { font-variant-numeric: tabular-nums; }
   .timer {
-    font-size: 56px; font-weight: 900; font-family: 'Courier New', monospace;
+    font-size: 56px; font-weight: 700; font-family: 'Space Mono', 'Courier New', monospace;
     text-align: center; letter-spacing: 3px;
   }
   .timer-box {
@@ -115,11 +116,11 @@
     overflow: hidden; margin-bottom: 24px;
   }
   .progress-fill { height: 100%; background: linear-gradient(90deg, var(--brand-green), var(--brand-neon)); transition: width 0.3s ease; }
-  .question-text { font-size: 24px; font-weight: 800; margin-bottom: 24px; }
+  .question-text { font-size: 24px; font-weight: 800; line-height: 1.25; letter-spacing: -0.3px; margin-bottom: 24px; }
   .option {
     width: 100%; text-align: left; padding: 16px; border-radius: 12px;
     border: 1.5px solid rgba(124,255,60,0.25); background: rgba(255,255,255,0.02);
-    color: #fff; font-size: 16px; font-weight: 600; cursor: pointer;
+    color: #fff; font-size: 17px; font-weight: 600; cursor: pointer;
     display: flex; gap: 12px; align-items: flex-start; margin-bottom: 12px;
     transition: all 0.15s ease;
   }
@@ -128,7 +129,7 @@
     width: 30px; height: 30px; background: linear-gradient(135deg, var(--brand-green-bright), var(--brand-green-deep));
     border-radius: 8px;
     display: flex; align-items: center; justify-content: center;
-    font-weight: 900; flex-shrink: 0; font-size: 14px;
+    font-weight: 800; flex-shrink: 0; font-size: 14px;
   }
   .option.correct { background: rgba(34,197,94,0.25); border-color: #22c55e; }
   .option.incorrect { background: rgba(239,68,68,0.25); border-color: #ef4444; }
@@ -143,26 +144,27 @@
   .lb-item.me { background: rgba(30,90,0,0.35); border-color: var(--brand-neon); }
   .lb-item.winner { background: rgba(250,204,21,0.12); border-color: #facc15; }
   .lb-left { display: flex; align-items: center; gap: 12px; }
-  .lb-rank { font-weight: 900; font-size: 18px; width: 30px; }
+  .lb-rank { font-weight: 800; font-size: 18px; width: 30px; }
   .lb-name { font-weight: 700; }
   .lb-plat { font-size: 11px; color: var(--text-dim); text-transform: capitalize; }
-  .lb-score { font-weight: 900; font-size: 20px; text-align: right; }
-  .lb-time { font-size: 11px; color: var(--text-dim); text-align: right; }
+  .lb-score { font-weight: 700; font-size: 20px; text-align: right; font-family: 'Space Mono', monospace; }
+  .lb-time { font-size: 11px; color: var(--text-dim); text-align: right; font-family: 'Space Mono', monospace; }
   .badge {
     display: inline-block; background: rgba(30,90,0,0.25);
     border: 1px solid rgba(124,255,60,0.5); padding: 4px 10px;
     border-radius: 6px; font-size: 12px; margin: 3px; font-weight: 700;
   }
   .code-display {
-    font-size: 40px; font-weight: 900; letter-spacing: 6px; text-align: center;
+    font-size: 40px; font-weight: 700; letter-spacing: 6px; text-align: center;
     padding: 20px; background: #fff; color: var(--brand-green); border-radius: 14px;
+    font-family: 'Space Mono', monospace;
   }
   .stat-box {
     background: linear-gradient(180deg, rgba(30,90,0,0.2), rgba(12,31,19,0.4));
     border: 1.5px solid rgba(124,255,60,0.4);
     border-radius: 12px; padding: 14px; text-align: center;
   }
-  .stat-num { font-size: 26px; font-weight: 900; color: var(--brand-neon); }
+  .stat-num { font-size: 26px; font-weight: 700; color: var(--brand-neon); font-family: 'Space Mono', monospace; }
   .stat-label { font-size: 10px; color: #cfe8c9; text-transform: uppercase; letter-spacing: 1px; }
   .spinner {
     width: 40px; height: 40px; border: 4px solid rgba(124,255,60,0.25);
@@ -390,6 +392,7 @@ const ICON_TWITCH = '<svg viewBox="0 0 24 24" width="16" height="16" fill="curre
 const ICON_TIKTOK = '<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z"/></svg>';
 const ICON_YOUTUBE = '<svg viewBox="0 0 16 16" width="16" height="16" fill="currentColor"><path d="M8.051 1.999h.089c.822.003 4.987.033 6.11.335a2.01 2.01 0 0 1 1.415 1.42c.101.38.172.883.22 1.402l.01.104.022.26.008.104c.065.914.073 1.77.074 1.957v.075c-.001.194-.01 1.108-.082 2.06l-.008.105-.009.104c-.05.572-.124 1.14-.235 1.558a2.01 2.01 0 0 1-1.415 1.42c-1.16.312-5.569.334-6.18.335h-.142c-.309 0-1.587-.006-2.927-.052l-.17-.006-.087-.004-.171-.007-.171-.007c-1.11-.049-2.167-.128-2.654-.26a2.01 2.01 0 0 1-1.415-1.419c-.111-.417-.185-.986-.235-1.558L.09 9.82l-.008-.104A31 31 0 0 1 0 7.68v-.123c.002-.215.01-.958.064-1.778l.007-.103.003-.052.008-.104.022-.26.01-.104c.048-.519.119-1.023.22-1.402a2.01 2.01 0 0 1 1.415-1.42c.487-.13 1.544-.21 2.654-.26l.17-.007.172-.006.086-.003.171-.007A100 100 0 0 1 7.858 2zM6.4 5.209v4.818l4.157-2.408z"/></svg>';
 
+
 const sbHeaders = {
   'apikey': SUPABASE_ANON_KEY,
   'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
@@ -503,7 +506,6 @@ function fmtMs(ms) {
 
 function goHome() {
   clearTimers();
-  const keepMenu = state.menuOpen;
   state = {
     screen: 'home', mode: 'spectator', gameCodeInput: '', usernameInput: '',
     platformSelected: { twitch: false, tiktok: false, youtube: false },
@@ -863,12 +865,12 @@ function htmlWaiting() {
   return '' +
     '<div class="center" style="margin-bottom:8px;">' +
       '<div class="subtitle">Reto #' + g.id + '</div>' +
-      '<h1 class="brand-green" style="font-size:24px; font-weight:900;">' + g.title + '</h1>' +
+      '<h1 class="brand-green" style="font-size:24px; font-weight:800;">' + g.title + '</h1>' +
     '</div>' +
     '<div class="fill-center">' +
       '<div class="center">' +
         '<div class="subtitle">Premio</div>' +
-        '<div style="font-size:44px; font-weight:900; color:#facc15;">💰 ' + g.prize + '</div>' +
+        '<div style="font-size:44px; font-weight:800; color:#facc15;">💰 ' + g.prize + '</div>' +
       '</div>' +
       '<div class="timer-box" style="width:100%;">' +
         '<div class="timer brand-green" id="countdown-timer">' + fmtTime(remaining) + '</div>' +
@@ -909,7 +911,7 @@ function htmlQuiz() {
   return '' +
     '<div class="row" style="justify-content:space-between; align-items:center; margin-bottom:16px;">' +
       '<div class="subtitle" style="margin:0;">Pregunta ' + qNum + '/' + total + '</div>' +
-      '<div style="font-family:\'Courier New\',monospace; font-weight:900; font-size:18px;" class="brand-green" id="quiz-timer">' + fmtTime(remaining) + '</div>' +
+      '<div style="font-family:\'Space Mono\',monospace; font-weight:700; font-size:18px; font-variant-numeric:tabular-nums;" class="brand-green" id="quiz-timer">' + fmtTime(remaining) + '</div>' +
     '</div>' +
     '<div class="progress-track"><div class="progress-fill" style="width:' + progress + '%;"></div></div>' +
     '<div class="question-text">' + q.question_text + '</div>' +
@@ -953,17 +955,17 @@ function htmlResults() {
   return '' +
     '<div class="center" style="margin-bottom:20px;">' +
       '<div style="font-size:44px;">🎉</div>' +
-      '<h1 style="font-size:26px; font-weight:900;">¡Juego Finalizado!</h1>' +
+      '<h1 style="font-size:26px; font-weight:800;">¡Juego Finalizado!</h1>' +
     '</div>' +
     (me ? (
       '<div class="bg-green" style="border-radius:14px; padding:22px; text-align:center; margin-bottom:24px;">' +
         '<div style="font-size:12px; text-transform:uppercase; letter-spacing:1px; margin-bottom:8px;">Tu Resultado</div>' +
-        '<div style="font-size:32px; font-weight:900;">' + me.correct + '/' + state.questions.length + ' ✅</div>' +
+        '<div style="font-size:32px; font-weight:800;">' + me.correct + '/' + state.questions.length + ' ✅</div>' +
         '<div style="margin-top:6px;">⏱️ ' + fmtMs(me.timeMs) + '</div>' +
       '</div>'
     ) : '') +
     (state.loadError ? '<div class="error-text center" style="margin-bottom:12px;">' + state.loadError + '</div>' : '') +
-    '<div style="font-size:16px; font-weight:900; text-transform:uppercase; letter-spacing:1px;" class="brand-green">🏆 Top 10</div>' +
+    '<div style="font-size:16px; font-weight:800; text-transform:uppercase; letter-spacing:1px;" class="brand-green">🏆 Top 10</div>' +
     '<div style="margin-top:12px; max-height:360px; overflow-y:auto;">' + items + '</div>' +
     '<button class="btn" data-action="home" style="margin-top:20px;">🏠 Volver al Inicio</button>';
 }
@@ -976,7 +978,7 @@ function streamerLiveHtml() {
       '<div class="box-green" style="border-radius:10px; padding:14px; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center;">' +
         '<div>' + (medals[i] || ('#' + (i + 1))) + ' <strong>' + p.username + crownsFor(p.username) + '</strong></div>' +
         '<div style="text-align:right;">' +
-          '<div style="font-weight:900; font-size:20px;">' + p.correct_answers + '</div>' +
+          '<div style="font-weight:800; font-size:20px;">' + p.correct_answers + '</div>' +
           '<div class="lb-time">' + (p.time_taken_ms ? fmtMs(p.time_taken_ms) : '') + '</div>' +
         '</div>' +
       '</div>';
@@ -990,12 +992,12 @@ function streamerLiveHtml() {
 function htmlStreamer() {
   return '' +
     '<div class="center" style="margin-bottom:24px;">' +
-      '<h1 class="brand-green" style="font-size:24px; font-weight:900;">PANEL EN VIVO</h1>' +
+      '<h1 class="brand-green" style="font-size:24px; font-weight:800;">PANEL EN VIVO</h1>' +
       '<div class="subtitle">Reto: ' + state.gameCode + ' — se actualiza solo cada 4 seg</div>' +
     '</div>' +
     '<div class="code-display" style="margin-bottom:20px;">' + state.gameCode + '</div>' +
     '<div class="subtitle center" style="margin-bottom:24px;">Muestra este código en tu pantalla en directo para que tus seguidores lo escriban</div>' +
-    '<div style="font-size:18px; font-weight:900;" class="brand-green">🔴 Top 5 en vivo</div>' +
+    '<div style="font-size:18px; font-weight:800;" class="brand-green">🔴 Top 5 en vivo</div>' +
     '<div id="streamer-live-area" style="margin-top:12px;">' + streamerLiveHtml() + '</div>' +
     '<button class="btn" data-action="home" style="margin-top:24px;">🏠 Volver</button>';
 }
