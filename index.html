@@ -196,7 +196,7 @@
     mask-repeat: no-repeat;
     mix-blend-mode: screen;
     pointer-events: none;
-    animation: shineSweep 6s ease-in-out infinite;
+    animation: shineSweep 6s ease-in-out var(--sd, 0s) infinite;
   }
   @keyframes shineSweep {
     0%, 55% { background-position: -160% -160%; }
@@ -229,7 +229,7 @@
     position: absolute; top: 0; left: -60%; width: 50%; height: 100%;
     background: linear-gradient(115deg, transparent 10%, rgba(255,255,255,0.55) 50%, transparent 90%);
     transform: skewX(-20deg);
-    animation: btnShineSweep 6s ease-in-out infinite;
+    animation: btnShineSweep 6s ease-in-out var(--sd, 0s) infinite;
     pointer-events: none;
   }
   @keyframes btnShineSweep {
@@ -375,6 +375,68 @@
     width: 7px; height: 7px; border-radius: 50%; background: var(--brand-neon);
     margin-top: 6px; flex-shrink: 0; box-shadow: 0 0 8px rgba(124,255,60,0.6);
   }
+
+  /* ---- LAYOUT DE PORTADA: móvil = una columna; escritorio = panel izquierdo + formulario ---- */
+  .home-left { margin-top: 20px; }
+  @media (min-width: 1000px) {
+    #app.is-home { max-width: 1240px; }
+    .home-grid {
+      display: grid; grid-template-columns: minmax(0, 1fr) 480px minmax(0, 1fr);
+      gap: 28px; align-items: start;
+    }
+    .home-left { grid-column: 1; grid-row: 1; justify-self: end; width: 300px; margin-top: 0; }
+    .home-main { grid-column: 2; grid-row: 1; }
+  }
+
+  /* ---- PANEL TOP GLOBAL ---- */
+  .panel {
+    background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(0,0,0,0.18));
+    border: 1px solid rgba(124,255,60,0.22); border-radius: 18px; padding: 16px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+  }
+  .panel-head { margin-bottom: 12px; }
+  .panel-title {
+    font-family: 'Bebas Neue', sans-serif; font-size: 24px; letter-spacing: 2px;
+    color: var(--brand-neon); text-shadow: 0 0 14px rgba(124,255,60,0.45);
+  }
+  .panel-sub { font-size: 12px; color: var(--text-dim); margin-top: 2px; }
+  .panel-empty { text-align: center; color: var(--text-dim); font-size: 13px; padding: 18px 8px; }
+  .tg-row {
+    display: flex; align-items: center; gap: 10px; padding: 9px 10px; margin-bottom: 6px;
+    border-radius: 10px; background: rgba(255,255,255,0.02); border: 1px solid rgba(124,255,60,0.1);
+  }
+  .tg-rank {
+    width: 24px; height: 24px; border-radius: 7px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Space Mono', monospace; font-weight: 700; font-size: 12px;
+    background: rgba(124,255,60,0.12); color: #d7ffc9;
+  }
+  .tg-row.r1 { border-color: rgba(250,204,21,0.6); background: rgba(250,204,21,0.08); }
+  .tg-row.r1 .tg-rank { background: #facc15; color: #1a1400; }
+  .tg-row.r2 { border-color: rgba(203,213,225,0.5); }
+  .tg-row.r2 .tg-rank { background: #cbd5e1; color: #10141a; }
+  .tg-row.r3 { border-color: rgba(205,127,50,0.55); }
+  .tg-row.r3 .tg-rank { background: #cd7f32; color: #1c0f02; }
+  .tg-name {
+    flex: 1; min-width: 0; font-weight: 700; font-size: 14px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .tg-crowns { display: flex; align-items: center; gap: 3px; flex-shrink: 0; font-size: 15px; }
+  .tg-count {
+    font-family: 'Space Mono', monospace; font-weight: 700; font-size: 13px;
+    color: #facc15; margin-left: 3px; font-variant-numeric: tabular-nums;
+  }
+
+  /* ---- CORONAS QUE DESTELLAN (mismo ciclo de 6s que el logo y el botón) ---- */
+  .crown-shine { display: inline-block; animation: crownShine 6s ease-in-out var(--sd, 0s) infinite; }
+  @keyframes crownShine {
+    0%, 52% { filter: brightness(1) drop-shadow(0 0 0 rgba(255,214,64,0)); transform: scale(1); }
+    65% { filter: brightness(1.8) drop-shadow(0 0 7px rgba(255,214,64,0.95)); transform: scale(1.2); }
+    78%, 100% { filter: brightness(1) drop-shadow(0 0 0 rgba(255,214,64,0)); transform: scale(1); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .crown-shine, .hero-logo-shine, .btn-shine::after { animation: none; }
+  }
 </style>
 </head>
 <body>
@@ -480,9 +542,81 @@ let state = {
   winsMap: {},
   menuOpen: false,
   menuSection: null,
+  topGlobal: [],
+  topLoaded: false,
+  topError: false,
 };
 
 let timers = { countdown: null, quiz: null, poll: null };
+
+// Escapa texto de usuarios antes de mostrarlo (evita que alguien se ponga de nombre un código malicioso)
+function esc(s) {
+  return String(s === null || s === undefined ? '' : s)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+// Reloj compartido: logo, botón y coronas toman su fase del mismo instante => destellan siempre a la vez
+const SHINE_PERIOD_MS = 6000;
+function sdStyle() { return '--sd:-' + ((Date.now() % SHINE_PERIOD_MS) / 1000).toFixed(3) + 's;'; }
+
+// Alinea al milisegundo TODAS las animaciones de 6s (logo, botón, coronas) al mismo origen de tiempo
+function syncShine() {
+  if (!document.getAnimations) return;
+  document.getAnimations().forEach(function (a) {
+    const timing = a.effect && a.effect.getTiming ? a.effect.getTiming() : null;
+    if (timing && timing.duration === SHINE_PERIOD_MS) {
+      a.effect.updateTiming({ delay: 0 });
+      a.startTime = 0;
+    }
+  });
+}
+
+// ---------- TOP GLOBAL ----------
+let topTimer = null;
+
+async function sbFetchTopGlobal() {
+  const res = await fetch(SUPABASE_URL + '/rest/v1/player_wins?select=*&order=wins.desc,username.asc&limit=10', { headers: sbHeaders });
+  if (!res.ok) throw new Error('Error consultando el Top Global');
+  return await res.json();
+}
+
+async function loadTopGlobal() {
+  if (state.screen !== 'home') return;
+  try {
+    state.topGlobal = await sbFetchTopGlobal();
+    state.topError = false;
+  } catch (err) {
+    state.topError = true;
+  }
+  state.topLoaded = true;
+  const el = document.getElementById('panel-top');
+  if (el) { el.innerHTML = htmlTopGlobal(); syncShine(); }
+}
+
+function htmlTopGlobal() {
+  const list = state.topGlobal || [];
+  let rows = '';
+  if (!list.length) {
+    const msg = !state.topLoaded ? 'Cargando...' : (state.topError ? 'No se pudo cargar el ranking.' : 'Aún no hay campeones. ¡Sé el primero!');
+    rows = '<div class="panel-empty">' + msg + '</div>';
+  } else {
+    list.forEach(function (p, i) {
+      const wins = Number(p.wins) || 0;
+      let crowns = '';
+      for (let c = 0; c < Math.min(wins, 3); c++) {
+        crowns += '<span class="crown-shine" style="' + sdStyle() + '">👑</span>';
+      }
+      rows += '<div class="tg-row r' + (i + 1) + '">' +
+        '<div class="tg-rank">' + (i + 1) + '</div>' +
+        '<div class="tg-name">' + esc(p.username) + '</div>' +
+        '<div class="tg-crowns">' + crowns + '<span class="tg-count">×' + wins + '</span></div>' +
+      '</div>';
+    });
+  }
+  return '<div class="panel-head"><div class="panel-title">🏆 TOP GLOBAL</div>' +
+    '<div class="panel-sub">Los que más retos han ganado</div></div>' + rows;
+}
 
 function clearTimers() {
   if (timers.countdown) clearInterval(timers.countdown);
@@ -506,6 +640,7 @@ function fmtMs(ms) {
 
 function goHome() {
   clearTimers();
+  const keepTop = { topGlobal: state.topGlobal, topLoaded: state.topLoaded, topError: state.topError };
   state = {
     screen: 'home', mode: 'spectator', gameCodeInput: '', usernameInput: '',
     platformSelected: { twitch: false, tiktok: false, youtube: false },
@@ -515,8 +650,10 @@ function goHome() {
     countdownEndTime: 0, quizEndTime: 0, quizStartedAt: 0, errors: {},
     loading: false, loadError: '', myResult: null, winsMap: {},
     menuOpen: false, menuSection: null,
+    topGlobal: keepTop.topGlobal, topLoaded: keepTop.topLoaded, topError: keepTop.topError,
   };
   render();
+  loadTopGlobal();
 }
 
 async function startGame() {
@@ -705,8 +842,10 @@ async function refreshStreamerData() {
 
 function render() {
   const app = document.getElementById('app');
+  app.className = state.screen === 'home' ? 'is-home' : '';
   app.innerHTML = getScreenHtml() + '<div class="footer">YOU Inc. \u00A9\uFE0F All rights reserved.</div>' + htmlMenu();
   attachHandlers();
+  syncShine();
 }
 
 function getScreenHtml() {
@@ -724,11 +863,13 @@ function getScreenHtml() {
 function htmlHome() {
   const e = state.errors;
   const ps = state.platformSelected;
+  const sd = sdStyle();
   return '' +
+    '<div class="home-grid"><section class="home-main">' +
     '<div class="hero" style="margin-bottom:8px;">' +
       '<div class="hero-logo-wrap">' +
         '<img src="logo.webp" alt="YOU GAMES" class="hero-logo">' +
-        '<div class="hero-logo-shine"></div>' +
+        '<div class="hero-logo-shine" style="' + sd + '"></div>' +
       '</div>' +
       '<div class="hero-tagline">DEMUESTRA LO QUE SABES</div>' +
       '<div class="hero-desc">Únete Al Reto, Responde Rápido y Gana Premios 🎁</div>' +
@@ -744,13 +885,13 @@ function htmlHome() {
       '</div>' +
       '<div>' +
         '<label>Código del Reto</label>' +
-        '<input type="text" id="input-code" placeholder="" maxlength="10" value="' + state.gameCodeInput + '">' +
+        '<input type="text" id="input-code" placeholder="" maxlength="10" value="' + esc(state.gameCodeInput) + '">' +
         (e.gameCode ? '<div class="error-text">' + e.gameCode + '</div>' : '') +
       '</div>' +
       (state.mode === 'spectator' ? (
         '<div>' +
           '<label>Nombre de Usuario</label>' +
-          '<input type="text" id="input-username" placeholder="Tu nombre de usuario real" maxlength="20" value="' + state.usernameInput + '">' +
+          '<input type="text" id="input-username" placeholder="Tu nombre de usuario real" maxlength="20" value="' + esc(state.usernameInput) + '">' +
           (e.username ? '<div class="error-text">' + e.username + '</div>' : '') +
         '</div>' +
         '<div>' +
@@ -763,10 +904,13 @@ function htmlHome() {
           (e.platform ? '<div class="error-text">' + e.platform + '</div>' : '') +
         '</div>'
       ) : '') +
-      '<button class="btn btn-lg btn-shine" data-action="play" ' + (state.loading ? 'disabled' : '') + '>' +
+      '<button class="btn btn-lg btn-shine" style="' + sd + '" data-action="play" ' + (state.loading ? 'disabled' : '') + '>' +
         (state.loading ? 'Cargando...' : (state.mode === 'spectator' ? '⚡ JUGAR AHORA' : '📊 Ver Panel en Vivo')) +
       '</button>' +
       (state.loadError ? '<div class="error-text center">' + state.loadError + '</div>' : '') +
+    '</div>' +
+    '</section>' +
+    '<aside class="home-left"><div class="panel" id="panel-top">' + htmlTopGlobal() + '</div></aside>' +
     '</div>';
 }
 
@@ -941,8 +1085,8 @@ function htmlResults() {
         '<div class="lb-left">' +
           '<div class="lb-rank">' + (isWinner ? '👑' : '#' + (i + 1)) + '</div>' +
           '<div>' +
-            '<div class="lb-name">' + p.username + crownsFor(p.username) + '</div>' +
-            '<div class="lb-plat">' + p.platform + '</div>' +
+            '<div class="lb-name">' + esc(p.username) + crownsFor(p.username) + '</div>' +
+            '<div class="lb-plat">' + esc(p.platform) + '</div>' +
           '</div>' +
         '</div>' +
         '<div>' +
@@ -976,7 +1120,7 @@ function streamerLiveHtml() {
   state.leaderboard.forEach(function (p, i) {
     rows += '' +
       '<div class="box-green" style="border-radius:10px; padding:14px; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center;">' +
-        '<div>' + (medals[i] || ('#' + (i + 1))) + ' <strong>' + p.username + crownsFor(p.username) + '</strong></div>' +
+        '<div>' + (medals[i] || ('#' + (i + 1))) + ' <strong>' + esc(p.username) + crownsFor(p.username) + '</strong></div>' +
         '<div style="text-align:right;">' +
           '<div style="font-weight:800; font-size:20px;">' + p.correct_answers + '</div>' +
           '<div class="lb-time">' + (p.time_taken_ms ? fmtMs(p.time_taken_ms) : '') + '</div>' +
@@ -1055,6 +1199,8 @@ function attachHandlers() {
 }
 
 render();
+loadTopGlobal();
+topTimer = setInterval(loadTopGlobal, 60000);
 </script>
 </body>
 </html>
