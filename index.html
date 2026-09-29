@@ -376,16 +376,24 @@
     margin-top: 6px; flex-shrink: 0; box-shadow: 0 0 8px rgba(124,255,60,0.6);
   }
 
-  /* ---- LAYOUT DE PORTADA: móvil = una columna; escritorio = panel izquierdo + formulario ---- */
+  /* ---- LAYOUT DE PORTADA: móvil = una columna; escritorio = panel a la izquierda del cuadro ---- */
   .home-left { margin-top: 20px; }
-  @media (min-width: 1000px) {
-    #app.is-home { max-width: 1240px; }
+  @media (min-width: 1180px) {
+    #app.is-home { max-width: 1240px; padding-bottom: 130px; }
     .home-grid {
       display: grid; grid-template-columns: minmax(0, 1fr) 480px minmax(0, 1fr);
-      gap: 28px; align-items: start;
+      column-gap: 28px; row-gap: 0; align-items: start;
     }
-    .home-left { grid-column: 1; grid-row: 1; justify-self: end; width: 300px; margin-top: 0; }
-    .home-main { grid-column: 2; grid-row: 1; }
+    .home-main { display: contents; }
+    .home-main > .hero { grid-column: 2; grid-row: 1; }
+    .home-main > .divider { grid-column: 2; grid-row: 2; }
+    .home-main > .form-card { grid-column: 2; grid-row: 3; }
+    /* La columna izquierda mide lo mismo que el cuadro; el panel flota centrado en ella */
+    .home-left { grid-column: 1; grid-row: 3; align-self: stretch; position: relative; margin-top: 0; }
+    .home-left .panel {
+      position: absolute; top: 50%; right: 0; transform: translateY(-50%);
+      width: 100%; max-width: 300px;
+    }
   }
 
   /* ---- PANEL TOP GLOBAL ---- */
@@ -398,8 +406,8 @@
   .panel-title {
     font-family: 'Bebas Neue', sans-serif; font-size: 24px; letter-spacing: 2px;
     color: var(--brand-neon); text-shadow: 0 0 14px rgba(124,255,60,0.45);
+    white-space: nowrap;
   }
-  .panel-sub { font-size: 12px; color: var(--text-dim); margin-top: 2px; }
   .panel-empty { text-align: center; color: var(--text-dim); font-size: 13px; padding: 18px 8px; }
   .tg-row {
     display: flex; align-items: center; gap: 10px; padding: 9px 10px; margin-bottom: 6px;
@@ -428,14 +436,14 @@
   }
 
   /* ---- CORONAS QUE DESTELLAN (mismo ciclo de 6s que el logo y el botón) ---- */
-  .crown-shine { display: inline-block; animation: crownShine 6s ease-in-out var(--sd, 0s) infinite; }
+  .crown-shine, .emoji-shine { display: inline-block; animation: crownShine 6s ease-in-out var(--sd, 0s) infinite; }
   @keyframes crownShine {
     0%, 52% { filter: brightness(1) drop-shadow(0 0 0 rgba(255,214,64,0)); transform: scale(1); }
     65% { filter: brightness(1.8) drop-shadow(0 0 7px rgba(255,214,64,0.95)); transform: scale(1.2); }
     78%, 100% { filter: brightness(1) drop-shadow(0 0 0 rgba(255,214,64,0)); transform: scale(1); }
   }
   @media (prefers-reduced-motion: reduce) {
-    .crown-shine, .hero-logo-shine, .btn-shine::after { animation: none; }
+    .crown-shine, .emoji-shine, .hero-logo-shine, .btn-shine::after { animation: none; }
   }
 </style>
 </head>
@@ -572,6 +580,18 @@ function syncShine() {
   });
 }
 
+// El título del panel mantiene 24px si cabe; si la fuente ocupa más de lo previsto, se reduce lo justo
+function fitPanelTitle() {
+  const el = document.querySelector('.panel-title');
+  if (!el) return;
+  el.style.fontSize = '';
+  let size = 24;
+  while (el.scrollWidth > el.clientWidth && size > 14) {
+    size -= 1;
+    el.style.fontSize = size + 'px';
+  }
+}
+
 // ---------- TOP GLOBAL ----------
 let topTimer = null;
 
@@ -591,7 +611,7 @@ async function loadTopGlobal() {
   }
   state.topLoaded = true;
   const el = document.getElementById('panel-top');
-  if (el) { el.innerHTML = htmlTopGlobal(); syncShine(); }
+  if (el) { el.innerHTML = htmlTopGlobal(); syncShine(); fitPanelTitle(); }
 }
 
 function htmlTopGlobal() {
@@ -614,8 +634,7 @@ function htmlTopGlobal() {
       '</div>';
     });
   }
-  return '<div class="panel-head"><div class="panel-title">🏆 TOP GLOBAL</div>' +
-    '<div class="panel-sub">Los que más retos han ganado</div></div>' + rows;
+  return '<div class="panel-head"><div class="panel-title"><span class="emoji-shine" style="' + sdStyle() + '">🏆</span> TOP 10 JUGADORES 😎</div></div>' + rows;
 }
 
 function clearTimers() {
@@ -846,6 +865,7 @@ function render() {
   app.innerHTML = getScreenHtml() + '<div class="footer">YOU Inc. \u00A9\uFE0F All rights reserved.</div>' + htmlMenu();
   attachHandlers();
   syncShine();
+  fitPanelTitle();
 }
 
 function getScreenHtml() {
@@ -872,7 +892,7 @@ function htmlHome() {
         '<div class="hero-logo-shine" style="' + sd + '"></div>' +
       '</div>' +
       '<div class="hero-tagline">DEMUESTRA LO QUE SABES</div>' +
-      '<div class="hero-desc">Únete Al Reto, Responde Rápido y Gana Premios 🎁</div>' +
+      '<div class="hero-desc">Únete Al Reto, Responde Rápido y Gana Premios&nbsp;<span class="emoji-shine" style="' + sd + '">🎁</span></div>' +
     '</div>' +
     '<div class="divider"></div>' +
     '<div class="form-card stack">' +
@@ -1199,6 +1219,11 @@ function attachHandlers() {
 }
 
 render();
+if (document.fonts) {
+  if (document.fonts.ready) document.fonts.ready.then(fitPanelTitle);
+  if (document.fonts.addEventListener) document.fonts.addEventListener('loadingdone', fitPanelTitle);
+}
+window.addEventListener('resize', fitPanelTitle);
 loadTopGlobal();
 topTimer = setInterval(loadTopGlobal, 60000);
 </script>
