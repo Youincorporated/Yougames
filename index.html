@@ -376,10 +376,12 @@
     margin-top: 6px; flex-shrink: 0; box-shadow: 0 0 8px rgba(124,255,60,0.6);
   }
 
-  /* ---- LAYOUT DE PORTADA: móvil = una columna; escritorio = panel a la izquierda del cuadro ---- */
+  /* ---- LAYOUT DE PORTADA: móvil = una columna; escritorio = panel izquierdo | cuadro | panel derecho ---- */
   .home-left { margin-top: 20px; }
+  .home-right { margin-top: 12px; }
+  .right-stack { display: flex; flex-direction: column; gap: 12px; }
   @media (min-width: 1180px) {
-    #app.is-home { max-width: 1240px; padding-bottom: 130px; }
+    #app.is-home { max-width: 1240px; padding-bottom: 250px; }
     .home-grid {
       display: grid; grid-template-columns: minmax(0, 1fr) 480px minmax(0, 1fr);
       column-gap: 28px; row-gap: 0; align-items: start;
@@ -388,10 +390,15 @@
     .home-main > .hero { grid-column: 2; grid-row: 1; }
     .home-main > .divider { grid-column: 2; grid-row: 2; }
     .home-main > .form-card { grid-column: 2; grid-row: 3; }
-    /* La columna izquierda mide lo mismo que el cuadro; el panel flota centrado en ella */
+    /* Las columnas laterales miden lo mismo que el cuadro; su contenido flota centrado en ellas */
     .home-left { grid-column: 1; grid-row: 3; align-self: stretch; position: relative; margin-top: 0; }
     .home-left .panel {
       position: absolute; top: 50%; right: 0; transform: translateY(-50%);
+      width: 100%; max-width: 300px;
+    }
+    .home-right { grid-column: 3; grid-row: 3; align-self: stretch; position: relative; margin-top: 0; }
+    .right-stack {
+      position: absolute; top: 50%; left: 0; transform: translateY(-50%);
       width: 100%; max-width: 300px;
     }
   }
@@ -445,6 +452,54 @@
   @media (prefers-reduced-motion: reduce) {
     .crown-shine, .emoji-shine, .hero-logo-shine, .btn-shine::after { animation: none; }
   }
+
+  /* ---- PANEL DERECHO: estadísticas ---- */
+  .stats-row { display: flex; }
+  .stat-cell { flex: 1; min-width: 0; text-align: center; padding: 2px 4px; }
+  .stat-cell + .stat-cell { border-left: 1px solid rgba(124,255,60,0.2); }
+  .stat-big {
+    font-family: 'Space Mono', monospace; font-weight: 700; font-size: 26px; line-height: 1.15;
+    color: var(--brand-neon); font-variant-numeric: tabular-nums;
+    text-shadow: 0 0 14px rgba(124,255,60,0.4);
+  }
+  .stat-cell.money .stat-big { color: #facc15; text-shadow: 0 0 14px rgba(250,204,21,0.35); }
+  .stat-cap { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--text-dim); margin-top: 2px; }
+
+  /* ---- PANEL DERECHO: podio ---- */
+  .podium { display: flex; align-items: flex-end; justify-content: center; gap: 8px; margin-top: 6px; }
+  .pod-col { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: center; text-align: center; }
+  .pod-crown { font-size: 22px; line-height: 1; margin-bottom: 2px; }
+  .pod-name { max-width: 100%; font-weight: 700; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .pod-score { font-family: 'Space Mono', monospace; font-size: 11px; color: var(--text-dim); margin: 2px 0 6px; white-space: nowrap; }
+  .pod-block {
+    width: 100%; border-radius: 10px 10px 0 0; padding-top: 6px; text-align: center;
+    font-family: 'Bebas Neue', sans-serif; font-size: 30px; line-height: 1;
+  }
+  .pod-col.gold .pod-block { height: 84px; background: linear-gradient(180deg, #ffe066, #b8860b); color: #3b2a00; box-shadow: 0 0 18px rgba(250,204,21,0.35); }
+  .pod-col.silver .pod-block { height: 62px; background: linear-gradient(180deg, #eef2f7, #8a97a6); color: #1b2430; }
+  .pod-col.bronze .pod-block { height: 46px; background: linear-gradient(180deg, #e6a566, #8a4f1d); color: #2b1505; }
+  .pod-empty { opacity: 0.35; }
+
+  /* ---- PANEL DERECHO: próximo reto ---- */
+  .live-pill {
+    display: inline-block; margin-bottom: 10px; padding: 5px 10px; border-radius: 999px;
+    font-size: 12px; font-weight: 700; color: #ffd0d0;
+    background: rgba(239,68,68,0.16); border: 1px solid rgba(239,68,68,0.6);
+  }
+  .cd-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+  .cd-cell { text-align: center; min-width: 0; }
+  .cd-num {
+    font-family: 'Space Mono', monospace; font-weight: 700; font-size: 30px; line-height: 1;
+    padding: 12px 0; border-radius: 12px; color: var(--brand-neon); font-variant-numeric: tabular-nums;
+    background: linear-gradient(180deg, rgba(30,90,0,0.35), rgba(0,0,0,0.45));
+    border: 1px solid rgba(124,255,60,0.35); text-shadow: 0 0 14px rgba(124,255,60,0.5);
+  }
+  .cd-lab { font-size: 10px; letter-spacing: 1px; text-transform: uppercase; color: var(--text-dim); margin-top: 5px; }
+  .cd-tba { text-align: center; font-family: 'Bebas Neue', sans-serif; font-size: 24px; letter-spacing: 2px; padding: 14px 0; }
+  .next-info { margin-top: 14px; padding-top: 12px; border-top: 1px solid rgba(124,255,60,0.15); display: flex; flex-direction: column; gap: 6px; }
+  .ni-date { font-weight: 700; font-size: 14px; }
+  .ni-time { font-family: 'Space Mono', monospace; font-weight: 700; font-size: 22px; color: #fff; font-variant-numeric: tabular-nums; }
+  .ni-tz, .ni-utc { font-size: 12px; color: var(--text-dim); line-height: 1.45; }
 </style>
 </head>
 <body>
@@ -553,6 +608,7 @@ let state = {
   topGlobal: [],
   topLoaded: false,
   topError: false,
+  right: emptyRight(),
 };
 
 let timers = { countdown: null, quiz: null, poll: null };
@@ -582,14 +638,192 @@ function syncShine() {
 
 // El título del panel mantiene 24px si cabe; si la fuente ocupa más de lo previsto, se reduce lo justo
 function fitPanelTitle() {
-  const el = document.querySelector('.panel-title');
-  if (!el) return;
-  el.style.fontSize = '';
+  const els = document.querySelectorAll('.panel-title');
+  if (!els.length) return;
+  els.forEach(function (e) { e.style.fontSize = ''; });
+  const overflows = function () {
+    let o = false;
+    els.forEach(function (e) { if (e.scrollWidth > e.clientWidth) o = true; });
+    return o;
+  };
   let size = 24;
-  while (el.scrollWidth > el.clientWidth && size > 14) {
+  while (overflows() && size > 14) {
     size -= 1;
-    el.style.fontSize = size + 'px';
+    els.forEach(function (e) { e.style.fontSize = size + 'px'; });
   }
+}
+
+// ---------- PANEL DERECHO: estadísticas, podio y próximo reto ----------
+function emptyRight() {
+  return { loaded: false, error: false, hasData: false, gamesPlayed: 0, moneyTotal: 0, podium: [], nextGame: null, liveGame: null };
+}
+function parsePrize(p) {
+  const n = parseFloat(String(p === null || p === undefined ? '' : p).replace(/[^0-9.]/g, ''));
+  return isNaN(n) ? 0 : n;
+}
+function fmtMoney(n) { return '$' + n.toLocaleString('en-US', { maximumFractionDigits: 2 }); }
+function pad2(n) { return String(n).padStart(2, '0'); }
+function cdParts(ms) {
+  const t = Math.max(0, Math.floor(ms / 1000));
+  return { d: Math.floor(t / 86400), h: Math.floor((t % 86400) / 3600), m: Math.floor((t % 3600) / 60), s: t % 60 };
+}
+function setText(id, v) { const el = document.getElementById(id); if (el) el.textContent = v; }
+
+async function sbFetchAllGames() {
+  const res = await fetch(SUPABASE_URL + '/rest/v1/games?select=id,title,prize,start_time,game_duration_seconds&order=start_time.desc&limit=1000', { headers: sbHeaders });
+  if (!res.ok) throw new Error('Error consultando los retos');
+  return await res.json();
+}
+async function sbFetchGameWinners() {
+  const res = await fetch(SUPABASE_URL + '/rest/v1/game_winners?select=game_id&limit=1000', { headers: sbHeaders });
+  if (!res.ok) throw new Error('Error consultando los ganadores');
+  return await res.json();
+}
+
+async function loadRightData() {
+  if (state.screen !== 'home') return;
+  try {
+    const results = await Promise.all([sbFetchAllGames(), sbFetchGameWinners()]);
+    const games = results[0], winners = results[1];
+    const now = Date.now();
+    const startOf = function (g) { return new Date(g.start_time).getTime(); };
+    const endOf = function (g) { return startOf(g) + (g.game_duration_seconds || 300) * 1000; };
+    const hasWinner = {};
+    winners.forEach(function (w) { hasWinner[w.game_id] = true; });
+    // Solo cuentan los retos ya terminados que tuvieron al menos un participante
+    const finished = games.filter(function (g) { return endOf(g) < now && hasWinner[g.id]; })
+      .sort(function (a, b) { return startOf(b) - startOf(a); });
+    const upcoming = games.filter(function (g) { return startOf(g) > now; })
+      .sort(function (a, b) { return startOf(a) - startOf(b); });
+    const live = games.filter(function (g) { return startOf(g) <= now && endOf(g) >= now; })[0] || null;
+    const last = finished[0] || null;
+    let podium = [];
+    if (last) { try { podium = await sbFetchLeaderboard(last.id, 3); } catch (e) { podium = []; } }
+    state.right = {
+      loaded: true, error: false, hasData: true,
+      gamesPlayed: finished.length,
+      moneyTotal: finished.reduce(function (acc, g) { return acc + parsePrize(g.prize); }, 0),
+      podium: podium, nextGame: upcoming[0] || null, liveGame: live
+    };
+  } catch (err) {
+    state.right.loaded = true;
+    state.right.error = true;
+  }
+  updateRightPanels();
+}
+
+async function loadHomeData() {
+  await Promise.all([loadTopGlobal(), loadRightData()]);
+}
+
+function updateRightPanels() {
+  if (state.screen !== 'home') return;
+  [['panel-stats', htmlStatsPanel], ['panel-podium', htmlPodiumPanel], ['panel-next', htmlNextPanel]].forEach(function (x) {
+    const el = document.getElementById(x[0]);
+    if (el) el.innerHTML = x[1]();
+  });
+  syncShine();
+  fitPanelTitle();
+}
+
+// Contador del próximo reto: se recalcula desde la hora real cada 250 ms (nunca acumula retraso)
+let lastNextReload = 0;
+function tickNext() {
+  const g = state.right && state.right.nextGame;
+  if (!g || state.screen !== 'home') return;
+  const diff = new Date(g.start_time).getTime() - Date.now();
+  const p = cdParts(diff);
+  setText('cd-d', pad2(p.d)); setText('cd-h', pad2(p.h)); setText('cd-m', pad2(p.m)); setText('cd-s', pad2(p.s));
+  if (diff <= 0 && Date.now() - lastNextReload > 10000) {
+    lastNextReload = Date.now();
+    loadHomeData();
+  }
+}
+
+// Fecha, hora y zona horaria en la hora local de quien mira la página
+function tzInfo(ms) {
+  const d = new Date(ms);
+  const out = { date: '', time: '', short: '', long: '', iana: '', utc: '' };
+  try {
+    const date = new Intl.DateTimeFormat('es', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }).format(d);
+    out.date = date.charAt(0).toUpperCase() + date.slice(1);
+    out.time = new Intl.DateTimeFormat('es', { hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).format(d);
+    new Intl.DateTimeFormat('es', { hour: '2-digit', timeZoneName: 'short' }).formatToParts(d)
+      .forEach(function (x) { if (x.type === 'timeZoneName') out.short = x.value; });
+    new Intl.DateTimeFormat('es', { hour: '2-digit', timeZoneName: 'long' }).formatToParts(d)
+      .forEach(function (x) { if (x.type === 'timeZoneName') out.long = x.value; });
+    out.iana = Intl.DateTimeFormat().resolvedOptions().timeZone || '';
+    const utcTime = new Intl.DateTimeFormat('es', { hour: '2-digit', minute: '2-digit', hourCycle: 'h23', timeZone: 'UTC' }).format(d);
+    const dayLocal = new Intl.DateTimeFormat('en-CA', { year: 'numeric', month: '2-digit', day: '2-digit' }).format(d);
+    const dayUtc = new Intl.DateTimeFormat('en-CA', { year: 'numeric', month: '2-digit', day: '2-digit', timeZone: 'UTC' }).format(d);
+    if (dayLocal !== dayUtc || utcTime !== out.time) {
+      out.utc = utcTime + ' UTC' + (dayLocal !== dayUtc
+        ? ' (' + new Intl.DateTimeFormat('es', { day: 'numeric', month: 'short', timeZone: 'UTC' }).format(d) + ')' : '');
+    }
+  } catch (e) {
+    out.date = d.toLocaleString();
+  }
+  return out;
+}
+
+function htmlStatsPanel() {
+  const r = state.right, ok = r.hasData;
+  return '<div class="stats-row">' +
+    '<div class="stat-cell"><div class="stat-big">' + (ok ? r.gamesPlayed : '—') + '</div><div class="stat-cap">Juegos jugados</div></div>' +
+    '<div class="stat-cell money"><div class="stat-big">' + (ok ? fmtMoney(r.moneyTotal) : '—') + '</div><div class="stat-cap">Dinero repartido</div></div>' +
+  '</div>';
+}
+
+function htmlPodiumPanel() {
+  const r = state.right;
+  const head = '<div class="panel-head"><div class="panel-title">🏅 PODIO DEL ÚLTIMO RETO</div></div>';
+  if (!r.podium.length) {
+    return head + '<div class="panel-empty">' + (!r.loaded ? 'Cargando...' : (r.error ? 'No se pudo cargar.' : 'Todavía no hay un reto terminado.')) + '</div>';
+  }
+  const slots = [
+    { p: r.podium[1], pos: 2, cls: 'silver' },
+    { p: r.podium[0], pos: 1, cls: 'gold' },
+    { p: r.podium[2], pos: 3, cls: 'bronze' }
+  ];
+  let cols = '';
+  slots.forEach(function (sl) {
+    if (!sl.p) {
+      cols += '<div class="pod-col pod-empty ' + sl.cls + '"><div class="pod-name">—</div><div class="pod-score">&nbsp;</div><div class="pod-block">' + sl.pos + '</div></div>';
+      return;
+    }
+    cols += '<div class="pod-col ' + sl.cls + '">' +
+      (sl.pos === 1 ? '<span class="crown-shine pod-crown" style="' + sdStyle() + '">👑</span>' : '') +
+      '<div class="pod-name">' + esc(sl.p.username) + '</div>' +
+      '<div class="pod-score">' + esc(sl.p.correct_answers) + ' ✓ · ' + fmtMs(sl.p.time_taken_ms || 0) + '</div>' +
+      '<div class="pod-block">' + sl.pos + '</div>' +
+    '</div>';
+  });
+  return head + '<div class="podium">' + cols + '</div>';
+}
+
+function cdCell(id, val, label) {
+  return '<div class="cd-cell"><div class="cd-num" id="' + id + '">' + pad2(val) + '</div><div class="cd-lab">' + label + '</div></div>';
+}
+
+function htmlNextPanel() {
+  const r = state.right, g = r.nextGame;
+  let out = '<div class="panel-head"><div class="panel-title">⏱ PRÓXIMO RETO</div></div>';
+  if (r.liveGame) out += '<div class="live-pill">🔴 ¡Reto en vivo ahora!</div>';
+  if (g) {
+    const p = cdParts(new Date(g.start_time).getTime() - Date.now());
+    out += '<div class="cd-grid">' + cdCell('cd-d', p.d, 'días') + cdCell('cd-h', p.h, 'horas') + cdCell('cd-m', p.m, 'min') + cdCell('cd-s', p.s, 'seg') + '</div>';
+    const z = tzInfo(new Date(g.start_time).getTime());
+    const zoneLine = [z.iana, z.long].filter(function (x) { return x; }).join(' · ') + (z.short ? ' (' + z.short + ')' : '');
+    out += '<div class="next-info">' +
+      '<div class="ni-date">📅 ' + esc(z.date) + '</div>' +
+      '<div class="ni-time">⏰ ' + esc(z.time) + '</div>' +
+      '<div class="ni-tz">🌍 Zona horaria: ' + esc(zoneLine) + '</div>' +
+      (z.utc ? '<div class="ni-utc">🕒 Equivale a ' + esc(z.utc) + '</div>' : '') +
+    '</div>';
+  } else {
+    out += '<div class="cd-tba">' + (!r.loaded ? 'Cargando...' : (r.error && !r.hasData ? 'No se pudo cargar.' : 'Por anunciar')) + '</div>';
+  }
+  return out;
 }
 
 // ---------- TOP GLOBAL ----------
@@ -659,7 +893,7 @@ function fmtMs(ms) {
 
 function goHome() {
   clearTimers();
-  const keepTop = { topGlobal: state.topGlobal, topLoaded: state.topLoaded, topError: state.topError };
+  const keepTop = { topGlobal: state.topGlobal, topLoaded: state.topLoaded, topError: state.topError, right: state.right };
   state = {
     screen: 'home', mode: 'spectator', gameCodeInput: '', usernameInput: '',
     platformSelected: { twitch: false, tiktok: false, youtube: false },
@@ -669,10 +903,10 @@ function goHome() {
     countdownEndTime: 0, quizEndTime: 0, quizStartedAt: 0, errors: {},
     loading: false, loadError: '', myResult: null, winsMap: {},
     menuOpen: false, menuSection: null,
-    topGlobal: keepTop.topGlobal, topLoaded: keepTop.topLoaded, topError: keepTop.topError,
+    topGlobal: keepTop.topGlobal, topLoaded: keepTop.topLoaded, topError: keepTop.topError, right: keepTop.right,
   };
   render();
-  loadTopGlobal();
+  loadHomeData();
 }
 
 async function startGame() {
@@ -931,6 +1165,11 @@ function htmlHome() {
     '</div>' +
     '</section>' +
     '<aside class="home-left"><div class="panel" id="panel-top">' + htmlTopGlobal() + '</div></aside>' +
+    '<aside class="home-right"><div class="right-stack">' +
+      '<div class="panel" id="panel-stats">' + htmlStatsPanel() + '</div>' +
+      '<div class="panel" id="panel-podium">' + htmlPodiumPanel() + '</div>' +
+      '<div class="panel" id="panel-next">' + htmlNextPanel() + '</div>' +
+    '</div></aside>' +
     '</div>';
 }
 
@@ -1224,8 +1463,9 @@ if (document.fonts) {
   if (document.fonts.addEventListener) document.fonts.addEventListener('loadingdone', fitPanelTitle);
 }
 window.addEventListener('resize', fitPanelTitle);
-loadTopGlobal();
-topTimer = setInterval(loadTopGlobal, 60000);
+loadHomeData();
+topTimer = setInterval(loadHomeData, 60000);
+setInterval(tickNext, 250);
 </script>
 </body>
 </html>
