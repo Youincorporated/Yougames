@@ -449,8 +449,15 @@
     65% { filter: brightness(1.8) drop-shadow(0 0 7px rgba(255,214,64,0.95)); transform: scale(1.2); }
     78%, 100% { filter: brightness(1) drop-shadow(0 0 0 rgba(255,214,64,0)); transform: scale(1); }
   }
+  /* Variante suave para emojis claros (el reloj 🕒): mismo ritmo y tamaño, sin "quemar" el color */
+  .emoji-shine.soft { animation-name: emojiShineSoft; }
+  @keyframes emojiShineSoft {
+    0%, 52% { filter: brightness(1) drop-shadow(0 0 0 rgba(255,236,150,0)); transform: scale(1); }
+    65% { filter: brightness(1.05) drop-shadow(0 0 7px rgba(255,236,150,1)); transform: scale(1.2); }
+    78%, 100% { filter: brightness(1) drop-shadow(0 0 0 rgba(255,236,150,0)); transform: scale(1); }
+  }
   @media (prefers-reduced-motion: reduce) {
-    .crown-shine, .emoji-shine, .hero-logo-shine, .btn-shine::after { animation: none; }
+    .crown-shine, .emoji-shine, .emoji-shine.soft, .hero-logo-shine, .btn-shine::after { animation: none; }
   }
 
   /* ---- PANEL DERECHO: estadísticas ---- */
@@ -479,6 +486,7 @@
   .pod-col.silver .pod-block { height: 62px; background: linear-gradient(180deg, #eef2f7, #8a97a6); color: #1b2430; }
   .pod-col.bronze .pod-block { height: 46px; background: linear-gradient(180deg, #e6a566, #8a4f1d); color: #2b1505; }
   .pod-empty { opacity: 0.35; }
+  .measuring .crown-shine, .measuring .emoji-shine { transform: none !important; filter: none !important; }
 
   /* ---- PANEL DERECHO: próximo reto ---- */
   .live-pill {
@@ -640,7 +648,7 @@ function syncShine() {
 function fitPanelTitle() {
   const els = document.querySelectorAll('.panel-title');
   if (!els.length) return;
-  els.forEach(function (e) { e.style.fontSize = ''; });
+  els.forEach(function (e) { e.style.fontSize = ''; e.classList.add('measuring'); });
   const overflows = function () {
     let o = false;
     els.forEach(function (e) { if (e.scrollWidth > e.clientWidth) o = true; });
@@ -651,6 +659,7 @@ function fitPanelTitle() {
     size -= 1;
     els.forEach(function (e) { e.style.fontSize = size + 'px'; });
   }
+  els.forEach(function (e) { e.classList.remove('measuring'); });
 }
 
 // ---------- PANEL DERECHO: estadísticas, podio y próximo reto ----------
@@ -718,7 +727,7 @@ async function loadHomeData() {
 
 function updateRightPanels() {
   if (state.screen !== 'home') return;
-  [['panel-stats', htmlStatsPanel], ['panel-podium', htmlPodiumPanel], ['panel-next', htmlNextPanel]].forEach(function (x) {
+  [['panel-stats', htmlStatsPanel], ['panel-next', htmlNextPanel], ['panel-podium', htmlPodiumPanel]].forEach(function (x) {
     const el = document.getElementById(x[0]);
     if (el) el.innerHTML = x[1]();
   });
@@ -776,7 +785,7 @@ function htmlStatsPanel() {
 
 function htmlPodiumPanel() {
   const r = state.right;
-  const head = '<div class="panel-head"><div class="panel-title">🏅 PODIO DEL ÚLTIMO RETO</div></div>';
+  const head = '<div class="panel-head"><div class="panel-title"><span class="emoji-shine" style="' + sdStyle() + '">🏅</span> PODIO DEL ÚLTIMO RETO</div></div>';
   if (!r.podium.length) {
     return head + '<div class="panel-empty">' + (!r.loaded ? 'Cargando...' : (r.error ? 'No se pudo cargar.' : 'Todavía no hay un reto terminado.')) + '</div>';
   }
@@ -807,7 +816,7 @@ function cdCell(id, val, label) {
 
 function htmlNextPanel() {
   const r = state.right, g = r.nextGame;
-  let out = '<div class="panel-head"><div class="panel-title">⏱ PRÓXIMO RETO</div></div>';
+  let out = '<div class="panel-head"><div class="panel-title"><span class="emoji-shine soft" style="' + sdStyle() + '">🕒</span> PRÓXIMO RETO</div></div>';
   if (r.liveGame) out += '<div class="live-pill">🔴 ¡Reto en vivo ahora!</div>';
   if (g) {
     const p = cdParts(new Date(g.start_time).getTime() - Date.now());
@@ -818,7 +827,7 @@ function htmlNextPanel() {
       '<div class="ni-date">📅 ' + esc(z.date) + '</div>' +
       '<div class="ni-time">⏰ ' + esc(z.time) + '</div>' +
       '<div class="ni-tz">🌍 Zona horaria: ' + esc(zoneLine) + '</div>' +
-      (z.utc ? '<div class="ni-utc">🕒 Equivale a ' + esc(z.utc) + '</div>' : '') +
+      (z.utc ? '<div class="ni-utc">🌐 Equivale a ' + esc(z.utc) + '</div>' : '') +
     '</div>';
   } else {
     out += '<div class="cd-tba">' + (!r.loaded ? 'Cargando...' : (r.error && !r.hasData ? 'No se pudo cargar.' : 'Por anunciar')) + '</div>';
@@ -868,7 +877,7 @@ function htmlTopGlobal() {
       '</div>';
     });
   }
-  return '<div class="panel-head"><div class="panel-title"><span class="emoji-shine" style="' + sdStyle() + '">🏆</span> TOP 10 JUGADORES 😎</div></div>' + rows;
+  return '<div class="panel-head"><div class="panel-title"><span class="emoji-shine" style="' + sdStyle() + '">🏆</span> TOP 10 JUGADORES <span class="emoji-shine" style="' + sdStyle() + '">😎</span></div></div>' + rows;
 }
 
 function clearTimers() {
@@ -1167,8 +1176,8 @@ function htmlHome() {
     '<aside class="home-left"><div class="panel" id="panel-top">' + htmlTopGlobal() + '</div></aside>' +
     '<aside class="home-right"><div class="right-stack">' +
       '<div class="panel" id="panel-stats">' + htmlStatsPanel() + '</div>' +
-      '<div class="panel" id="panel-podium">' + htmlPodiumPanel() + '</div>' +
       '<div class="panel" id="panel-next">' + htmlNextPanel() + '</div>' +
+      '<div class="panel" id="panel-podium">' + htmlPodiumPanel() + '</div>' +
     '</div></aside>' +
     '</div>';
 }
