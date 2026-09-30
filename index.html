@@ -263,12 +263,12 @@
   }
   .plat-tiktok {
     background: linear-gradient(135deg, rgba(70,70,70,0.55), rgba(15,15,15,0.6));
-    border: 2px solid rgba(37,244,238,0.5); color: #e6ffff;
+    border: 2px solid #000; color: #f2f2f2;
   }
   .plat-tiktok.active {
     background: linear-gradient(135deg, #3a3a3a, #121212);
-    border-color: #25F4EE; color: #fff;
-    box-shadow: 0 0 16px rgba(37,244,238,0.55);
+    border-color: #000; color: #fff;
+    box-shadow: 0 0 16px rgba(255,255,255,0.35);
   }
   .plat-youtube {
     background: linear-gradient(135deg, rgba(255,0,0,0.28), rgba(179,0,0,0.2));
@@ -1244,8 +1244,7 @@ function htmlMenu() {
         '<p>Los premios ofrecidos en cada reto son entregados voluntariamente por el streamer organizador, no por YOU GAMES. No se requiere compra ni pago alguno para participar.</p>' +
         '<p>El tiempo de entrega del premio depende exclusivamente del streamer organizador y no de YOU GAMES; dicho tiempo puede variar de un reto a otro.</p>' +
         '<p>El streamer organizador es responsable de la entrega del premio y de cumplir la normativa local que aplique a sorteos o promociones en su país.</p>' +
-        '<p>Nos reservamos el derecho de descalificar participaciones fraudulentas o repetidas.</p>' +
-        '<p class="legal-note">Este texto es una base general y no reemplaza asesoría legal profesional.</p>',
+        '<p>Nos reservamos el derecho de descalificar participaciones fraudulentas o repetidas.</p>',
     },
   };
 
@@ -1403,13 +1402,7 @@ function streamerLiveHtml() {
 
 function htmlStreamer() {
   return '' +
-    '<div class="center" style="margin-bottom:24px;">' +
-      '<h1 class="brand-green" style="font-size:24px; font-weight:800;">PANEL EN VIVO</h1>' +
-      '<div class="subtitle">Reto: ' + state.gameCode + ' — se actualiza solo cada 4 seg</div>' +
-    '</div>' +
-    '<div class="code-display" style="margin-bottom:20px;">' + state.gameCode + '</div>' +
-    '<div class="subtitle center" style="margin-bottom:24px;">Muestra este código en tu pantalla en directo para que tus seguidores lo escriban</div>' +
-    '<div style="font-size:18px; font-weight:800;" class="brand-green">🔴 Top 5 en vivo</div>' +
+    '<div style="font-size:18px; font-weight:800; margin-top:40px;" class="brand-green">🔴 Top 5 en vivo</div>' +
     '<div id="streamer-live-area" style="margin-top:12px;">' + streamerLiveHtml() + '</div>' +
     '<button class="btn" data-action="home" style="margin-top:24px;">🏠 Volver</button>';
 }
