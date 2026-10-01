@@ -28,12 +28,13 @@
     --text-dim: #9db89a;
   }
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  html, body { width: 100%; height: 100%; }
+  html { width: 100%; min-height: 100%; background-color: #030a06; }
+  body { width: 100%; }
   body {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     background:
-      radial-gradient(circle at 50% 0%, rgba(30,90,0,0.35) 0%, rgba(5,19,10,0) 55%),
-      radial-gradient(circle at 100% 100%, rgba(60,175,0,0.12) 0%, rgba(5,19,10,0) 60%),
+      radial-gradient(circle 520px at 50% 0%, rgba(30,90,0,0.35) 0%, rgba(5,19,10,0) 100%),
+      radial-gradient(circle 520px at 100% 100%, rgba(60,175,0,0.12) 0%, rgba(5,19,10,0) 100%),
       linear-gradient(180deg, #060c07 0%, #04100a 45%, #030a06 100%);
     color: #fff;
     min-height: 100vh;
@@ -1125,7 +1126,7 @@ async function refreshStreamerData() {
 function render() {
   const app = document.getElementById('app');
   app.className = state.screen === 'home' ? 'is-home' : '';
-  app.innerHTML = getScreenHtml() + '<div class="footer">YOU Inc. \u00A9\uFE0F All rights reserved.</div>' + htmlMenu();
+  app.innerHTML = getScreenHtml() + '<div class="footer">\u00A9 2026 YOU. All rights reserved.</div>' + htmlMenu();
   attachHandlers();
   syncShine();
   fitPanelTitle();
