@@ -529,6 +529,14 @@
     border: 2px solid var(--brand-neon); box-shadow: 0 0 16px rgba(124,255,60,0.3);
   }
   .btn-share:active { transform: scale(0.97); }
+
+  /* ---- MENÚ: emojis y textos destacados ---- */
+  .menu-content .emoji-shine { margin: 0 1px; }
+  .menu-content p.menu-slogan { font-weight: 800; color: #fff; }
+  .menu-content p.menu-quote {
+    font-weight: 700; font-style: italic; color: #fff; margin-top: 16px;
+    border-left: 3px solid var(--brand-neon); padding-left: 12px;
+  }
 </style>
 </head>
 <body>
@@ -1238,34 +1246,40 @@ function htmlMenu() {
       icon: '📜',
       title: 'Reglas del Juego',
       html: '<div class="menu-rule-list">' +
-        ruleItem('Escribe el código del reto que el streamer muestra en directo.') +
-        ruleItem('Usa tu nombre de usuario real, el mismo con el que sigues al canal.') +
-        ruleItem('Solo se permite una participación por reto, utilizando el nombre de usuario con el que sigues el canal.') +
-        ruleItem('Para reclamar el premio en caso de resultar ganador, es necesario seguir a YOU en al menos una de sus plataformas.') +
-        ruleItem('Una vez el reto cierra (pasado su tiempo), ya no se puede entrar.') +
-        ruleItem('Gana quien conteste más preguntas correctas; si hay empate, gana quien las respondió en menos tiempo.') +
-        ruleItem('El streamer entrega el premio anunciado por sus propios medios (transferencia, efectivo, etc).') +
+        ruleItem('Solo pueden competir personas mayores de edad.', '🔞') +
+        ruleItem('Escribe el código del reto que el streamer muestra en directo.', '🔑') +
+        ruleItem('Usa tu nombre de usuario real, el mismo con el que sigues al canal.', '👤') +
+        ruleItem('Solo se permite una participación por reto, utilizando el nombre de usuario con el que sigues el canal.', '1️⃣') +
+        ruleItem('Para reclamar el premio en caso de resultar ganador, es necesario seguir a YOU en al menos una de sus plataformas.', '🔔') +
+        ruleItem('Una vez el reto cierra (pasado su tiempo), ya no se puede entrar.', '🔒') +
+        ruleItem('Gana quien conteste más preguntas correctas; si hay empate, gana quien las respondió en menos tiempo.', '🏆') +
+        ruleItem('El streamer entrega el premio anunciado por sus propios medios (transferencia, efectivo, etc).', '💰') +
       '</div>',
     },
     nosotros: {
       icon: '🎮',
       title: 'Quiénes Somos',
-      html: '<p>YOU GAMES es una plataforma de trivia interactiva pensada para que streamers premien a su comunidad en vivo, con retos rápidos y divertidos.</p>',
+      html: '<p>You Games es un proyecto de entretenimiento competitivo creado dentro de YOU, donde el conocimiento y la rapidez se convierten en el centro del juego. ' + glow('🙌🏻') + glow('🏆') + '</p>' +
+        '<p>Ponemos a prueba a los participantes mediante preguntas con tiempo límite, dinero en juego y un ranking global, en una experiencia donde cada segundo y cada respuesta pueden marcar la diferencia. ' + glow('🥇') + glow('💰') + '</p>' +
+        '<p>Nuestro objetivo es construir una comunidad alrededor de la competición, los retos y el entretenimiento, tanto en nuestros directos como en los desafíos que llevamos a la calle.</p>' +
+        '<p class="menu-slogan">Demuestra lo que sabes. ' + glow('🧠') + glow('⚡️') + '</p>' +
+        '<p class="menu-quote">«En YOU, todo es posible»</p>',
     },
     contacto: {
       icon: '✉️',
       title: 'Contacto',
-      html: '<p>¿Tienes dudas o sugerencias? Escríbenos:</p><p style="margin-top:10px; font-weight:700;">contacto@yougames.app</p>',
+      html: '<p>¿Tienes dudas o sugerencias? Escríbenos. ' + glow('💬') + '</p>' +
+        '<p style="margin-top:10px; font-weight:700;">' + glow('✉️', true) + ' contacto@yougames.app</p>',
     },
     legal: {
       icon: '⚖️',
       title: 'Aviso Legal',
-      html: '<p>YOU GAMES es una plataforma independiente y no está afiliada a Twitch, TikTok, YouTube ni Instagram.</p>' +
-        '<p>Solo pueden participar usuarios mayores de edad que además sigan a YOU en al menos una de sus plataformas oficiales.</p>' +
-        '<p>Los premios ofrecidos en cada reto son entregados voluntariamente por el streamer organizador, no por YOU GAMES. No se requiere compra ni pago alguno para participar.</p>' +
-        '<p>El tiempo de entrega del premio depende exclusivamente del streamer organizador y no de YOU GAMES; dicho tiempo puede variar de un reto a otro.</p>' +
-        '<p>El streamer organizador es responsable de la entrega del premio y de cumplir la normativa local que aplique a sorteos o promociones en su país.</p>' +
-        '<p>Nos reservamos el derecho de descalificar participaciones fraudulentas o repetidas.</p>',
+      html: '<p>YOU GAMES es una plataforma independiente y no está afiliada a Twitch, TikTok, YouTube ni Instagram. ' + glow('🛡️') + '</p>' +
+        '<p>Solo pueden participar usuarios mayores de edad que además sigan a YOU en al menos una de sus plataformas oficiales. ' + glow('🔞') + '</p>' +
+        '<p>Los premios ofrecidos en cada reto son entregados voluntariamente por el streamer organizador, no por YOU GAMES. No se requiere compra ni pago alguno para participar. ' + glow('🎁') + '</p>' +
+        '<p>El tiempo de entrega del premio depende exclusivamente del streamer organizador y no de YOU GAMES; dicho tiempo puede variar de un reto a otro. ' + glow('⏳') + '</p>' +
+        '<p>El streamer organizador es responsable de la entrega del premio y de cumplir la normativa local que aplique a sorteos o promociones en su país. ' + glow('📋') + '</p>' +
+        '<p>Nos reservamos el derecho de descalificar participaciones fraudulentas o repetidas. ' + glow('🚫') + '</p>',
     },
   };
 
@@ -1287,8 +1301,13 @@ function htmlMenu() {
     '</div>';
 }
 
-function ruleItem(text) {
-  return '<div class="menu-rule-item"><div class="menu-rule-dot"></div><div>' + text + '</div></div>';
+// Emoji que brilla en sintonía con el logo, el botón y el resto (soft = brillo suave para emojis claros)
+function glow(emoji, soft) {
+  return '<span class="emoji-shine' + (soft ? ' soft' : '') + '" style="' + sdStyle() + '">' + emoji + '</span>';
+}
+
+function ruleItem(text, emoji) {
+  return '<div class="menu-rule-item"><div class="menu-rule-dot"></div><div>' + text + ' ' + glow(emoji) + '</div></div>';
 }
 
 function htmlWaiting() {
