@@ -537,6 +537,35 @@
     font-weight: 700; font-style: italic; color: #fff; margin-top: 16px;
     border-left: 3px solid var(--brand-neon); padding-left: 12px;
   }
+
+  /* ---- LOGO COMO ENLACE (portada y panel) ---- */
+  .logo-link { cursor: pointer; user-select: none; -webkit-user-select: none; transition: transform 0.15s ease; }
+  .logo-link:active { transform: scale(0.97); }
+  .logo-link:focus-visible { outline: 2px solid var(--brand-neon); outline-offset: 6px; border-radius: 16px; }
+  @media (hover: hover) { .logo-link:hover { transform: scale(1.03); } }
+
+  /* ---- CUADRO DE PARTICIPANTES (pantalla del Espectador) ---- */
+  .count-panel { display: flex; align-items: center; gap: 14px; padding: 14px 16px; margin-bottom: 18px; }
+  .count-chip {
+    width: 52px; height: 52px; border-radius: 14px; flex-shrink: 0; font-size: 26px;
+    display: flex; align-items: center; justify-content: center;
+    background: linear-gradient(135deg, rgba(124,255,60,0.22), rgba(18,51,0,0.4));
+    border: 1px solid rgba(124,255,60,0.35);
+  }
+  .count-num {
+    display: inline-block; transform-origin: left center;
+    font-family: 'Space Mono', monospace; font-weight: 700; font-size: 34px; line-height: 1;
+    color: var(--brand-neon); text-shadow: 0 0 14px rgba(124,255,60,0.45); font-variant-numeric: tabular-nums;
+  }
+  .count-num.bump { animation: countBump 0.6s ease-out; }
+  @keyframes countBump {
+    0% { transform: scale(1); }
+    35% { transform: scale(1.25); color: #fff; }
+    100% { transform: scale(1); }
+  }
+  .count-label { font-size: 12px; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase; margin-top: 6px; }
+  .count-sub { font-size: 12px; color: var(--text-dim); margin-top: 2px; }
+  @media (prefers-reduced-motion: reduce) { .count-num.bump { animation: none; } .logo-link { transition: none; } }
 </style>
 </head>
 <body>
@@ -646,6 +675,7 @@ let state = {
   topLoaded: false,
   topError: false,
   right: emptyRight(),
+  streamerCount: null,
 };
 
 let timers = { countdown: null, quiz: null, poll: null };
@@ -929,6 +959,12 @@ function fmtMs(ms) {
   return fmtTime(ms / 1000);
 }
 
+// Tocar el logo: en la portada recarga la página; en el panel del Espectador vuelve a la portada
+function logoAction() {
+  if (state.screen === 'home') { location.reload(); }
+  else { goHome(); }
+}
+
 function goHome() {
   clearTimers();
   const keepTop = { topGlobal: state.topGlobal, topLoaded: state.topLoaded, topError: state.topError, right: state.right };
@@ -942,6 +978,7 @@ function goHome() {
     loading: false, loadError: '', myResult: null, winsMap: {},
     menuOpen: false, menuSection: null,
     topGlobal: keepTop.topGlobal, topLoaded: keepTop.topLoaded, topError: keepTop.topError, right: keepTop.right,
+    streamerCount: null,
   };
   render();
   loadHomeData();
@@ -983,6 +1020,7 @@ async function startGame() {
     if (state.mode === 'streamer') {
       state.loading = false;
       state.screen = 'streamer';
+      state.streamerCount = null;
       render();
       startStreamerPolling();
       return;
@@ -1114,10 +1152,45 @@ function startStreamerPolling() {
   timers.poll = setInterval(refreshStreamerData, 4000);
 }
 
+// Cuántas personas han terminado este reto. Pide solo el total (HEAD), sin descargar a nadie.
+async function sbCountParticipants(gameId) {
+  const base = SUPABASE_URL + '/rest/v1/participations?game_id=eq.' + encodeURIComponent(gameId) + '&select=id';
+  const res = await fetch(base, { method: 'HEAD', headers: Object.assign({}, sbHeaders, { 'Prefer': 'count=exact' }) });
+  if (!res.ok) throw new Error('Error contando participantes');
+  const range = res.headers.get('content-range');          // "*/37" o "0-9/37"
+  const m = range && range.match(/\/(\d+)$/);
+  if (m) return parseInt(m[1], 10);
+  // Respaldo por si el servidor no expone ese encabezado: contar las filas
+  const res2 = await fetch(base, { headers: sbHeaders });
+  if (!res2.ok) throw new Error('Error contando participantes');
+  return (await res2.json()).length;
+}
+
+function fmtCount(n) { return (typeof n === 'number') ? n.toLocaleString('en-US') : '—'; }
+
+function updateParticipantCount(n) {
+  const prev = state.streamerCount;
+  state.streamerCount = n;
+  const el = document.getElementById('streamer-count');
+  if (!el) return;
+  el.textContent = fmtCount(n);
+  if (typeof prev === 'number' && n > prev) {          // destello breve cuando llega gente nueva
+    el.classList.remove('bump');
+    void el.offsetWidth;
+    el.classList.add('bump');
+  }
+}
+
 async function refreshStreamerData() {
-  try {
-    const lb = await sbFetchLeaderboard(state.gameCode, 10);
-    state.leaderboard = lb;
+  const code = state.gameCode;
+  const results = await Promise.all([
+    sbFetchLeaderboard(code, 10).catch(function () { return null; }),
+    sbCountParticipants(code).catch(function () { return null; })
+  ]);
+  if (state.screen !== 'streamer' || state.gameCode !== code) return;   // ya salió de esta pantalla
+  if (results[1] !== null) updateParticipantCount(results[1]);
+  if (results[0] !== null) {
+    state.leaderboard = results[0];
     try {
       const winsRows = await sbFetchPlayerWins();
       state.winsMap = buildWinsMap(winsRows);
@@ -1126,8 +1199,6 @@ async function refreshStreamerData() {
     }
     const el = document.getElementById('streamer-live-area');
     if (el) el.innerHTML = streamerLiveHtml();
-  } catch (err) {
-    // silencioso, se reintenta en el siguiente ciclo
   }
 }
 
@@ -1159,8 +1230,8 @@ function htmlHome() {
   return '' +
     '<div class="home-grid"><section class="home-main">' +
     '<div class="hero" style="margin-bottom:8px;">' +
-      '<div class="hero-logo-wrap">' +
-        '<img src="logo.webp" alt="YOU GAMES" class="hero-logo">' +
+      '<div class="hero-logo-wrap logo-link" data-action="logo" role="link" tabindex="0" title="Página principal" aria-label="YOU GAMES, página principal">' +
+        '<img src="logo.webp" alt="YOU GAMES" class="hero-logo" draggable="false">' +
         '<div class="hero-logo-shine" style="' + sd + '"></div>' +
       '</div>' +
       '<div class="hero-tagline">DEMUESTRA LO QUE SABES</div>' +
@@ -1491,9 +1562,17 @@ function htmlStreamer() {
   return '' +
     // Mismo logo, en el mismo lugar y con el mismo destello que en la página principal
     '<div class="hero" style="margin-bottom:8px;">' +
-      '<div class="hero-logo-wrap">' +
-        '<img src="logo.webp" alt="YOU GAMES" class="hero-logo">' +
+      '<div class="hero-logo-wrap logo-link" data-action="logo" role="link" tabindex="0" title="Página principal" aria-label="YOU GAMES, página principal">' +
+        '<img src="logo.webp" alt="YOU GAMES" class="hero-logo" draggable="false">' +
         '<div class="hero-logo-shine" style="' + sd + '"></div>' +
+      '</div>' +
+    '</div>' +
+    '<div class="panel count-panel">' +
+      '<div class="count-chip"><span class="emoji-shine" style="' + sd + '">👥</span></div>' +
+      '<div>' +
+        '<div class="count-num" id="streamer-count">' + fmtCount(state.streamerCount) + '</div>' +
+        '<div class="count-label">Participantes</div>' +
+        '<div class="count-sub">han terminado el reto</div>' +
       '</div>' +
     '</div>' +
     '<div style="font-size:18px; font-weight:800;" class="brand-green">🔴 Top 10 en Vivo</div>' +
@@ -1532,6 +1611,8 @@ function attachHandlers() {
         startGame();
       } else if (action === 'answer') {
         answerQuestion(parseInt(btn.getAttribute('data-index'), 10));
+      } else if (action === 'logo') {
+        logoAction();
       } else if (action === 'share') {
         shareResult();
       } else if (action === 'home') {
@@ -1555,6 +1636,14 @@ function attachHandlers() {
   });
 }
 
+// Teclado: el logo también responde a Enter y Espacio
+document.addEventListener('keydown', function (e) {
+  const t = e.target;
+  if ((e.key === 'Enter' || e.key === ' ') && t && t.classList && t.classList.contains('logo-link')) {
+    e.preventDefault();
+    logoAction();
+  }
+});
 render();
 if (document.fonts) {
   if (document.fonts.ready) document.fonts.ready.then(fitPanelTitle);
