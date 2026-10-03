@@ -1116,7 +1116,7 @@ function startStreamerPolling() {
 
 async function refreshStreamerData() {
   try {
-    const lb = await sbFetchLeaderboard(state.gameCode, 5);
+    const lb = await sbFetchLeaderboard(state.gameCode, 10);
     state.leaderboard = lb;
     try {
       const winsRows = await sbFetchPlayerWins();
@@ -1487,10 +1487,18 @@ function streamerLiveHtml() {
 }
 
 function htmlStreamer() {
+  const sd = sdStyle();
   return '' +
-    '<div style="font-size:18px; font-weight:800; margin-top:40px;" class="brand-green">🔴 Top 5 en vivo</div>' +
+    // Mismo logo, en el mismo lugar y con el mismo destello que en la página principal
+    '<div class="hero" style="margin-bottom:8px;">' +
+      '<div class="hero-logo-wrap">' +
+        '<img src="logo.webp" alt="YOU GAMES" class="hero-logo">' +
+        '<div class="hero-logo-shine" style="' + sd + '"></div>' +
+      '</div>' +
+    '</div>' +
+    '<div style="font-size:18px; font-weight:800;" class="brand-green">🔴 Top 10 en Vivo</div>' +
     '<div id="streamer-live-area" style="margin-top:12px;">' + streamerLiveHtml() + '</div>' +
-    '<button class="btn" data-action="home" style="margin-top:24px;">🏠 Volver</button>';
+    '<button class="btn btn-shine" style="margin-top:24px; ' + sd + '" data-action="home">🏠 Página Principal</button>';
 }
 
 function attachHandlers() {
