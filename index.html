@@ -566,6 +566,39 @@
   .count-label { font-size: 12px; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase; margin-top: 6px; }
   .count-sub { font-size: 12px; color: var(--text-dim); margin-top: 2px; }
   @media (prefers-reduced-motion: reduce) { .count-num.bump { animation: none; } .logo-link { transition: none; } }
+
+  /* ---- PIE: REDES SOCIALES ---- */
+  .footer.has-social { padding: 6px 12px 9px; }
+  .social { display: flex; justify-content: center; align-items: center; gap: 4px; margin-bottom: 2px; }
+  .social a {
+    width: 40px; height: 36px; border-radius: 10px; color: #9db89a;
+    display: flex; align-items: center; justify-content: center;
+    transition: color 0.15s ease, transform 0.15s ease;
+  }
+  .social a svg { width: 20px; height: 20px; }
+  .social a:hover, .social a:focus-visible { color: var(--brand-neon); transform: translateY(-2px); }
+  .social a:active { transform: scale(0.92); }
+  .social a:focus-visible { outline: 2px solid var(--brand-neon); outline-offset: 1px; }
+
+  /* ---- MENÚ: grupos, donaciones, merch y correo ---- */
+  .menu-group-label { font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text-dim); margin: 16px 4px 8px; }
+  .menu-group-label:first-child { margin-top: 0; }
+  .btn-patreon {
+    display: flex; align-items: center; justify-content: center; gap: 10px; margin: 6px 0 14px;
+    padding: 15px; border-radius: 12px; text-decoration: none; font-weight: 800; font-size: 15px; color: #fff;
+    background: linear-gradient(135deg, #ff424d, #b8303a); border: 2px solid #ff7a82; box-shadow: 0 0 16px rgba(255,66,77,0.35);
+  }
+  .btn-patreon:active { transform: scale(0.97); }
+  .btn-patreon svg { width: 18px; height: 18px; flex-shrink: 0; }
+  .menu-content p.menu-note { font-size: 12px; color: var(--text-dim); }
+  .soon-card { text-align: center; padding: 22px 16px; border-radius: 16px; background: rgba(255,255,255,0.02); border: 1px solid rgba(124,255,60,0.18); }
+  .soon-emoji { font-size: 44px; line-height: 1; margin-bottom: 12px; }
+  .soon-tag {
+    display: inline-block; margin-bottom: 14px; padding: 5px 14px; border-radius: 999px;
+    font-size: 12px; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase;
+    color: var(--brand-neon); border: 1px solid rgba(124,255,60,0.5); background: rgba(30,90,0,0.25);
+  }
+  .menu-content a.mail-link { color: var(--brand-neon); text-decoration: underline; word-break: break-all; }
 </style>
 </head>
 <body>
@@ -837,8 +870,8 @@ function tzInfo(ms) {
 function htmlStatsPanel() {
   const r = state.right, ok = r.hasData;
   return '<div class="stats-row">' +
-    '<div class="stat-cell"><div class="stat-big">' + (ok ? r.gamesPlayed : '—') + '</div><div class="stat-cap">Juegos jugados</div></div>' +
-    '<div class="stat-cell money"><div class="stat-big">' + (ok ? fmtMoney(r.moneyTotal) : '—') + '</div><div class="stat-cap">Dinero repartido</div></div>' +
+    '<div class="stat-cell"><div class="stat-big">' + (ok ? r.gamesPlayed : '—') + '</div><div class="stat-cap">Retos Jugados&nbsp;' + glow('🫢') + '</div></div>' +
+    '<div class="stat-cell money"><div class="stat-big">' + (ok ? fmtMoney(r.moneyTotal) : '—') + '</div><div class="stat-cap">Dinero repartido&nbsp;' + glow('🤩') + '</div></div>' +
   '</div>';
 }
 
@@ -1205,7 +1238,7 @@ async function refreshStreamerData() {
 function render() {
   const app = document.getElementById('app');
   app.className = state.screen === 'home' ? 'is-home' : '';
-  app.innerHTML = getScreenHtml() + '<div class="footer">\u00A9 2026 YOU. All rights reserved.</div>' + htmlMenu();
+  app.innerHTML = getScreenHtml() + htmlFooter() + htmlMenu();
   attachHandlers();
   syncShine();
   fitPanelTitle();
@@ -1289,6 +1322,11 @@ function htmlMenu() {
   const backdrop = '<div class="menu-backdrop" data-action="menu-close"></div>';
 
   if (!state.menuSection) {
+    const mi = function (sec, icon, label) {
+      return '<button class="menu-item" data-action="menu-section" data-section="' + sec + '">' +
+        '<div class="menu-item-icon">' + icon + '</div><div class="menu-item-label">' + label + '</div><div class="menu-item-chevron">›</div>' +
+      '</button>';
+    };
     return btn + backdrop + '' +
       '<div class="menu-panel">' +
         '<div class="menu-header">' +
@@ -1296,18 +1334,15 @@ function htmlMenu() {
           '<button class="menu-close-btn" data-action="menu-close">✕</button>' +
         '</div>' +
         '<div class="menu-body">' +
-          '<button class="menu-item" data-action="menu-section" data-section="reglas">' +
-            '<div class="menu-item-icon">📜</div><div class="menu-item-label">Reglas del Juego</div><div class="menu-item-chevron">›</div>' +
-          '</button>' +
-          '<button class="menu-item" data-action="menu-section" data-section="nosotros">' +
-            '<div class="menu-item-icon">🎮</div><div class="menu-item-label">Quiénes Somos</div><div class="menu-item-chevron">›</div>' +
-          '</button>' +
-          '<button class="menu-item" data-action="menu-section" data-section="contacto">' +
-            '<div class="menu-item-icon">✉️</div><div class="menu-item-label">Contacto</div><div class="menu-item-chevron">›</div>' +
-          '</button>' +
-          '<button class="menu-item" data-action="menu-section" data-section="legal">' +
-            '<div class="menu-item-icon">⚖️</div><div class="menu-item-label">Aviso Legal</div><div class="menu-item-chevron">›</div>' +
-          '</button>' +
+          '<div class="menu-group-label">El proyecto</div>' +
+          mi('nosotros', '🎮', 'Quiénes Somos') +
+          mi('reglas', '📜', 'Reglas del Juego') +
+          '<div class="menu-group-label">Comunidad</div>' +
+          mi('donar', '🤝', 'Donaciones y Colaboración') +
+          mi('merch', '🛍️', 'Merch') +
+          '<div class="menu-group-label">Soporte</div>' +
+          mi('contacto', '✉️', 'Contacto') +
+          mi('legal', '⚖️', 'Aviso Legal') +
         '</div>' +
       '</div>';
   }
@@ -1336,11 +1371,28 @@ function htmlMenu() {
         '<p class="menu-slogan">Demuestra lo que sabes. ' + glow('🧠') + glow('⚡️') + '</p>' +
         '<p class="menu-quote">«En YOU, todo es posible»</p>',
     },
+    donar: {
+      icon: '🤝',
+      title: 'Donaciones y Colaboración',
+      html: '<p>YOU Games crece gracias a la comunidad. Si quieres apoyar el proyecto y ayudarnos a seguir creando retos, puedes colaborar con nosotros. ' + glow('💚') + '</p>' +
+        '<a class="btn-patreon" href="' + PATREON_URL + '" target="_blank" rel="noopener noreferrer">' + ICON_PATREON + '<span>Apoyar en Patreon</span></a>' +
+        '<p class="menu-note">Las colaboraciones son voluntarias y no dan ventajas en los retos ni en los premios.</p>',
+    },
+    merch: {
+      icon: '🛍️',
+      title: 'Merch',
+      html: '<div class="soon-card">' +
+          '<div class="soon-emoji">' + glow('🛍️') + '</div>' +
+          '<div class="soon-tag">Próximamente</div>' +
+          '<p>Estamos preparando la tienda oficial de YOU, con productos exclusivos para la comunidad.</p>' +
+          '<p>Síguenos en nuestras redes para ser de los primeros en enterarte. ' + glow('🔔') + '</p>' +
+        '</div>',
+    },
     contacto: {
       icon: '✉️',
       title: 'Contacto',
       html: '<p>¿Tienes dudas o sugerencias? Escríbenos. ' + glow('💬') + '</p>' +
-        '<p style="margin-top:10px; font-weight:700;">' + glow('✉️', true) + ' contacto@yougames.app</p>',
+        '<p style="margin-top:10px; font-weight:700;">' + glow('✉️', true) + ' <a class="mail-link" href="mailto:youoficial.contact@gmail.com">youoficial.contact@gmail.com</a></p>',
     },
     legal: {
       icon: '⚖️',
@@ -1370,6 +1422,18 @@ function htmlMenu() {
         '<div class="menu-content">' + sec.html + '</div>' +
       '</div>' +
     '</div>';
+}
+
+// Pie de página: íconos de redes (solo en pantallas seguras, nunca durante el juego) + copyright
+function htmlFooter() {
+  const showSocial = state.screen === 'home' || state.screen === 'results' || state.screen === 'streamer';
+  const social = !showSocial ? '' :
+    '<nav class="social" aria-label="Redes sociales">' +
+      SOCIALS.map(function (x) {
+        return '<a href="' + x.url + '" target="_blank" rel="noopener noreferrer" aria-label="' + x.name + '">' + x.icon + '</a>';
+      }).join('') +
+    '</nav>';
+  return '<div class="footer' + (showSocial ? ' has-social' : '') + '">' + social + '<div>\u00A9 2026 YOU. All rights reserved.</div></div>';
 }
 
 // Emoji que brilla en sintonía con el logo, el botón y el resto (soft = brillo suave para emojis claros)
@@ -1448,6 +1512,22 @@ function htmlSaving() {
       '<div class="center subtitle">Guardando tu resultado...</div>' +
     '</div>';
 }
+
+const ICON_INSTAGRAM = '<svg viewBox="0 0 16 16" width="16" height="16" fill="currentColor"><path d="M8 0C5.829 0 5.556.01 4.703.048 3.85.088 3.269.222 2.76.42a3.9 3.9 0 0 0-1.417.923A3.9 3.9 0 0 0 .42 2.76C.222 3.268.087 3.85.048 4.7.01 5.555 0 5.827 0 8.001c0 2.172.01 2.444.048 3.297.04.852.174 1.433.372 1.942.205.526.478.972.923 1.417.444.445.89.719 1.416.923.51.198 1.09.333 1.942.372C5.555 15.99 5.827 16 8 16s2.444-.01 3.298-.048c.851-.04 1.434-.174 1.943-.372a3.9 3.9 0 0 0 1.416-.923c.445-.445.718-.891.923-1.417.197-.509.332-1.09.372-1.942C15.99 10.445 16 10.173 16 8s-.01-2.445-.048-3.299c-.04-.851-.175-1.433-.372-1.941a3.9 3.9 0 0 0-.923-1.417A3.9 3.9 0 0 0 13.24.42c-.51-.198-1.092-.333-1.943-.372C10.443.01 10.172 0 7.998 0zm-.717 1.442h.718c2.136 0 2.389.007 3.232.046.78.035 1.204.166 1.486.275.373.145.64.319.92.599s.453.546.598.92c.11.281.24.705.275 1.485.039.843.047 1.096.047 3.231s-.008 2.389-.047 3.232c-.035.78-.166 1.203-.275 1.485a2.5 2.5 0 0 1-.599.919c-.28.28-.546.453-.92.598-.28.11-.704.24-1.485.276-.843.038-1.096.047-3.232.047s-2.39-.009-3.233-.047c-.78-.036-1.203-.166-1.485-.276a2.5 2.5 0 0 1-.92-.598 2.5 2.5 0 0 1-.6-.92c-.109-.281-.24-.705-.275-1.485-.038-.843-.046-1.096-.046-3.233s.008-2.388.046-3.231c.036-.78.166-1.204.276-1.486.145-.373.319-.64.599-.92s.546-.453.92-.598c.282-.11.705-.24 1.485-.276.738-.034 1.024-.044 2.515-.045zm4.988 1.328a.96.96 0 1 0 0 1.92.96.96 0 0 0 0-1.92m-4.27 1.122a4.109 4.109 0 1 0 0 8.217 4.109 4.109 0 0 0 0-8.217m0 1.441a2.667 2.667 0 1 1 0 5.334 2.667 2.667 0 0 1 0-5.334"/></svg>';
+const ICON_FACEBOOK = '<svg viewBox="0 0 16 16" width="16" height="16" fill="currentColor"><path d="M16 8.049c0-4.446-3.582-8.05-8-8.05C3.58 0-.002 3.603-.002 8.05c0 4.017 2.926 7.347 6.75 7.951v-5.625h-2.03V8.05H6.75V6.275c0-2.017 1.195-3.131 3.022-3.131.876 0 1.791.157 1.791.157v1.98h-1.009c-.993 0-1.303.621-1.303 1.258v1.51h2.218l-.354 2.326H9.25V16c3.824-.604 6.75-3.934 6.75-7.951"/></svg>';
+const ICON_X = '<svg viewBox="0 0 16 16" width="16" height="16" fill="currentColor"><path d="M12.6.75h2.454l-5.36 6.142L16 15.25h-4.937l-3.867-5.07-4.425 5.07H.316l5.733-6.57L0 .75h5.063l3.495 4.633L12.601.75Zm-.86 13.028h1.36L4.323 2.145H2.865z"/></svg>';
+const ICON_PATREON = '<svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M0 .48v23.04h4.22V.48zm15.385 0c-4.764 0-8.641 3.88-8.641 8.65 0 4.755 3.877 8.623 8.641 8.623 4.75 0 8.615-3.868 8.615-8.623C24 4.36 20.136.48 15.385.48z"/></svg>';
+
+// 👉 Enlaces del pie de página, en este orden estricto. Para cambiar uno, edita solo la dirección.
+const SOCIALS = [
+  { name: 'YouTube', url: 'https://www.youtube.com/@you.offici', icon: ICON_YOUTUBE },
+  { name: 'TikTok', url: 'https://www.tiktok.com/@you.oficiall', icon: ICON_TIKTOK },
+  { name: 'Twitch', url: 'https://www.twitch.tv/youofi', icon: ICON_TWITCH },
+  { name: 'Instagram', url: 'https://www.instagram.com/you.officialcount/', icon: ICON_INSTAGRAM },
+  { name: 'Facebook', url: 'https://www.facebook.com/profile.php?id=61595116976383', icon: ICON_FACEBOOK },
+  { name: 'X', url: 'https://x.com/Youoficiall', icon: ICON_X }
+];
+const PATREON_URL = 'https://www.patreon.com/Youincofi';
 
 const ICON_SHARE = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v7a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-7"/><path d="M16 6l-4-4-4 4"/><path d="M12 2v13"/></svg>';
 
