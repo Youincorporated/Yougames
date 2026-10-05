@@ -611,6 +611,15 @@
   .pb-title { font-family: 'Bebas Neue', sans-serif; font-size: 24px; letter-spacing: 1.5px; }
   .pb-sub { font-size: 13px; color: #d7ffc9; margin: 4px 0 12px; }
   .podium-banner .btn-share { margin-bottom: 0; }
+
+  /* ---- ÍCONOS DE REDES: destello en el mismo ciclo de 6s (solo brillo y resplandor: el color de hover sigue funcionando) ---- */
+  .social a svg { animation: iconShine 6s ease-in-out var(--sd, 0s) infinite; }
+  @keyframes iconShine {
+    0%, 52% { filter: brightness(1) drop-shadow(0 0 0 rgba(124,255,60,0)); transform: scale(1); }
+    65% { filter: brightness(1.6) drop-shadow(0 0 7px rgba(124,255,60,0.95)); transform: scale(1.2); }
+    78%, 100% { filter: brightness(1) drop-shadow(0 0 0 rgba(124,255,60,0)); transform: scale(1); }
+  }
+  @media (prefers-reduced-motion: reduce) { .social a svg { animation: none; } }
 </style>
 </head>
 <body>
@@ -885,8 +894,8 @@ function tzInfo(ms) {
 function htmlStatsPanel() {
   const r = state.right, ok = r.hasData;
   return '<div class="stats-row">' +
-    '<div class="stat-cell"><div class="stat-big">' + (ok ? r.gamesPlayed : '—') + '</div><div class="stat-cap">Retos Jugados&nbsp;' + glow('🫢') + '</div></div>' +
-    '<div class="stat-cell money"><div class="stat-big">' + (ok ? fmtMoney(r.moneyTotal) : '—') + '</div><div class="stat-cap">Dinero repartido&nbsp;' + glow('🤩') + '</div></div>' +
+    '<div class="stat-cell"><div class="stat-big">' + (ok ? r.gamesPlayed : '—') + '</div><div class="stat-cap">Retos Jugados&nbsp;' + glow('🧠') + '</div></div>' +
+    '<div class="stat-cell money"><div class="stat-big">' + (ok ? fmtMoney(r.moneyTotal) : '—') + '</div><div class="stat-cap">Dinero repartido&nbsp;' + glow('💰') + '</div></div>' +
   '</div>';
 }
 
@@ -1621,7 +1630,7 @@ function htmlFooter() {
   const social = !showSocial ? '' :
     '<nav class="social" aria-label="Redes sociales">' +
       SOCIALS.map(function (x) {
-        return '<a href="' + x.url + '" target="_blank" rel="noopener noreferrer" aria-label="' + x.name + '">' + x.icon + '</a>';
+        return '<a href="' + x.url + '" target="_blank" rel="noopener noreferrer" aria-label="' + x.name + '" style="' + sdStyle() + '">' + x.icon + '</a>';
       }).join('') +
     '</nav>';
   return '<div class="footer' + (showSocial ? ' has-social' : '') + '">' + social + '<div>\u00A9 2026 YOU. All rights reserved.</div></div>';
