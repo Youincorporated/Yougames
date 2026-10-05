@@ -599,6 +599,18 @@
     color: var(--brand-neon); border: 1px solid rgba(124,255,60,0.5); background: rgba(30,90,0,0.25);
   }
   .menu-content a.mail-link { color: var(--brand-neon); text-decoration: underline; word-break: break-all; }
+
+  /* ---- AVISO DE PODIO (portada) ---- */
+  .podium-banner {
+    max-width: 340px; margin: 16px auto 0; padding: 14px 16px; border-radius: 16px; text-align: center;
+    background: linear-gradient(180deg, rgba(250,204,21,0.14), rgba(0,0,0,0.25));
+    border: 1px solid rgba(250,204,21,0.55); box-shadow: 0 0 22px rgba(250,204,21,0.18);
+  }
+  .podium-banner.p2 { background: linear-gradient(180deg, rgba(203,213,225,0.14), rgba(0,0,0,0.25)); border-color: rgba(203,213,225,0.6); box-shadow: 0 0 22px rgba(203,213,225,0.15); }
+  .podium-banner.p3 { background: linear-gradient(180deg, rgba(205,127,50,0.16), rgba(0,0,0,0.25)); border-color: rgba(205,127,50,0.6); box-shadow: 0 0 22px rgba(205,127,50,0.16); }
+  .pb-title { font-family: 'Bebas Neue', sans-serif; font-size: 24px; letter-spacing: 1.5px; }
+  .pb-sub { font-size: 13px; color: #d7ffc9; margin: 4px 0 12px; }
+  .podium-banner .btn-share { margin-bottom: 0; }
 </style>
 </head>
 <body>
@@ -756,7 +768,7 @@ function fitPanelTitle() {
 
 // ---------- PANEL DERECHO: estadísticas, podio y próximo reto ----------
 function emptyRight() {
-  return { loaded: false, error: false, hasData: false, gamesPlayed: 0, moneyTotal: 0, podium: [], nextGame: null, liveGame: null };
+  return { loaded: false, error: false, hasData: false, gamesPlayed: 0, moneyTotal: 0, podium: [], nextGame: null, liveGame: null, myPlace: 0, myRow: null, myGame: '' };
 }
 function parsePrize(p) {
   const n = parseFloat(String(p === null || p === undefined ? '' : p).replace(/[^0-9.]/g, ''));
@@ -800,12 +812,15 @@ async function loadRightData() {
     const last = finished[0] || null;
     let podium = [];
     if (last) { try { podium = await sbFetchLeaderboard(last.id, 3); } catch (e) { podium = []; } }
+    const mine = findMyPodium(last, podium);
     state.right = {
       loaded: true, error: false, hasData: true,
+      myPlace: mine.place, myRow: mine.row, myGame: mine.game,
       gamesPlayed: finished.length,
       moneyTotal: finished.reduce(function (acc, g) { return acc + parsePrize(g.prize); }, 0),
       podium: podium, nextGame: upcoming[0] || null, liveGame: live
     };
+    if (mine.place) prepareCard();
   } catch (err) {
     state.right.loaded = true;
     state.right.error = true;
@@ -819,7 +834,7 @@ async function loadHomeData() {
 
 function updateRightPanels() {
   if (state.screen !== 'home') return;
-  [['panel-stats', htmlStatsPanel], ['panel-next', htmlNextPanel], ['panel-podium', htmlPodiumPanel]].forEach(function (x) {
+  [['podium-banner', htmlPodiumBanner], ['panel-stats', htmlStatsPanel], ['panel-next', htmlNextPanel], ['panel-podium', htmlPodiumPanel]].forEach(function (x) {
     const el = document.getElementById(x[0]);
     if (el) el.innerHTML = x[1]();
   });
@@ -872,6 +887,177 @@ function htmlStatsPanel() {
   return '<div class="stats-row">' +
     '<div class="stat-cell"><div class="stat-big">' + (ok ? r.gamesPlayed : '—') + '</div><div class="stat-cap">Retos Jugados&nbsp;' + glow('🫢') + '</div></div>' +
     '<div class="stat-cell money"><div class="stat-big">' + (ok ? fmtMoney(r.moneyTotal) : '—') + '</div><div class="stat-cap">Dinero repartido&nbsp;' + glow('🤩') + '</div></div>' +
+  '</div>';
+}
+
+// ================= PODIO COMPARTIBLE =================
+const PODIUM_COPY = {
+  1: { medal: '🥇', big: 'GANÉ EL RETO', caption: 'Gané el Reto de You Games 😎🏆 #yougames1', btn: 'Compartir mi victoria', tint: '250,204,21' },
+  2: { medal: '🥈', big: 'CASI GANÉ EL RETO', caption: 'Casi gané el Reto de You Games 🥈 #yougames2', btn: 'Compartir mi podio', tint: '203,213,225' },
+  3: { medal: '🥉', big: 'SOY EL TERCERO', caption: 'Soy el Tercero de You Games 🥉 #yougames3', btn: 'Compartir mi podio', tint: '205,127,50' }
+};
+
+// Memoria de este dispositivo: en qué retos jugó y con qué nombre (sirve para saber si el podio es suyo)
+function loadPlays() {
+  try { return JSON.parse(localStorage.getItem('yg_plays') || '[]'); } catch (e) { return []; }
+}
+function rememberPlay(gameId, username) {
+  try {
+    const arr = loadPlays().filter(function (p) { return !(p.game === gameId && p.user === username); });
+    arr.push({ game: gameId, user: username });
+    localStorage.setItem('yg_plays', JSON.stringify(arr.slice(-30)));
+  } catch (e) {}
+}
+
+// ¿Está esta persona en el podio del último reto ya terminado? Solo entonces puede compartirlo.
+function findMyPodium(last, podium) {
+  const none = { place: 0, row: null, game: '' };
+  if (!last || !podium.length) return none;
+  const endMs = new Date(last.start_time).getTime() + (last.game_duration_seconds || 300) * 1000;
+  if (Date.now() < endMs + 30000) return none;           // esperar a que el resultado sea definitivo
+  const plays = loadPlays();
+  for (let i = 0; i < Math.min(3, podium.length); i++) {
+    if (plays.some(function (pl) { return pl.game === last.id && pl.user === podium[i].username; })) {
+      return { place: i + 1, row: podium[i], game: last.id };
+    }
+  }
+  return none;
+}
+
+function roundRectPath(ctx, x, y, w, h, r) {
+  ctx.beginPath(); ctx.moveTo(x + r, y);
+  ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r);
+  ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath();
+}
+function fitText(ctx, text, maxW, startPx, family, weight) {
+  let px = startPx;
+  while (px > 24) {
+    ctx.font = (weight ? weight + ' ' : '') + px + 'px ' + family;
+    if (ctx.measureText(text).width <= maxW) break;
+    px -= 4;
+  }
+  return px;
+}
+function loadImage(src) {
+  return new Promise(function (resolve, reject) {
+    const im = new Image();
+    im.onload = function () { resolve(im); };
+    im.onerror = reject;
+    im.src = src;
+  });
+}
+
+// Tarjeta vertical 1080x1920 con el logo, el puesto y el enlace (todo el contenido en la franja central que Instagram no recorta)
+async function buildPodiumCard(place, row) {
+  const copy = PODIUM_COPY[place];
+  const W = 1080, H = 1920;
+  const cv = document.createElement('canvas'); cv.width = W; cv.height = H;
+  const ctx = cv.getContext('2d');
+  try {
+    await Promise.all([document.fonts.load('150px "Bebas Neue"'), document.fonts.load('700 44px "Space Mono"'), document.fonts.load('800 56px Inter')]);
+  } catch (e) {}
+  const bg = ctx.createLinearGradient(0, 0, 0, H);
+  bg.addColorStop(0, '#071a0c'); bg.addColorStop(0.5, '#04100a'); bg.addColorStop(1, '#030a06');
+  ctx.fillStyle = bg; ctx.fillRect(0, 0, W, H);
+  let g = ctx.createRadialGradient(W / 2, 560, 30, W / 2, 560, 720);
+  g.addColorStop(0, 'rgba(60,175,0,0.38)'); g.addColorStop(1, 'rgba(60,175,0,0)');
+  ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+  g = ctx.createRadialGradient(W / 2, 930, 20, W / 2, 930, 380);
+  g.addColorStop(0, 'rgba(' + copy.tint + ',0.30)'); g.addColorStop(1, 'rgba(' + copy.tint + ',0)');
+  ctx.fillStyle = g; ctx.fillRect(0, 560, W, 760);
+  try {
+    const img = await loadImage('logo.webp');
+    const lw = 580, lh = lw * img.height / img.width;
+    ctx.drawImage(img, (W - lw) / 2, 300, lw, lh);
+  } catch (e) {}
+  ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
+  ctx.font = '240px sans-serif'; ctx.fillStyle = '#fff'; ctx.fillText(copy.medal, W / 2, 1010);
+  const bigPx = fitText(ctx, copy.big, 940, 170, '"Bebas Neue", Impact, sans-serif', '');
+  ctx.font = bigPx + 'px "Bebas Neue", Impact, sans-serif'; ctx.fillStyle = '#7CFF3C';
+  ctx.shadowColor = 'rgba(124,255,60,0.6)'; ctx.shadowBlur = 30; ctx.fillText(copy.big, W / 2, 1200); ctx.shadowBlur = 0;
+  ctx.font = '84px "Bebas Neue", Impact, sans-serif'; ctx.fillStyle = '#ffffff'; ctx.fillText('DE YOU GAMES', W / 2, 1285);
+  const name = String(row.username);
+  const npx = fitText(ctx, name, 700, 60, 'Inter, sans-serif', '800');
+  ctx.font = '800 ' + npx + 'px Inter, sans-serif';
+  const pw = ctx.measureText(name).width + 90, ph = 96, x0 = (W - pw) / 2, y0 = 1340;
+  roundRectPath(ctx, x0, y0, pw, ph, 48); ctx.fillStyle = 'rgba(30,90,0,0.45)'; ctx.fill();
+  ctx.strokeStyle = 'rgba(124,255,60,0.8)'; ctx.lineWidth = 3; ctx.stroke();
+  ctx.fillStyle = '#fff'; ctx.fillText(name, W / 2, y0 + ph / 2 + npx * 0.35);
+  const n = Number(row.correct_answers) || 0;
+  ctx.font = '700 46px "Space Mono", monospace'; ctx.fillStyle = '#cfe8c9';
+  ctx.fillText(n + (n === 1 ? ' acierto' : ' aciertos') + ' · ' + fmtMs(row.time_taken_ms || 0), W / 2, 1480);
+  ctx.font = '70px "Bebas Neue", Impact, sans-serif'; ctx.fillStyle = '#7CFF3C'; ctx.fillText('¿PUEDES SUPERARME?', W / 2, 1560);
+  const link = location.href.split('#')[0].split('?')[0].replace(/^https?:\/\//, '').replace(/\/(index\.html)?$/, '');
+  ctx.font = '700 38px Inter, sans-serif'; ctx.fillStyle = '#cfe8c9'; ctx.fillText(link, W / 2, 1610);
+  return await new Promise(function (resolve, reject) {
+    cv.toBlob(function (b) { if (b) resolve(b); else reject(new Error('blob')); }, 'image/png');
+  });
+}
+
+// La imagen se prepara con antelación para que, al tocar el botón, se comparta al instante
+let podiumCard = { key: '', file: null };
+function podiumKey() { const r = state.right; return r.myGame + '|' + r.myPlace + '|' + (r.myRow ? r.myRow.username : ''); }
+async function prepareCard() {
+  const r = state.right;
+  if (!r.myPlace || !r.myRow) return;
+  const key = podiumKey();
+  if (podiumCard.key === key && podiumCard.file) return;
+  try {
+    const blob = await buildPodiumCard(r.myPlace, r.myRow);
+    podiumCard = { key: key, file: new File([blob], 'yougames-podio-' + r.myPlace + '.png', { type: 'image/png' }) };
+  } catch (e) {}
+}
+
+function podiumFeedback(msg) {
+  const l = document.getElementById('podium-share-label');
+  if (!l) return;
+  const orig = l.getAttribute('data-orig') || l.textContent;
+  l.setAttribute('data-orig', orig);
+  l.textContent = msg;
+  setTimeout(function () { const x = document.getElementById('podium-share-label'); if (x) x.textContent = orig; }, 3000);
+}
+
+async function sharePodium() {
+  const r = state.right;
+  if (!r.myPlace || !r.myRow) return;
+  const copy = PODIUM_COPY[r.myPlace];
+  const link = location.href.split('#')[0].split('?')[0];
+  if (podiumCard.key !== podiumKey() || !podiumCard.file) await prepareCard();
+  const file = podiumCard.key === podiumKey() ? podiumCard.file : null;
+  if (file && navigator.canShare && navigator.canShare({ files: [file] })) {
+    try {
+      await navigator.share({ files: [file], title: 'YOU GAMES', text: copy.caption + '\n¡Entra y juega! ' + link });
+      return;
+    } catch (err) { if (err && err.name === 'AbortError') return; }
+  }
+  if (navigator.share) {
+    try { await navigator.share({ title: 'YOU GAMES', text: copy.caption, url: link }); return; }
+    catch (err) { if (err && err.name === 'AbortError') return; }
+  }
+  // Escritorio: se descarga la imagen y se copia el texto
+  if (file) {
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(file); a.download = file.name;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function () { URL.revokeObjectURL(a.href); }, 4000);
+  }
+  let copied = false;
+  try { await navigator.clipboard.writeText(copy.caption + '\n¡Entra y juega! ' + link); copied = true; } catch (e) {}
+  podiumFeedback(file ? (copied ? '¡Imagen descargada y texto copiado!' : '¡Imagen descargada!') : (copied ? '¡Texto copiado!' : 'No se pudo compartir'));
+}
+
+function htmlPodiumBanner() {
+  const p = state.right.myPlace;
+  if (!p) return '';
+  const T = {
+    1: { e: '🏆', title: '¡GANASTE EL ÚLTIMO RETO!', sub: 'Presume tu victoria y reta a tus amigos.' },
+    2: { e: '🥈', title: '¡CASI LO LOGRAS!', sub: 'Quedaste 2.º en el último reto. ¡Compártelo!' },
+    3: { e: '🥉', title: '¡ESTÁS EN EL PODIO!', sub: 'Quedaste 3.º en el último reto. ¡Compártelo!' }
+  }[p];
+  return '<div class="podium-banner p' + p + '">' +
+    '<div class="pb-title">' + glow(T.e) + ' ' + T.title + '</div>' +
+    '<div class="pb-sub">' + T.sub + '</div>' +
+    '<button class="btn-share" data-action="share-podium" id="podium-share-btn">' + ICON_SHARE + '<span id="podium-share-label">' + PODIUM_COPY[p].btn + '</span></button>' +
   '</div>';
 }
 
@@ -1111,7 +1297,10 @@ function startQuiz() {
   state.selectedAnswer = null;
   state.showFeedback = false;
   state.quizStartedAt = Date.now();
-  state.quizEndTime = Date.now() + (state.currentGame.game_duration_seconds || 300) * 1000;
+  // Nadie puede seguir jugando después del cierre del reto: así el podio es definitivo
+  const durMs = (state.currentGame.game_duration_seconds || 300) * 1000;
+  const closeMs = new Date(state.currentGame.start_time).getTime() + durMs;
+  state.quizEndTime = Math.min(Date.now() + durMs, closeMs);
   render();
   timers.quiz = setInterval(() => {
     const remaining = Math.round((state.quizEndTime - Date.now()) / 1000);
@@ -1161,6 +1350,7 @@ async function finishQuiz() {
       correct_answers: correctCount,
       time_taken_ms: timeTakenMs,
     });
+    rememberPlay(state.gameCode, state.username);
     const lb = await sbFetchLeaderboard(state.gameCode, 10);
     state.leaderboard = lb;
     state.loadError = '';
@@ -1269,6 +1459,7 @@ function htmlHome() {
       '</div>' +
       '<div class="hero-tagline">DEMUESTRA LO QUE SABES</div>' +
       '<div class="hero-desc">Únete Al Reto, Responde Rápido y Gana Premios&nbsp;<span class="emoji-shine" style="' + sd + '">🎁</span></div>' +
+      '<div id="podium-banner">' + htmlPodiumBanner() + '</div>' +
     '</div>' +
     '<div class="divider"></div>' +
     '<div class="form-card stack">' +
@@ -1715,6 +1906,11 @@ function attachHandlers() {
     });
   });
 }
+
+document.addEventListener('click', function (e) {
+  const t = e.target && e.target.closest ? e.target.closest('[data-action="share-podium"]') : null;
+  if (t) { e.preventDefault(); sharePodium(); }
+});
 
 // Teclado: el logo también responde a Enter y Espacio
 document.addEventListener('keydown', function (e) {
