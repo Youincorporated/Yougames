@@ -1650,13 +1650,13 @@ function htmlWaiting() {
   const remaining = Math.round((state.countdownEndTime - Date.now()) / 1000);
   return '' +
     '<div class="center" style="margin-bottom:8px;">' +
-      '<div class="subtitle">Reto #' + g.id + '</div>' +
-      '<h1 class="brand-green" style="font-size:24px; font-weight:800;">' + g.title + '</h1>' +
+      '<div class="subtitle">Reto #' + esc(g.id) + '</div>' +
+      '<h1 class="brand-green" style="font-size:24px; font-weight:800;">' + esc(g.title) + '</h1>' +
     '</div>' +
     '<div class="fill-center">' +
       '<div class="center">' +
         '<div class="subtitle">Premio</div>' +
-        '<div style="font-size:44px; font-weight:800; color:#facc15;">💰 ' + g.prize + '</div>' +
+        '<div style="font-size:44px; font-weight:800; color:#facc15;">💰 ' + esc(g.prize) + '</div>' +
       '</div>' +
       '<div class="timer-box" style="width:100%;">' +
         '<div class="timer brand-green" id="countdown-timer">' + fmtTime(remaining) + '</div>' +
@@ -1684,7 +1684,7 @@ function htmlQuiz() {
     optionsHtml += '' +
       '<button class="' + cls + '" data-action="answer" data-index="' + i + '" ' + (state.showFeedback ? 'disabled' : '') + '>' +
         '<span class="letter">' + String.fromCharCode(65 + i) + '</span>' +
-        '<span>' + opt + '</span>' +
+        '<span>' + esc(opt) + '</span>' +
       '</button>';
   });
 
@@ -1700,7 +1700,7 @@ function htmlQuiz() {
       '<div style="font-family:\'Space Mono\',monospace; font-weight:700; font-size:18px; font-variant-numeric:tabular-nums;" class="brand-green" id="quiz-timer">' + fmtTime(remaining) + '</div>' +
     '</div>' +
     '<div class="progress-track"><div class="progress-fill" style="width:' + progress + '%;"></div></div>' +
-    '<div class="question-text">' + q.question_text + '</div>' +
+    '<div class="question-text">' + esc(q.question_text) + '</div>' +
     '<div>' + optionsHtml + '</div>' +
     feedbackHtml;
 }
