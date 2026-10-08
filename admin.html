@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>YOU GAMES · Panel de Retos</title>
+<link rel="icon" type="image/png" href="admin-icon.png">
+<link rel="apple-touch-icon" href="admin-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400..800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root { --neon:#7CFF3C; --green:#3fae00; --deep:#123300; --dim:#9db89a; --line:rgba(124,255,60,0.22); --bad:#f87171; --gold:#facc15; }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html { background: #030a06; }
+  body {
+    font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; color: #fff; min-height: 100vh;
+    background: radial-gradient(circle 620px at 50% 0%, rgba(30,90,0,0.35), rgba(5,19,10,0) 100%), linear-gradient(180deg, #060c07, #030a06);
+    -webkit-font-smoothing: antialiased;
+  }
+  button { font-family: inherit; }
+  .muted { color: var(--dim); font-size: 13px; }
+  .h-title { font-family: 'Bebas Neue', sans-serif; letter-spacing: 2px; font-weight: 400; color: var(--neon); text-shadow: 0 0 16px rgba(124,255,60,0.4); }
+
+  /* login */
+  .login { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
+  .login-card { width: 100%; max-width: 380px; text-align: center; padding: 26px 22px; border-radius: 20px; border: 1px solid var(--line); background: rgba(255,255,255,0.03); box-shadow: 0 14px 40px rgba(0,0,0,0.45); }
+  .login-logo { width: 170px; height: auto; display: block; margin: 0 auto 10px; filter: drop-shadow(0 0 22px rgba(124,255,60,0.4)); }
+  .login-card h1 { font-size: 34px; }
+  .login-card form { margin-top: 18px; text-align: left; }
+
+  /* barra superior */
+  .top { position: sticky; top: 0; z-index: 20; display: flex; align-items: center; gap: 12px; padding: 10px 16px; background: rgba(3,10,6,0.92); border-bottom: 1px solid var(--line); backdrop-filter: blur(6px); }
+  .top img { width: 46px; height: auto; }
+  .top .h-title { font-size: 26px; flex: 1; }
+  .top .who { font-size: 12px; color: var(--dim); text-align: right; max-width: 40vw; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .wrap { max-width: 900px; margin: 0 auto; padding: 18px 16px 150px; }
+
+  /* tarjetas y campos */
+  .card { border: 1px solid var(--line); border-radius: 20px; padding: 18px; margin-bottom: 18px; background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(0,0,0,0.15)); }
+  .step { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+  .step-n { width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; background: linear-gradient(135deg, var(--green), var(--deep)); border: 1px solid var(--neon); flex-shrink: 0; }
+  .step h2 { font-family: 'Bebas Neue', sans-serif; font-weight: 400; letter-spacing: 1.5px; font-size: 26px; }
+  .step small { display: block; color: var(--dim); font-size: 13px; font-family: 'Inter', sans-serif; letter-spacing: 0; }
+  label { display: block; font-size: 12px; text-transform: uppercase; letter-spacing: 1.2px; font-weight: 700; color: #cfe8c9; margin: 12px 0 6px; }
+  .hint { font-size: 12px; color: var(--dim); margin-top: 5px; }
+  input, textarea {
+    width: 100%; padding: 13px 14px; border-radius: 12px; font: inherit; font-size: 16px; font-weight: 600; color: #fff; outline: none;
+    background: rgba(6,18,10,0.85); border: 1.5px solid rgba(124,255,60,0.35); transition: border-color .15s, box-shadow .15s;
+  }
+  textarea { resize: vertical; min-height: 64px; line-height: 1.4; }
+  input::placeholder, textarea::placeholder { color: #5c7857; font-weight: 500; }
+  input:focus, textarea:focus { border-color: var(--neon); box-shadow: 0 0 0 3px rgba(124,255,60,0.15); }
+  input.bad, textarea.bad { border-color: var(--bad); box-shadow: 0 0 0 3px rgba(248,113,113,0.15); }
+  input[type=datetime-local] { color-scheme: dark; }
+  .code-input { font-family: 'Space Mono', monospace; letter-spacing: 3px; text-transform: uppercase; font-size: 20px; }
+  .err { color: var(--bad); font-size: 13px; margin-top: 6px; min-height: 0; }
+  .grid2 { display: grid; gap: 0 14px; grid-template-columns: 1fr; }
+  @media (min-width: 700px) { .grid2 { grid-template-columns: 1fr 1fr; } }
+  .inline { display: flex; gap: 8px; }
+  .inline input { flex: 1; min-width: 0; }
+  .quick { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+  .pill { padding: 7px 12px; border-radius: 999px; border: 1px solid rgba(124,255,60,0.4); background: rgba(30,90,0,0.2); color: #d7ffc9; font-size: 13px; font-weight: 700; cursor: pointer; }
+  .pill:hover { border-color: var(--neon); }
+  .when { margin-top: 8px; padding: 10px 12px; border-radius: 12px; font-size: 13px; line-height: 1.5; color: #d7ffc9; background: rgba(30,90,0,0.2); border: 1px dashed rgba(124,255,60,0.4); }
+  .when b { color: #fff; }
+
+  /* botones */
+  .btn { width: 100%; padding: 15px; border: none; border-radius: 12px; cursor: pointer; font-weight: 800; font-size: 16px; color: #fff; text-transform: uppercase; letter-spacing: 1px; background: linear-gradient(135deg, var(--green), var(--deep)); box-shadow: 0 6px 20px rgba(30,90,0,0.45), inset 0 1px 0 rgba(255,255,255,0.15); }
+  .btn:active { transform: scale(0.98); }
+  .btn:disabled { opacity: 0.55; cursor: not-allowed; }
+  .btn-ghost { padding: 10px 14px; border-radius: 10px; cursor: pointer; font-weight: 700; font-size: 13px; color: #d7ffc9; background: rgba(255,255,255,0.04); border: 1px solid rgba(124,255,60,0.3); }
+  .btn-ghost:hover { border-color: var(--neon); }
+  .btn-danger { color: #ffd0d0; border-color: rgba(248,113,113,0.5); }
+  .btn-add { width: 100%; padding: 14px; border-radius: 14px; cursor: pointer; font-weight: 800; font-size: 15px; color: var(--neon); background: transparent; border: 2px dashed rgba(124,255,60,0.5); }
+  .btn-add:hover { background: rgba(30,90,0,0.2); }
+
+  /* preguntas */
+  .q { border: 1px solid var(--line); border-radius: 16px; padding: 14px; margin-bottom: 14px; background: rgba(255,255,255,0.02); }
+  .q.has-err { border-color: rgba(248,113,113,0.7); }
+  .q-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+  .q-num { font-family: 'Bebas Neue', sans-serif; font-size: 24px; letter-spacing: 1.5px; color: var(--neon); }
+  .opts { display: grid; gap: 8px; grid-template-columns: 1fr; }
+  @media (min-width: 700px) { .opts { grid-template-columns: 1fr 1fr; } }
+  .opt { display: flex; gap: 8px; align-items: center; padding: 6px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.08); background: rgba(0,0,0,0.2); }
+  .opt.right { border-color: var(--neon); background: rgba(63,174,0,0.16); }
+  .opt input { padding: 10px 12px; font-size: 15px; }
+  .chip { width: 30px; height: 30px; border-radius: 9px; display: flex; align-items: center; justify-content: center; font-weight: 800; flex-shrink: 0; background: linear-gradient(135deg, var(--green), var(--deep)); }
+  .ok-btn { white-space: nowrap; padding: 9px 10px; border-radius: 10px; cursor: pointer; font-weight: 800; font-size: 12px; color: var(--dim); background: transparent; border: 1.5px solid rgba(124,255,60,0.3); }
+  .ok-btn.on { color: #fff; background: var(--green); border-color: var(--neon); }
+  .q-err { color: var(--bad); font-size: 13px; margin-top: 8px; }
+
+  /* barra inferior */
+  .bar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 25; padding: 10px 16px calc(10px + env(safe-area-inset-bottom, 0px)); background: rgba(3,10,6,0.96); border-top: 1px solid var(--line); backdrop-filter: blur(6px); }
+  .bar-in { max-width: 900px; margin: 0 auto; display: flex; gap: 14px; align-items: center; }
+  .bar-sum { flex: 1; font-size: 13px; color: #d7ffc9; line-height: 1.4; }
+  .bar-sum b { color: #fff; }
+  .bar .btn { width: auto; padding: 14px 22px; white-space: nowrap; }
+  @media (max-width: 560px) { .bar-in { flex-direction: column; align-items: stretch; gap: 8px; } .bar .btn { width: 100%; } }
+
+  /* reto creado y lista */
+  .done { border-color: var(--neon); background: linear-gradient(180deg, rgba(63,174,0,0.18), rgba(0,0,0,0.2)); text-align: center; }
+  .done .code { font-family: 'Space Mono', monospace; font-weight: 700; font-size: 44px; letter-spacing: 6px; color: var(--neon); text-shadow: 0 0 18px rgba(124,255,60,0.5); margin: 6px 0; word-break: break-all; }
+  .done .actions { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-top: 14px; }
+  .g-row { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; padding: 12px; border: 1px solid rgba(255,255,255,0.08); border-radius: 14px; margin-bottom: 10px; background: rgba(0,0,0,0.18); }
+  .g-code { font-family: 'Space Mono', monospace; font-weight: 700; letter-spacing: 2px; padding: 6px 10px; border-radius: 8px; background: rgba(30,90,0,0.35); border: 1px solid rgba(124,255,60,0.4); }
+  .g-main { flex: 1; min-width: 180px; }
+  .g-title { font-weight: 800; }
+  .g-meta { font-size: 12px; color: var(--dim); margin-top: 2px; }
+  .badge { font-size: 11px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; padding: 4px 10px; border-radius: 999px; }
+  .b-prog { color: var(--neon); border: 1px solid rgba(124,255,60,0.5); background: rgba(30,90,0,0.25); }
+  .b-live { color: #ffd0d0; border: 1px solid rgba(239,68,68,0.6); background: rgba(239,68,68,0.16); }
+  .b-end { color: var(--dim); border: 1px solid rgba(255,255,255,0.18); }
+  .g-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+  .empty { text-align: center; color: var(--dim); padding: 18px 8px; font-size: 14px; }
+
+  /* modal y aviso */
+  .modal { position: fixed; inset: 0; z-index: 60; display: flex; align-items: center; justify-content: center; padding: 16px; background: rgba(0,0,0,0.75); backdrop-filter: blur(3px); }
+  .modal-box { width: 100%; max-width: 560px; max-height: 90vh; overflow-y: auto; border-radius: 20px; padding: 20px; background: #07150b; border: 1px solid var(--line); box-shadow: 0 20px 60px rgba(0,0,0,0.6); }
+  .modal-box h3 { font-family: 'Bebas Neue', sans-serif; font-weight: 400; letter-spacing: 1.5px; font-size: 28px; color: var(--neon); margin-bottom: 10px; }
+  .sum-row { display: flex; justify-content: space-between; gap: 12px; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.07); font-size: 14px; }
+  .sum-row span:first-child { color: var(--dim); }
+  .sum-row span:last-child { font-weight: 700; text-align: right; }
+  .rev-q { margin-top: 12px; font-size: 14px; }
+  .rev-q .qt { font-weight: 800; margin-bottom: 4px; }
+  .rev-q .ro { padding: 3px 0 3px 12px; color: #cfe8c9; }
+  .rev-q .ro.right { color: var(--neon); font-weight: 800; }
+  .modal-actions { display: flex; gap: 10px; margin-top: 18px; }
+  .modal-actions > * { flex: 1; }
+  .toast { position: fixed; left: 50%; bottom: 96px; transform: translate(-50%, 20px); z-index: 80; max-width: 92vw; padding: 12px 18px; border-radius: 12px; font-size: 14px; font-weight: 700; opacity: 0; pointer-events: none; transition: opacity .2s, transform .2s; background: #0d2a12; border: 1px solid var(--neon); color: #fff; text-align: center; }
+  .toast.show { opacity: 1; transform: translate(-50%, 0); }
+  .toast.bad { border-color: var(--bad); background: #2a0f0f; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<div id="modal-root"></div>
+<div id="toast" class="toast" role="status"></div>
+
+<script>
+// ============================================
+// YOU GAMES · Panel de Retos (solo administrador)
+// ============================================
+const SUPABASE_URL = 'https://evcearuijddrkcdmekwl.supabase.co';
+const KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV2Y2VhcnVpamRkcmtjZG1la3dsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA0MDc2OTYsImV4cCI6MjEwNTk4MzY5Nn0.i-Pyluf-ZhWYtMxaJzFC4L-1pWd9dzVEifjl0c4tbP4';
+const PLAYER_URL = location.href.split('#')[0].split('?')[0].replace(/admin\.html$/, '');
+const MAX_Q = 20;
+
+function esc(s) {
+  return String(s === null || s === undefined ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+function pad(n) { return String(n).padStart(2, '0'); }
+function newQ() { return { text: '', opts: ['', '', '', ''], correct: -1 }; }
+function freshQuestions() { return [newQ(), newQ(), newQ(), newQ(), newQ()]; }
+
+// ---------- Estado ----------
+const SKEY = 'yg_admin_session';
+function loadSession() { try { return JSON.parse(localStorage.getItem(SKEY)); } catch (e) { return null; } }
+const S = {
+  session: loadSession(),
+  games: [], gamesLoaded: false,
+  form: { title: '', code: '', prize: '$50', start: '', minutes: '5', questions: freshQuestions() },
+  errors: {}, errShown: false, busy: false, created: null
+};
+
+// ---------- Sesión (Supabase Auth) ----------
+function saveSession() { try { localStorage.setItem(SKEY, JSON.stringify(S.session)); } catch (e) {} }
+function dropSession() { S.session = null; try { localStorage.removeItem(SKEY); } catch (e) {} }
+
+async function authRequest(grant, body) {
+  const res = await fetch(SUPABASE_URL + '/auth/v1/token?grant_type=' + grant, {
+    method: 'POST', headers: { 'apikey': KEY, 'Content-Type': 'application/json' }, body: JSON.stringify(body)
+  });
+  const data = await res.json().catch(function () { return {}; });
+  if (!res.ok) { const e = new Error(data.error_description || data.msg || data.message || 'auth'); e.status = res.status; throw e; }
+  return {
+    access_token: data.access_token, refresh_token: data.refresh_token,
+    expires_at: Date.now() + (data.expires_in || 3600) * 1000,
+    email: (data.user && data.user.email) || body.email || ''
+  };
+}
+async function refreshSession() {
+  if (!S.session || !S.session.refresh_token) throw new Error('sin sesión');
+  const email = S.session.email;
+  S.session = await authRequest('refresh_token', { refresh_token: S.session.refresh_token });
+  S.session.email = S.session.email || email;
+  saveSession();
+}
+
+// ---------- Llamadas a la base de datos (siempre con tu sesión) ----------
+async function api(path, opts, retried) {
+  opts = opts || {};
+  if (S.session && !retried && S.session.expires_at - Date.now() < 60000) { try { await refreshSession(); } catch (e) {} }
+  const headers = Object.assign({
+    'apikey': KEY, 'Authorization': 'Bearer ' + (S.session ? S.session.access_token : KEY), 'Content-Type': 'application/json'
+  }, opts.headers || {});
+  const res = await fetch(SUPABASE_URL + '/rest/v1/' + path, Object.assign({}, opts, { headers: headers }));
+  if (res.status === 401 && !retried && S.session) {
+    try { await refreshSession(); } catch (e) { dropSession(); render(); const x = new Error('sesión expirada'); x.expired = true; throw x; }
+    return api(path, opts, true);
+  }
+  if (!res.ok) { const e = new Error('HTTP ' + res.status); e.status = res.status; e.body = await res.text(); throw e; }
+  return res;
+}
+function explain(err) {
+  if (err && err.expired) return 'Tu sesión expiró. Vuelve a entrar.';
+  if (err && err.status === 403 && /42501/.test(err.body || '')) return 'Tu cuenta no tiene permiso para crear o borrar retos. Falta ejecutar el SQL de permisos (paso 1 de la configuración) o entraste con otro correo.';
+  if (err && (err.status === 409 || /23505/.test(err.body || ''))) return 'Ese código ya existe. Elige otro.';
+  if (err instanceof TypeError) return 'No hay conexión. Revisa tu internet e inténtalo de nuevo.';
+  return 'No se pudo completar. Inténtalo de nuevo.';
+}
+
+// ---------- Utilidades de fecha ----------
+function toLocalInput(d) { return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()) + 'T' + pad(d.getHours()) + ':' + pad(d.getMinutes()); }
+function parseStart(v) { if (!v) return null; const d = new Date(v); return isNaN(d.getTime()) ? null : d; }
+function whenInfo(d) {
+  const o = { date: '', time: '', zone: '' };
+  try {
+    const dt = new Intl.DateTimeFormat('es', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }).format(d);
+    o.date = dt.charAt(0).toUpperCase() + dt.slice(1);
+    o.time = new Intl.DateTimeFormat('es', { hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).format(d);
+    let short = '';
+    new Intl.DateTimeFormat('es', { hour: '2-digit', timeZoneName: 'short' }).formatToParts(d).forEach(function (x) { if (x.type === 'timeZoneName') short = x.value; });
+    o.zone = (Intl.DateTimeFormat().resolvedOptions().timeZone || '') + (short ? ' (' + short + ')' : '');
+  } catch (e) { o.date = d.toLocaleString(); }
+  return o;
+}
+function untilText(d) {
+  let t = Math.floor((d.getTime() - Date.now()) / 60000);
+  if (t <= 0) return 'ya pasó';
+  const days = Math.floor(t / 1440); t -= days * 1440; const h = Math.floor(t / 60), m = t - h * 60;
+  return 'faltan ' + (days ? days + ' d ' : '') + (h ? h + ' h ' : '') + m + ' min';
+}
+
+// ---------- Plantillas ----------
+function loginHtml() {
+  return '<div class="login"><div class="login-card">' +
+    '<img src="logo.webp" alt="YOU GAMES" class="login-logo">' +
+    '<h1 class="h-title">PANEL DE RETOS</h1>' +
+    '<p class="muted">Acceso solo para el administrador</p>' +
+    '<form id="login-form">' +
+      '<label for="lg-email">Correo</label><input id="lg-email" type="email" autocomplete="username" required>' +
+      '<label for="lg-pass">Contraseña</label><input id="lg-pass" type="password" autocomplete="current-password" required>' +
+      '<div class="err" id="lg-err"></div>' +
+      '<button class="btn" type="submit" id="lg-btn" style="margin-top:16px;">Entrar</button>' +
+    '</form></div></div>';
+}
+
+function appHtml() {
+  const f = S.form;
+  return '<div class="top"><img src="logo.webp" alt="YOU GAMES"><div class="h-title">PANEL DE RETOS</div>' +
+      '<div class="who">' + esc(S.session.email) + '</div><button class="btn-ghost" data-act="logout">Salir</button></div>' +
+    '<div class="wrap">' +
+      '<div id="created"></div>' +
+      '<section class="card" id="step1">' +
+        '<div class="step"><div class="step-n">1</div><h2>Datos del reto<small>Completa estos 5 campos</small></h2></div>' +
+        '<div class="grid2">' +
+          '<div><label for="f-title">Nombre del reto</label><input id="f-title" data-f="title" maxlength="40" placeholder="Ej: Trivia General" value="' + esc(f.title) + '"><div class="err" data-err="title"></div></div>' +
+          '<div><label for="f-code">Código de acceso</label><div class="inline"><input id="f-code" class="code-input" data-f="code" maxlength="10" autocapitalize="characters" autocomplete="off" spellcheck="false" placeholder="YG18372" value="' + esc(f.code) + '"><button class="btn-ghost" data-act="gen-code" type="button">🎲 Generar</button></div>' +
+            '<div class="hint">Lo que tus seguidores escribirán para entrar. Letras y números, hasta 10 (ej: rkfkfkf, Yougu, yg18372).</div><div class="err" data-err="code"></div></div>' +
+          '<div><label for="f-prize">Premio</label><input id="f-prize" data-f="prize" maxlength="30" placeholder="$50" value="' + esc(f.prize) + '"><div class="err" data-err="prize"></div></div>' +
+          '<div><label for="f-minutes">Tiempo límite (minutos)</label><input id="f-minutes" data-f="minutes" type="number" min="1" max="60" inputmode="numeric" value="' + esc(f.minutes) + '">' +
+            '<div class="quick"><button class="pill" data-act="quick-min" data-v="3" type="button">3 min</button><button class="pill" data-act="quick-min" data-v="5" type="button">5 min</button><button class="pill" data-act="quick-min" data-v="10" type="button">10 min</button></div>' +
+            '<div class="err" data-err="minutes"></div></div>' +
+        '</div>' +
+        '<label for="f-start">¿Cuándo empieza? (fecha y hora de tu computadora)</label>' +
+        '<input id="f-start" data-f="start" type="datetime-local" value="' + esc(f.start) + '">' +
+        '<div class="quick"><button class="pill" data-act="quick-start" data-v="5m" type="button">En 5 minutos</button><button class="pill" data-act="quick-start" data-v="1h" type="button">En 1 hora</button><button class="pill" data-act="quick-start" data-v="tom" type="button">Mañana 20:00</button></div>' +
+        '<div class="when" id="when"></div><div class="err" data-err="start"></div>' +
+      '</section>' +
+      '<section class="card" id="step2">' +
+        '<div class="step"><div class="step-n">2</div><h2>Preguntas y respuestas<small>Escribe la pregunta, escribe las 4 respuestas y pulsa «Marcar» en la correcta</small></h2></div>' +
+        '<div id="qlist"></div>' +
+        '<button class="btn-add" data-act="add-q" type="button">＋ Agregar otra pregunta</button>' +
+      '</section>' +
+      '<section class="card" id="recent"><div class="step"><div class="step-n">3</div><h2>Mis retos<small>Retos creados, programados y terminados</small></h2></div><div id="games"></div></section>' +
+    '</div>' +
+    '<div class="bar"><div class="bar-in"><div class="bar-sum" id="sum"></div><button class="btn" data-act="review" type="button" id="review-btn">Revisar y crear reto</button></div></div>';
+}
+
+function questionsHtml() {
+  const L = ['A', 'B', 'C', 'D'];
+  return S.form.questions.map(function (q, i) {
+    let opts = '';
+    for (let j = 0; j < 4; j++) {
+      opts += '<div class="opt' + (q.correct === j ? ' right' : '') + '" data-opt="' + i + '-' + j + '"><span class="chip">' + L[j] + '</span>' +
+        '<input data-q="' + i + '" data-k="opt" data-o="' + j + '" maxlength="80" placeholder="Respuesta ' + L[j] + '" value="' + esc(q.opts[j]) + '" aria-label="Respuesta ' + L[j] + ' de la pregunta ' + (i + 1) + '">' +
+        '<button type="button" class="ok-btn' + (q.correct === j ? ' on' : '') + '" data-act="mark" data-q="' + i + '" data-o="' + j + '">' + (q.correct === j ? '✓ Correcta' : 'Marcar') + '</button></div>';
+    }
+    return '<div class="q" data-qi="' + i + '"><div class="q-head"><span class="q-num">Pregunta ' + (i + 1) + '</span>' +
+      (S.form.questions.length > 1 ? '<button class="btn-ghost btn-danger" data-act="del-q" data-q="' + i + '" type="button">🗑 Quitar</button>' : '') + '</div>' +
+      '<label>✍️ Escribe aquí la PREGUNTA</label>' +
+      '<textarea data-q="' + i + '" data-k="text" maxlength="160" rows="2" placeholder="Ej: ¿Cuál es la capital de Francia?">' + esc(q.text) + '</textarea>' +
+      '<label>✅ Escribe aquí las 4 RESPUESTAS y marca la correcta</label><div class="opts">' + opts + '</div><div class="q-err" data-qerr="' + i + '"></div></div>';
+  }).join('');
+}
+
+// ---------- Pintado parcial (sin perder lo que estás escribiendo) ----------
+function renderQuestions() { const el = document.getElementById('qlist'); if (el) el.innerHTML = questionsHtml(); paintErrors(); }
+function refreshWhen() {
+  const el = document.getElementById('when'); if (!el) return;
+  const d = parseStart(S.form.start);
+  if (!d) { el.innerHTML = 'Elige la fecha y la hora, o usa uno de los botones de arriba.'; return; }
+  const w = whenInfo(d);
+  el.innerHTML = '📅 <b>' + esc(w.date) + '</b><br>⏰ <b>' + esc(w.time) + '</b> · 🌍 ' + esc(w.zone) + '<br>⏳ ' + esc(untilText(d));
+}
+function refreshSummary() {
+  const el = document.getElementById('sum'); if (!el) return;
+  const f = S.form, d = parseStart(f.start), w = d ? whenInfo(d) : null;
+  const done = f.questions.filter(function (q) { return q.text.trim() && q.opts.every(function (o) { return o.trim(); }) && q.correct >= 0; }).length;
+  el.innerHTML = '<b>' + esc(f.title.trim() || 'Reto sin nombre') + '</b> · código <b>' + esc(f.code.trim().toUpperCase() || '—') + '</b><br>' +
+    done + ' de ' + f.questions.length + ' preguntas listas · ' + esc(f.minutes || '?') + ' min · ' + (w ? esc(w.date.split(',')[0] + ' ' + w.time) : 'sin fecha');
+}
+function paintErrors() {
+  const er = S.errors || {};
+  ['title', 'code', 'prize', 'minutes', 'start'].forEach(function (k) {
+    const msg = document.querySelector('[data-err="' + k + '"]'); if (msg) msg.textContent = er[k] || '';
+    const inp = document.querySelector('[data-f="' + k + '"]'); if (inp) inp.classList.toggle('bad', !!er[k]);
+  });
+  S.form.questions.forEach(function (q, i) {
+    const e = er['q' + i]; const card = document.querySelector('.q[data-qi="' + i + '"]'); if (!card) return;
+    card.classList.toggle('has-err', !!e);
+    const m = card.querySelector('[data-qerr]'); if (m) m.textContent = e ? e.msg : '';
+    const t = card.querySelector('textarea'); if (t) t.classList.toggle('bad', !!(e && e.text));
+    card.querySelectorAll('input[data-k="opt"]').forEach(function (inp, j) { inp.classList.toggle('bad', !!(e && e.opts[j])); });
+  });
+}
+
+// ---------- Validación ----------
+function normCode(v) { return String(v || '').trim().toUpperCase(); }
+function validate() {
+  const f = S.form, er = {}, code = normCode(f.code);
+  if (!f.title.trim()) er.title = 'Escribe el nombre del reto.';
+  if (!code) er.code = 'Escribe un código o pulsa «Generar».';
+  else if (!/^[A-Z0-9_-]+$/.test(code)) er.code = 'Usa solo letras (sin acentos ni ñ), números, guion (-) o guion bajo (_). Sin espacios.';
+  else if (code.length < 3 || code.length > 10) er.code = 'El código debe tener entre 3 y 10 caracteres.';
+  if (!f.prize.trim()) er.prize = 'Escribe el premio (ej: $50).';
+  const d = parseStart(f.start);
+  if (!d) er.start = 'Elige la fecha y la hora de inicio.';
+  else if (d.getTime() < Date.now() + 60000) er.start = 'Esa hora ya pasó. Elige una hora futura.';
+  const m = parseInt(f.minutes, 10);
+  if (!m || m < 1 || m > 60) er.minutes = 'Pon un tiempo entre 1 y 60 minutos.';
+  f.questions.forEach(function (q, i) {
+    const probs = [], e = { text: false, opts: [false, false, false, false], msg: '' };
+    if (!q.text.trim()) { e.text = true; probs.push('falta escribir la pregunta'); }
+    const miss = [];
+    q.opts.forEach(function (o, j) { if (!o.trim()) { e.opts[j] = true; miss.push('ABCD'[j]); } });
+    if (miss.length) probs.push('faltan las respuestas ' + miss.join(', '));
+    const seen = {}; let dup = false;
+    q.opts.forEach(function (o, j) { const k = o.trim().toLowerCase(); if (!k) return; if (seen[k] !== undefined) { dup = true; e.opts[j] = true; e.opts[seen[k]] = true; } else seen[k] = j; });
+    if (dup) probs.push('hay respuestas repetidas');
+    if (q.correct < 0) probs.push('marca cuál es la correcta');
+    if (probs.length) { const t = probs.join('; '); e.msg = t.charAt(0).toUpperCase() + t.slice(1) + '.'; er['q' + i] = e; }
+  });
+  return er;
+}
+function recheck() { if (S.errShown) { S.errors = validate(); paintErrors(); } }
+
+// ---------- Avisos y ventanas ----------
+let toastTimer = null;
+function toast(msg, bad) {
+  const t = document.getElementById('toast'); t.textContent = msg; t.className = 'toast show' + (bad ? ' bad' : '');
+  clearTimeout(toastTimer); toastTimer = setTimeout(function () { t.className = 'toast'; }, 3800);
+}
+function openModal(html) { document.getElementById('modal-root').innerHTML = '<div class="modal" data-act="modal-bg"><div class="modal-box" role="dialog" aria-modal="true">' + html + '</div></div>'; }
+function closeModal() { document.getElementById('modal-root').innerHTML = ''; }
+async function copyText(text, okMsg) {
+  try { await navigator.clipboard.writeText(text); toast(okMsg || '¡Copiado!'); }
+  catch (e) { window.prompt('Copia este texto:', text); }
+}
+
+// ---------- Revisar y crear ----------
+function startReview() {
+  S.errors = validate(); S.errShown = true; paintErrors();
+  const keys = Object.keys(S.errors);
+  if (keys.length) {
+    toast('Faltan ' + keys.length + (keys.length === 1 ? ' cosa' : ' cosas') + ' por completar. Están marcadas en rojo.', true);
+    const first = document.querySelector('.bad, .has-err'); if (first) first.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    return;
+  }
+  const f = S.form, d = parseStart(f.start), w = whenInfo(d);
+  const qs = f.questions.map(function (q, i) {
+    return '<div class="rev-q"><div class="qt">' + (i + 1) + '. ' + esc(q.text.trim()) + '</div>' +
+      q.opts.map(function (o, j) { return '<div class="ro' + (q.correct === j ? ' right' : '') + '">' + 'ABCD'[j] + ') ' + esc(o.trim()) + (q.correct === j ? '  ✓ correcta' : '') + '</div>'; }).join('') + '</div>';
+  }).join('');
+  openModal('<h3>Revisa antes de crear</h3>' +
+    '<div class="sum-row"><span>Nombre</span><span>' + esc(f.title.trim()) + '</span></div>' +
+    '<div class="sum-row"><span>Código</span><span>' + esc(normCode(f.code)) + '</span></div>' +
+    '<div class="sum-row"><span>Premio</span><span>' + esc(f.prize.trim()) + '</span></div>' +
+    '<div class="sum-row"><span>Empieza</span><span>' + esc(w.date) + '<br>' + esc(w.time) + ' · ' + esc(w.zone) + '</span></div>' +
+    '<div class="sum-row"><span>Tiempo límite</span><span>' + esc(parseInt(f.minutes, 10)) + ' min</span></div>' +
+    '<div class="sum-row"><span>Preguntas</span><span>' + f.questions.length + '</span></div>' +
+    '<p class="muted" style="margin-top:12px;">Comprueba que la respuesta marcada con ✓ sea la correcta en cada pregunta:</p>' + qs +
+    '<div class="modal-actions"><button class="btn-ghost" data-act="close-modal" type="button">Volver a editar</button><button class="btn" data-act="confirm-create" type="button" id="confirm-btn" style="padding:13px;">✅ Crear reto</button></div>');
+}
+
+async function createGame() {
+  if (S.busy) return;
+  const f = S.form, code = normCode(f.code), start = parseStart(f.start), minutes = parseInt(f.minutes, 10);
+  S.busy = true; const cb = document.getElementById('confirm-btn'); if (cb) { cb.disabled = true; cb.textContent = 'Creando…'; }
+  try {
+    const exist = await (await api('games?id=eq.' + encodeURIComponent(code) + '&select=id')).json();
+    if (exist.length) { closeModal(); S.errors = { code: 'Ese código ya existe. Elige otro o pulsa «Generar».' }; S.errShown = true; paintErrors(); toast('Ese código ya existe.', true); document.getElementById('f-code').scrollIntoView({ block: 'center' }); return; }
+    await api('games', { method: 'POST', headers: { 'Prefer': 'return=minimal' }, body: JSON.stringify({ id: code, title: f.title.trim(), start_time: start.toISOString(), game_duration_seconds: minutes * 60, prize: f.prize.trim(), status: 'waiting' }) });
+    try {
+      const rows = f.questions.map(function (q, i) { return { id: code + '_Q' + (i + 1), game_id: code, question_text: q.text.trim(), options: q.opts.map(function (o) { return o.trim(); }), correct_index: q.correct, display_order: i + 1 }; });
+      await api('questions', { method: 'POST', headers: { 'Prefer': 'return=minimal' }, body: JSON.stringify(rows) });
+    } catch (e2) {
+      try { await api('games?id=eq.' + encodeURIComponent(code), { method: 'DELETE' }); } catch (e3) {}   // si fallan las preguntas, no deja un reto vacío
+      throw e2;
+    }
+    S.created = { code: code, title: f.title.trim(), prize: f.prize.trim(), start: start, minutes: minutes, count: f.questions.length };
+    S.form = { title: '', code: '', prize: f.prize, start: '', minutes: String(minutes), questions: freshQuestions() };
+    S.errors = {}; S.errShown = false;
+    closeModal(); render(); window.scrollTo(0, 0);
+  } catch (err) {
+    closeModal(); toast(explain(err), true);
+  } finally { S.busy = false; }
+}
+
+function createdHtml() {
+  const c = S.created; if (!c) return '';
+  const w = whenInfo(c.start);
+  return '<section class="card done"><div class="h-title" style="font-size:30px;">🎉 ¡RETO CREADO!</div>' +
+    '<p class="muted">' + esc(c.title) + ' · ' + c.count + ' preguntas · ' + c.minutes + ' min · premio ' + esc(c.prize) + '</p>' +
+    '<div class="code">' + esc(c.code) + '</div>' +
+    '<p>Empieza el <b>' + esc(w.date) + '</b> a las <b>' + esc(w.time) + '</b><br><span class="muted">' + esc(w.zone) + '</span></p>' +
+    '<p class="muted" style="margin-top:6px;">Tus seguidores entran a <b>' + esc(PLAYER_URL) + '</b> y escriben el código.</p>' +
+    '<div class="actions"><button class="btn-ghost" data-act="copy-code" type="button">📋 Copiar código</button><button class="btn-ghost" data-act="copy-msg" type="button">💬 Copiar mensaje para el directo</button><button class="btn-ghost" data-act="dismiss-created" type="button">Cerrar</button></div></section>';
+}
+function announceText() {
+  const c = S.created, w = whenInfo(c.start);
+  return '🎮 ¡Nuevo reto de YOU Games! Entra a ' + PLAYER_URL + ' y escribe el código ' + c.code + '. Empieza el ' + w.date + ' a las ' + w.time + ' (' + w.zone + '). Premio: ' + c.prize + ' 🏆';
+}
+
+// ---------- Lista de retos ----------
+async function loadGames() {
+  try {
+    S.games = await (await api('games?select=id,title,prize,start_time,game_duration_seconds&order=start_time.desc&limit=100')).json();
+    S.gamesLoaded = true;
+  } catch (e) { S.gamesLoaded = true; if (e.expired) return; toast(explain(e), true); }
+  renderGames();
+}
+function renderGames() {
+  const el = document.getElementById('games'); if (!el) return;
+  if (!S.gamesLoaded) { el.innerHTML = '<div class="empty">Cargando…</div>'; return; }
+  if (!S.games.length) { el.innerHTML = '<div class="empty">Todavía no hay retos. Crea el primero arriba. 👆</div>'; return; }
+  const now = Date.now();
+  el.innerHTML = S.games.map(function (g) {
+    const st = new Date(g.start_time).getTime(), en = st + (g.game_duration_seconds || 300) * 1000;
+    const kind = now < st ? ['Programado', 'b-prog'] : (now <= en ? ['En vivo', 'b-live'] : ['Terminado', 'b-end']);
+    const w = whenInfo(new Date(g.start_time));
+    return '<div class="g-row"><span class="g-code">' + esc(g.id) + '</span>' +
+      '<div class="g-main"><div class="g-title">' + esc(g.title) + '</div><div class="g-meta">' + esc(w.date.split(',')[0] + ' ' + w.time) + ' · ' + Math.round((g.game_duration_seconds || 300) / 60) + ' min · ' + esc(g.prize) + '</div></div>' +
+      '<span class="badge ' + kind[1] + '">' + kind[0] + '</span>' +
+      '<div class="g-actions"><button class="btn-ghost" data-act="copy-game" data-id="' + esc(g.id) + '" type="button">📋 Código</button>' +
+      '<button class="btn-ghost" data-act="use-q" data-id="' + esc(g.id) + '" type="button">Usar sus preguntas</button>' +
+      (now < st ? '<button class="btn-ghost btn-danger" data-act="del-game" data-id="' + esc(g.id) + '" type="button">🗑 Eliminar</button>' : '') + '</div></div>';
+  }).join('');
+}
+async function useQuestions(id) {
+  try {
+    const rows = await (await api('questions?game_id=eq.' + encodeURIComponent(id) + '&select=*&order=display_order.asc')).json();
+    if (!rows.length) { toast('Ese reto no tiene preguntas guardadas.', true); return; }
+    S.form.questions = rows.slice(0, MAX_Q).map(function (r) {
+      const o = Array.isArray(r.options) ? r.options.slice(0, 4) : []; while (o.length < 4) o.push('');
+      return { text: r.question_text || '', opts: o, correct: typeof r.correct_index === 'number' ? r.correct_index : -1 };
+    });
+    renderQuestions(); refreshSummary(); recheck();
+    toast('Cargué las ' + rows.length + ' preguntas de ' + id + '. Edítalas si quieres.');
+    document.getElementById('step2').scrollIntoView({ behavior: 'smooth' });
+  } catch (e) { if (!e.expired) toast(explain(e), true); }
+}
+function askDelete(id) {
+  openModal('<h3>¿Eliminar el reto ' + esc(id) + '?</h3><p class="muted">Se borrarán también sus preguntas. Esta acción no se puede deshacer.</p>' +
+    '<div class="modal-actions"><button class="btn-ghost" data-act="close-modal" type="button">Cancelar</button><button class="btn" data-act="confirm-del" data-id="' + esc(id) + '" type="button" style="background:linear-gradient(135deg,#dc2626,#7f1d1d);padding:13px;">Sí, eliminar</button></div>');
+}
+async function deleteGame(id) {
+  try {
+    await api('questions?game_id=eq.' + encodeURIComponent(id), { method: 'DELETE' });
+    await api('games?id=eq.' + encodeURIComponent(id), { method: 'DELETE' });
+    closeModal(); toast('Reto ' + id + ' eliminado.'); await loadGames();
+  } catch (e) { closeModal(); if (!e.expired) toast(explain(e), true); }
+}
+
+// ---------- Eventos ----------
+function genCode() {
+  const A = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; let c = '';
+  for (let i = 0; i < 6; i++) c += A.charAt(Math.floor(Math.random() * A.length));
+  return c;
+}
+document.addEventListener('input', function (e) {
+  const t = e.target, d = t.dataset || {};
+  if (d.f) {
+    S.form[d.f] = t.value;
+    if (d.f === 'start') refreshWhen();
+    refreshSummary(); recheck();
+  } else if (d.q !== undefined) {
+    const q = S.form.questions[+d.q]; if (!q) return;
+    if (d.k === 'text') q.text = t.value; else q.opts[+d.o] = t.value;
+    refreshSummary(); recheck();
+  }
+});
+document.addEventListener('submit', async function (e) {
+  if (e.target.id !== 'login-form') return;
+  e.preventDefault();
+  const btn = document.getElementById('lg-btn'), err = document.getElementById('lg-err');
+  btn.disabled = true; btn.textContent = 'Entrando…'; err.textContent = '';
+  try {
+    S.session = await authRequest('password', { email: document.getElementById('lg-email').value.trim(), password: document.getElementById('lg-pass').value });
+    saveSession(); render(); loadGames();
+  } catch (ex) {
+    err.textContent = (ex instanceof TypeError) ? 'No hay conexión. Revisa tu internet.' : 'Correo o contraseña incorrectos.';
+    btn.disabled = false; btn.textContent = 'Entrar';
+  }
+});
+document.addEventListener('click', async function (e) {
+  const el = e.target.closest ? e.target.closest('[data-act]') : null; if (!el) return;
+  const act = el.dataset.act;
+  if (act === 'modal-bg') { if (e.target === el) closeModal(); return; }
+  if (act === 'logout') { try { fetch(SUPABASE_URL + '/auth/v1/logout', { method: 'POST', headers: { 'apikey': KEY, 'Authorization': 'Bearer ' + S.session.access_token } }); } catch (x) {} dropSession(); S.games = []; S.gamesLoaded = false; render(); return; }
+  if (act === 'gen-code') { S.form.code = genCode(); const i = document.getElementById('f-code'); i.value = S.form.code; refreshSummary(); recheck(); return; }
+  if (act === 'quick-min') { S.form.minutes = el.dataset.v; document.getElementById('f-minutes').value = el.dataset.v; refreshSummary(); recheck(); return; }
+  if (act === 'quick-start') {
+    const d = new Date();
+    if (el.dataset.v === '5m') d.setMinutes(d.getMinutes() + 5);
+    else if (el.dataset.v === '1h') d.setHours(d.getHours() + 1);
+    else { d.setDate(d.getDate() + 1); d.setHours(20, 0, 0, 0); }
+    S.form.start = toLocalInput(d); document.getElementById('f-start').value = S.form.start; refreshWhen(); refreshSummary(); recheck(); return;
+  }
+  if (act === 'add-q') { if (S.form.questions.length >= MAX_Q) { toast('El máximo es ' + MAX_Q + ' preguntas.', true); return; } S.form.questions.push(newQ()); renderQuestions(); refreshSummary(); const all = document.querySelectorAll('.q'); all[all.length - 1].scrollIntoView({ behavior: 'smooth', block: 'center' }); return; }
+  if (act === 'del-q') { if (S.form.questions.length > 1) { S.form.questions.splice(+el.dataset.q, 1); renderQuestions(); refreshSummary(); recheck(); } return; }
+  if (act === 'mark') {
+    const i = +el.dataset.q, j = +el.dataset.o; S.form.questions[i].correct = j;
+    document.querySelectorAll('[data-opt^="' + i + '-"]').forEach(function (row) { row.classList.toggle('right', row.dataset.opt === i + '-' + j); });
+    document.querySelectorAll('.ok-btn[data-q="' + i + '"]').forEach(function (b) { const on = +b.dataset.o === j; b.classList.toggle('on', on); b.textContent = on ? '✓ Correcta' : 'Marcar'; });
+    refreshSummary(); recheck(); return;
+  }
+  if (act === 'review') { startReview(); return; }
+  if (act === 'close-modal') { closeModal(); return; }
+  if (act === 'confirm-create') { createGame(); return; }
+  if (act === 'copy-code') { copyText(S.created.code, 'Código copiado'); return; }
+  if (act === 'copy-msg') { copyText(announceText(), 'Mensaje copiado. Pégalo en el chat.'); return; }
+  if (act === 'dismiss-created') { S.created = null; document.getElementById('created').innerHTML = ''; return; }
+  if (act === 'copy-game') { copyText(el.dataset.id, 'Código copiado'); return; }
+  if (act === 'use-q') { useQuestions(el.dataset.id); return; }
+  if (act === 'del-game') { askDelete(el.dataset.id); return; }
+  if (act === 'confirm-del') { el.disabled = true; el.textContent = 'Eliminando…'; deleteGame(el.dataset.id); return; }
+});
+
+function render() {
+  const root = document.getElementById('root');
+  if (!S.session) { root.innerHTML = loginHtml(); return; }
+  root.innerHTML = appHtml();
+  document.getElementById('created').innerHTML = createdHtml();
+  renderQuestions(); refreshWhen(); refreshSummary(); renderGames();
+}
+render();
+if (S.session) loadGames();
+</script>
+</body>
+</html>
