@@ -620,6 +620,19 @@
     78%, 100% { filter: brightness(1) drop-shadow(0 0 0 rgba(124,255,60,0)); transform: scale(1); }
   }
   @media (prefers-reduced-motion: reduce) { .social a svg { animation: none; } }
+
+  /* ---- FLECHAS DE SUBIDA / BAJADA EN EL PANEL EN VIVO ---- */
+  .mv { display: inline-flex; vertical-align: middle; margin-left: 7px; }
+  .mv svg { width: 12px; height: 12px; display: block; }
+  .mv.up { color: #22c55e; }
+  .mv.down { color: #ef4444; }
+  .mv.fresh { animation: mvPop 0.45s ease-out; }
+  @keyframes mvPop { 0% { transform: scale(0.3); opacity: 0; } 60% { transform: scale(1.5); opacity: 1; } 100% { transform: scale(1); } }
+  .live-row.flash-up { animation: flashUp 1.4s ease-out; }
+  .live-row.flash-down { animation: flashDown 1.4s ease-out; }
+  @keyframes flashUp { 0% { box-shadow: 0 0 0 2px rgba(34,197,94,0.9), 0 0 18px rgba(34,197,94,0.55); } 100% { box-shadow: 0 0 0 0 rgba(34,197,94,0), 0 0 0 rgba(34,197,94,0); } }
+  @keyframes flashDown { 0% { box-shadow: 0 0 0 2px rgba(239,68,68,0.9), 0 0 18px rgba(239,68,68,0.5); } 100% { box-shadow: 0 0 0 0 rgba(239,68,68,0), 0 0 0 rgba(239,68,68,0); } }
+  @media (prefers-reduced-motion: reduce) { .mv.fresh, .live-row.flash-up, .live-row.flash-down { animation: none; } }
 </style>
 </head>
 <body>
@@ -730,6 +743,9 @@ let state = {
   topError: false,
   right: emptyRight(),
   streamerCount: null,
+  prevRanks: null,
+  moves: {},
+  lastPollAt: 0,
 };
 
 let timers = { countdown: null, quiz: null, poll: null };
@@ -1206,7 +1222,7 @@ function goHome() {
     loading: false, loadError: '', myResult: null, winsMap: {},
     menuOpen: false, menuSection: null,
     topGlobal: keepTop.topGlobal, topLoaded: keepTop.topLoaded, topError: keepTop.topError, right: keepTop.right,
-    streamerCount: null,
+    streamerCount: null, prevRanks: null, moves: {}, lastPollAt: 0,
   };
   render();
   loadHomeData();
@@ -1249,6 +1265,7 @@ async function startGame() {
       state.loading = false;
       state.screen = 'streamer';
       state.streamerCount = null;
+      state.prevRanks = null; state.moves = {}; state.lastPollAt = 0;
       render();
       startStreamerPolling();
       return;
@@ -1413,25 +1430,31 @@ function updateParticipantCount(n) {
   }
 }
 
+let streamerBusy = 0;
 async function refreshStreamerData() {
-  const code = state.gameCode;
-  const results = await Promise.all([
-    sbFetchLeaderboard(code, 10).catch(function () { return null; }),
-    sbCountParticipants(code).catch(function () { return null; })
-  ]);
-  if (state.screen !== 'streamer' || state.gameCode !== code) return;   // ya salió de esta pantalla
-  if (results[1] !== null) updateParticipantCount(results[1]);
-  if (results[0] !== null) {
-    state.leaderboard = results[0];
-    try {
-      const winsRows = await sbFetchPlayerWins();
-      state.winsMap = buildWinsMap(winsRows);
-    } catch (e2) {
-      // silencioso
+  if (streamerBusy && Date.now() - streamerBusy < 10000) return;      // la consulta anterior sigue en curso
+  streamerBusy = Date.now();
+  try {
+    const code = state.gameCode;
+    const results = await Promise.all([
+      sbFetchLeaderboard(code, 10).catch(function () { return null; }),
+      sbCountParticipants(code).catch(function () { return null; })
+    ]);
+    if (state.screen !== 'streamer' || state.gameCode !== code) return;   // ya salió de esta pantalla
+    if (results[1] !== null) updateParticipantCount(results[1]);
+    if (results[0] !== null) {
+      state.leaderboard = results[0];
+      trackMoves(results[0]);
+      try {
+        const winsRows = await sbFetchPlayerWins();
+        state.winsMap = buildWinsMap(winsRows);
+      } catch (e2) {
+        // silencioso
+      }
+      const el = document.getElementById('streamer-live-area');
+      if (el) { const before = rowTops(el); el.innerHTML = streamerLiveHtml(); animateRows(el, before); }
     }
-    const el = document.getElementById('streamer-live-area');
-    if (el) el.innerHTML = streamerLiveHtml();
-  }
+  } finally { streamerBusy = 0; }
 }
 
 function render() {
@@ -1818,13 +1841,81 @@ function htmlResults() {
     '<button class="btn" data-action="home" style="margin-top:20px;">🏠 Volver al Inicio</button>';
 }
 
+// ---------- FLECHAS DE SUBIDA / BAJADA (solo mientras el reto está abierto) ----------
+const ARROW_MS = 20000;        // cuánto tiempo se queda visible la flecha después de un cambio de puesto
+const OPEN_GRACE_MS = 8000;    // margen para los últimos resultados que llegan justo al cierre
+
+function liveWindowOpen() {
+  const g = state.currentGame;
+  if (!g) return false;
+  const st = new Date(g.start_time).getTime(), en = st + (g.game_duration_seconds || 300) * 1000, n = Date.now();
+  return n >= st && n <= en + OPEN_GRACE_MS;
+}
+
+// Compara el puesto de cada jugador con la consulta anterior (como en las tablas de fútbol)
+function trackMoves(rows) {
+  const now = Date.now(), cur = {};
+  rows.forEach(function (r, i) { cur[r.username] = i + 1; });
+  const prev = state.prevRanks;
+  if (!state.moves) state.moves = {};
+  if (!liveWindowOpen()) {
+    state.moves = {};                                   // reto cerrado: ranking final, sin flechas
+  } else if (prev) {
+    const hadPrev = Object.keys(prev).length > 0;
+    rows.forEach(function (r, i) {
+      const was = prev[r.username], rank = i + 1;
+      if (was === undefined) { if (hadPrev) state.moves[r.username] = { dir: 'up', delta: 0, at: now }; }   // entró al Top 10
+      else if (rank < was) state.moves[r.username] = { dir: 'up', delta: was - rank, at: now };
+      else if (rank > was) state.moves[r.username] = { dir: 'down', delta: rank - was, at: now };
+    });
+  }
+  state.prevRanks = cur;
+  state.lastPollAt = now;
+}
+
+function liveMove(username) {
+  const m = state.moves && state.moves[username];
+  if (!m || !liveWindowOpen() || Date.now() - m.at > ARROW_MS) return null;
+  return m;
+}
+function moveArrow(m) {
+  const pl = function (n) { return n + (n === 1 ? ' puesto' : ' puestos'); };
+  const label = m.dir === 'up' ? (m.delta ? 'Subió ' + pl(m.delta) : 'Entró al Top 10') : 'Bajó ' + pl(m.delta);
+  const svg = m.dir === 'up'
+    ? '<svg viewBox="0 0 10 10" fill="currentColor"><path d="M5 1 9.5 9h-9z"/></svg>'
+    : '<svg viewBox="0 0 10 10" fill="currentColor"><path d="M5 9 .5 1h9z"/></svg>';
+  return '<span class="mv ' + m.dir + (m.at === state.lastPollAt ? ' fresh' : '') + '" role="img" aria-label="' + label + '" title="' + label + '">' + svg + '</span>';
+}
+
+// Animación de las filas al cambiar de lugar (las que suben/bajan se deslizan; las nuevas entran por la izquierda)
+function rowTops(el) {
+  const t = {};
+  el.querySelectorAll('[data-u]').forEach(function (r) { t[r.getAttribute('data-u')] = r.getBoundingClientRect().top; });
+  return t;
+}
+function animateRows(el, before) {
+  if (!el.animate || (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches)) return;
+  const had = Object.keys(before).length > 0;
+  el.querySelectorAll('[data-u]').forEach(function (r) {
+    const u = r.getAttribute('data-u');
+    if (before[u] === undefined) {
+      if (had) r.animate([{ opacity: 0, transform: 'translateX(-14px)' }, { opacity: 1, transform: 'none' }], { duration: 400, easing: 'ease-out' });
+      return;
+    }
+    const dy = before[u] - r.getBoundingClientRect().top;
+    if (Math.abs(dy) > 1) r.animate([{ transform: 'translateY(' + dy + 'px)' }, { transform: 'translateY(0)' }], { duration: 450, easing: 'ease-out' });
+  });
+}
+
 function streamerLiveHtml() {
   let rows = '';
   const medals = ['🥇', '🥈', '🥉'];
   state.leaderboard.forEach(function (p, i) {
+    const m = liveMove(p.username);
+    const flash = m && m.at === state.lastPollAt ? ' flash-' + m.dir : '';
     rows += '' +
-      '<div class="box-green" style="border-radius:10px; padding:14px; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center;">' +
-        '<div>' + (medals[i] || ('#' + (i + 1))) + ' <strong>' + esc(p.username) + crownsFor(p.username) + '</strong></div>' +
+      '<div class="box-green live-row' + flash + '" data-u="' + esc(p.username) + '" style="border-radius:10px; padding:14px; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center;">' +
+        '<div>' + (medals[i] || ('#' + (i + 1))) + ' <strong>' + esc(p.username) + crownsFor(p.username) + '</strong>' + (m ? moveArrow(m) : '') + '</div>' +
         '<div style="text-align:right;">' +
           '<div style="font-weight:800; font-size:20px;">' + p.correct_answers + '</div>' +
           '<div class="lb-time">' + (p.time_taken_ms ? fmtMs(p.time_taken_ms) : '') + '</div>' +
