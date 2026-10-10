@@ -633,6 +633,85 @@
   @keyframes flashUp { 0% { box-shadow: 0 0 0 2px rgba(34,197,94,0.9), 0 0 18px rgba(34,197,94,0.55); } 100% { box-shadow: 0 0 0 0 rgba(34,197,94,0), 0 0 0 rgba(34,197,94,0); } }
   @keyframes flashDown { 0% { box-shadow: 0 0 0 2px rgba(239,68,68,0.9), 0 0 18px rgba(239,68,68,0.5); } 100% { box-shadow: 0 0 0 0 rgba(239,68,68,0), 0 0 0 rgba(239,68,68,0); } }
   @media (prefers-reduced-motion: reduce) { .mv.fresh, .live-row.flash-up, .live-row.flash-down { animation: none; } }
+
+  /* ---- CUENTA REGRESIVA DEL RETO (bajo el logo) ---- */
+  .live-timer { text-align: center; margin: 2px 0 16px; }
+  .lt-top { font-size: 12px; font-weight: 800; letter-spacing: 2.5px; color: var(--text-dim); text-transform: uppercase; }
+  .lt-time {
+    font-family: 'Space Mono', monospace; font-weight: 700; font-size: 60px; line-height: 1.05; font-variant-numeric: tabular-nums;
+    color: var(--brand-neon); text-shadow: 0 0 22px rgba(124,255,60,0.5);
+  }
+  .lt-bar { height: 6px; border-radius: 6px; background: rgba(255,255,255,0.08); overflow: hidden; max-width: 300px; margin: 8px auto 0; }
+  .lt-bar > i { display: block; height: 100%; width: 100%; background: linear-gradient(90deg, var(--brand-green), var(--brand-neon)); transition: width 0.25s linear; }
+  .live-timer.urgent .lt-time { color: #ff5a5a; text-shadow: 0 0 22px rgba(255,80,80,0.6); animation: ltPulse 1s ease-in-out infinite; }
+  .live-timer.urgent .lt-bar > i { background: linear-gradient(90deg, #b91c1c, #ef4444); }
+  .live-timer.done .lt-time { color: #fff; text-shadow: none; }
+  @keyframes ltPulse { 50% { transform: scale(1.06); } }
+  .replay-btn {
+    margin-top: 12px; padding: 10px 16px; border-radius: 10px; cursor: pointer; font-weight: 800; font-size: 13px; color: #fff;
+    background: linear-gradient(135deg, rgba(250,204,21,0.25), rgba(0,0,0,0.3)); border: 1.5px solid rgba(250,204,21,0.6);
+  }
+  .replay-btn[hidden] { display: none; }
+
+  /* ---- ZUMBIDO (como el de MSN) ---- */
+  html.buzzing { overflow-x: hidden; }
+  #app.buzz { animation: buzz 0.7s ease-in-out; }
+  @keyframes buzz {
+    0%, 100% { left: 0; top: 0; } 10% { left: -14px; top: -4px; } 20% { left: 14px; top: 4px; } 30% { left: -12px; top: -5px; }
+    40% { left: 12px; top: 5px; } 50% { left: -9px; top: -3px; } 60% { left: 9px; top: 3px; } 70% { left: -5px; top: -2px; }
+    80% { left: 5px; top: 2px; } 90% { left: -2px; top: 0; }
+  }
+
+  /* ---- PODIO FINAL ESTILO F1 ---- */
+  .finale {
+    position: fixed; inset: 0; z-index: 100; display: flex; align-items: center; justify-content: center; overflow: hidden; cursor: pointer;
+    background: radial-gradient(circle at 50% 35%, #0f3a14 0%, #04100a 62%, #020805 100%); animation: fnIn 0.25s ease-out;
+  }
+  .finale::before { content: ''; position: absolute; inset: 0; background: repeating-linear-gradient(115deg, rgba(124,255,60,0.05) 0 2px, transparent 2px 38px); }
+  @keyframes fnIn { from { opacity: 0; } to { opacity: 1; } }
+  .fn-flag { position: absolute; left: 0; right: 0; height: 22px; background: repeating-conic-gradient(#fff 0 25%, #0b0b0b 0 50%) 0 0 / 22px 22px; opacity: 0.85; z-index: 2; }
+  .fn-flag.top { top: 0; } .fn-flag.bottom { bottom: 0; }
+  .fn-inner { position: relative; z-index: 1; width: 100%; max-width: 620px; padding: 38px 16px 34px; text-align: center; }
+  .fn-logo { width: min(190px, 38vw); height: auto; filter: drop-shadow(0 0 24px rgba(124,255,60,0.5)); }
+  .fn-title { font-family: 'Bebas Neue', sans-serif; font-size: clamp(38px, 9vw, 64px); letter-spacing: 6px; color: #fff; margin-top: 4px; text-shadow: 0 0 24px rgba(124,255,60,0.5); }
+  .fn-sub { font-size: 12px; font-weight: 800; letter-spacing: 3px; color: var(--brand-neon); }
+  .fn-none { margin: 40px 0; font-size: 18px; font-weight: 700; color: #d7ffc9; }
+  .fn-podium { display: flex; align-items: flex-end; justify-content: center; gap: 10px; margin-top: 20px; }
+  .fn-col { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: center; opacity: 0; transform: translateY(70px) scale(0.92); }
+  .fn-col.p2 { flex: 1.12; } .fn-col.p1 { flex: 1.28; }
+  .fn-col.empty.show { opacity: 0.3; animation: none; transform: none; }
+  .fn-col.show { animation: fnRise 0.6s cubic-bezier(0.2, 1.25, 0.35, 1) forwards; }
+  @keyframes fnRise { to { opacity: 1; transform: none; } }
+  .fn-plate { --c: #cd7f32; width: 100%; padding: 8px 10px; margin-bottom: 8px; text-align: left; background: rgba(5,12,8,0.92); border-left: 5px solid var(--c); border-radius: 6px; box-shadow: 0 6px 18px rgba(0,0,0,0.5); }
+  .p2 .fn-plate { --c: #cbd5e1; } .p1 .fn-plate { --c: #facc15; }
+  .fn-name { font-family: 'Bebas Neue', sans-serif; letter-spacing: 1px; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .p3 .fn-name { font-size: 19px; } .p2 .fn-name { font-size: 24px; } .p1 .fn-name { font-size: 31px; }
+  .fn-stat { font-family: 'Space Mono', monospace; color: var(--text-dim); font-size: 11px; white-space: nowrap; }
+  .fn-block { width: 100%; display: flex; align-items: flex-start; justify-content: center; padding-top: 8px; border-radius: 8px 8px 0 0; font-family: 'Bebas Neue', sans-serif; line-height: 1; transform-origin: bottom; }
+  .p3 .fn-block { height: clamp(90px, 14vh, 150px); font-size: 46px; background: linear-gradient(180deg, #e6a566, #8a4f1d); color: #2b1505; }
+  .p2 .fn-block { height: clamp(130px, 20vh, 210px); font-size: 60px; background: linear-gradient(180deg, #eef2f7, #8a97a6); color: #1b2430; }
+  .p1 .fn-block { height: clamp(175px, 27vh, 280px); font-size: 78px; background: linear-gradient(180deg, #ffe066, #b8860b); color: #3b2a00; box-shadow: 0 0 46px rgba(250,204,21,0.5); }
+  .fn-col.show .fn-block { animation: fnGrow 0.55s cubic-bezier(0.2, 1, 0.3, 1) both; }
+  @keyframes fnGrow { from { transform: scaleY(0); } to { transform: scaleY(1); } }
+  .fn-crown { font-size: 44px; line-height: 1; margin-bottom: 4px; opacity: 0; }
+  .fn-col.p1.show .fn-crown { animation: fnCrown 0.7s 0.3s cubic-bezier(0.2, 1.4, 0.4, 1) both; }
+  @keyframes fnCrown { from { opacity: 0; transform: translateY(-40px) scale(0.4) rotate(-20deg); } to { opacity: 1; transform: none; } }
+  .fn-hint { margin-top: 18px; font-size: 12px; letter-spacing: 1px; color: var(--text-dim); opacity: 0.7; }
+  .fn-splash { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; z-index: 1; }
+  .fn-time {
+    font-family: 'Bebas Neue', sans-serif; font-size: clamp(90px, 28vw, 220px); letter-spacing: 6px; color: #fff;
+    text-shadow: 0 0 40px rgba(124,255,60,0.8), 0 0 90px rgba(124,255,60,0.5); animation: fnSlam 0.55s cubic-bezier(0.2, 1.3, 0.3, 1) both;
+  }
+  @keyframes fnSlam { from { opacity: 0; transform: scale(3.2) rotate(-4deg); } to { opacity: 1; transform: none; } }
+  .fn-flash { position: absolute; inset: 0; z-index: 3; background: #fff; opacity: 0; pointer-events: none; animation: fnFlash 0.5s ease-out; }
+  @keyframes fnFlash { 0% { opacity: 0.85; } 100% { opacity: 0; } }
+  .fn-confetti { position: absolute; inset: 0; pointer-events: none; z-index: 0; }
+  .fn-confetti i { position: absolute; top: -14px; left: var(--x); width: 9px; height: 14px; background: var(--c); opacity: 0; animation: fnFall var(--t) var(--d) ease-in forwards; }
+  @keyframes fnFall { 0% { opacity: 1; transform: translateY(0) rotate(0); } 100% { opacity: 1; transform: translateY(105vh) rotate(var(--r)); } }
+  @media (prefers-reduced-motion: reduce) {
+    #app.buzz, .fn-time, .fn-flash, .fn-crown, .fn-block, .fn-confetti i, .live-timer.urgent .lt-time { animation: none !important; }
+    .fn-col.show { animation: none; opacity: 1; transform: none; } .fn-crown { opacity: 1; }
+  }
 </style>
 </head>
 <body>
@@ -1211,6 +1290,7 @@ function logoAction() {
 
 function goHome() {
   clearTimers();
+  stopFinale();
   const keepTop = { topGlobal: state.topGlobal, topLoaded: state.topLoaded, topError: state.topError, right: state.right };
   state = {
     screen: 'home', mode: 'spectator', gameCodeInput: '', usernameInput: '',
@@ -1266,6 +1346,7 @@ async function startGame() {
       state.screen = 'streamer';
       state.streamerCount = null;
       state.prevRanks = null; state.moves = {}; state.lastPollAt = 0;
+      state.finaleFor = null; stopFinale();
       render();
       startStreamerPolling();
       return;
@@ -1464,6 +1545,7 @@ function render() {
   attachHandlers();
   syncShine();
   fitPanelTitle();
+  if (state.screen === 'streamer') updateLiveTimer();
 }
 
 function getScreenHtml() {
@@ -1928,6 +2010,145 @@ function streamerLiveHtml() {
   return rows;
 }
 
+// ================= FINAL DEL RETO: cuenta regresiva y podio estilo F1 =================
+const FINALE_SPLASH_MS = 1900;   // cuánto se ve el "¡TIEMPO!" antes del podio
+const FINALE_STEP_MS = 650;      // pausa entre la aparición del 3.º, el 2.º y el 1.º
+const FINALE_HOLD_MS = 3500;     // cuánto se queda el podio completo antes de volver a la pantalla normal
+
+function liveTimerInfo() {
+  const g = state.currentGame;
+  if (!g) return null;
+  const st = new Date(g.start_time).getTime(), dur = (g.game_duration_seconds || 300) * 1000, en = st + dur, n = Date.now();
+  if (n < st) return { phase: 'before', ms: st - n, frac: 1, label: 'EMPIEZA EN' };
+  if (n < en) return { phase: 'open', ms: en - n, frac: (en - n) / dur, label: 'TIEMPO RESTANTE' };
+  return { phase: 'done', ms: 0, frac: 0, label: 'RETO FINALIZADO' };
+}
+function fmtClock(ms) {
+  const t = Math.ceil(ms / 1000), h = Math.floor(t / 3600), m = Math.floor((t % 3600) / 60), sec = t % 60;
+  return (h ? h + ':' + pad2(m) : pad2(m)) + ':' + pad2(sec);
+}
+function liveTimerInner(sd) {
+  return '<div class="lt-top"><span class="emoji-shine soft" style="' + sd + '">🕒</span> <span id="lt-label">TIEMPO RESTANTE</span></div>' +
+    '<div class="lt-time" id="lt-time">--:--</div>' +
+    '<div class="lt-bar"><i id="lt-bar"></i></div>' +
+    '<button class="replay-btn" data-action="replay-finale" id="replay-finale" hidden>🏆 Ver podio otra vez</button>';
+}
+function updateLiveTimer() {
+  const info = liveTimerInfo();
+  if (!info) return null;
+  const box = document.getElementById('live-timer');
+  if (!box) return info;
+  const t = document.getElementById('lt-time'), l = document.getElementById('lt-label'), bar = document.getElementById('lt-bar'), rb = document.getElementById('replay-finale');
+  if (t) t.textContent = fmtClock(info.ms);
+  if (l) l.textContent = info.label;
+  if (bar) bar.style.width = (info.frac * 100).toFixed(1) + '%';
+  if (rb) rb.hidden = info.phase !== 'done';
+  box.className = 'live-timer ' + info.phase + (info.phase === 'open' && info.ms <= 30000 ? ' urgent' : '');
+  return info;
+}
+
+let finaleTimers = [];
+function ft(fn, ms) { finaleTimers.push(setTimeout(fn, ms)); }
+function sleepFinale(ms) { return new Promise(function (res) { ft(res, ms); }); }
+function stopFinale() {
+  finaleTimers.forEach(clearTimeout); finaleTimers = [];
+  const o = document.getElementById('finale'); if (o) o.remove();
+  document.removeEventListener('keydown', finaleKey);
+  if (state) state.finaleActive = false;
+}
+function finaleKey(e) { if (e.key === 'Escape') endFinale(); }
+function endFinale() {
+  if (!state.finaleActive) return;
+  stopFinale(); buzz();
+  if (state.screen === 'streamer') refreshStreamerData();
+}
+
+// Zumbido tipo MSN: la pantalla vibra un instante
+function buzz() {
+  if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const app = document.getElementById('app'); if (!app) return;
+  const root = document.documentElement;
+  app.classList.remove('buzz'); void app.offsetWidth; app.classList.add('buzz'); root.classList.add('buzzing');
+  setTimeout(function () { app.classList.remove('buzz'); root.classList.remove('buzzing'); }, 750);
+}
+
+function finaleSlot(pos, row) {
+  const cls = 'p' + pos;
+  if (!row) {
+    return '<div class="fn-col ' + cls + ' empty" data-p="' + pos + '"><div class="fn-plate"><div class="fn-name">—</div><div class="fn-stat">&nbsp;</div></div><div class="fn-block"><span>' + pos + '</span></div></div>';
+  }
+  const n = Number(row.correct_answers) || 0;
+  return '<div class="fn-col ' + cls + '" data-p="' + pos + '">' + (pos === 1 ? '<div class="fn-crown">👑</div>' : '') +
+    '<div class="fn-plate"><div class="fn-name">' + esc(row.username) + crownsFor(row.username) + '</div>' +
+    '<div class="fn-stat">' + n + (n === 1 ? ' acierto' : ' aciertos') + ' · ' + fmtMs(row.time_taken_ms || 0) + '</div></div>' +
+    '<div class="fn-block"><span>' + pos + '</span></div></div>';
+}
+function finalePodiumHtml(top) {
+  return '<div class="fn-flag top"></div><div class="fn-inner">' +
+    '<img class="fn-logo" src="logo.webp" alt="YOU GAMES">' +
+    '<div class="fn-title">PODIO FINAL</div><div class="fn-sub">RETO FINALIZADO</div>' +
+    (top.length
+      ? '<div class="fn-podium">' + finaleSlot(2, top[1]) + finaleSlot(1, top[0]) + finaleSlot(3, top[2]) + '</div>'
+      : '<div class="fn-none">Nadie terminó este reto.</div>') +
+    '<div class="fn-hint">Toca para cerrar</div></div><div class="fn-flag bottom"></div><div class="fn-confetti" id="fn-confetti"></div>';
+}
+function confetti() {
+  const box = document.getElementById('fn-confetti'); if (!box) return;
+  const colors = ['#facc15', '#7CFF3C', '#ffffff', '#3fae00', '#fde68a'];
+  let h = '';
+  for (let i = 0; i < 34; i++) {
+    h += '<i style="--x:' + (Math.random() * 100).toFixed(1) + '%; --d:' + (Math.random() * 0.6).toFixed(2) + 's; --t:' + (2.2 + Math.random() * 1.4).toFixed(2) + 's; --r:' + Math.round(180 + Math.random() * 540) + 'deg; --c:' + colors[i % colors.length] + ';"></i>';
+  }
+  box.innerHTML = h;
+}
+function revealPodium(top) {
+  const cols = {};
+  document.querySelectorAll('#finale .fn-col').forEach(function (c) { cols[c.getAttribute('data-p')] = c; });
+  document.querySelectorAll('#finale .fn-col.empty').forEach(function (c) { ft(function () { c.classList.add('show'); }, 250); });
+  const present = [3, 2, 1].filter(function (p) { return top[p - 1]; });
+  present.forEach(function (p, i) {
+    ft(function () { if (cols[p]) cols[p].classList.add('show'); if (p === 1) confetti(); }, 250 + i * FINALE_STEP_MS);
+  });
+  ft(endFinale, top.length ? 250 + present.length * FINALE_STEP_MS + FINALE_HOLD_MS : 3200);
+}
+function withTimeout(promise, ms) {
+  return Promise.race([promise, new Promise(function (_, rej) { setTimeout(function () { rej(new Error('timeout')); }, ms); })]);
+}
+
+async function startFinale(replay) {
+  if (state.finaleActive || state.screen !== 'streamer') return;
+  state.finaleActive = true;
+  const code = state.gameCode;
+  const o = document.createElement('div'); o.id = 'finale'; o.className = 'finale';
+  document.body.appendChild(o);
+  o.addEventListener('click', endFinale);
+  document.addEventListener('keydown', finaleKey);
+  const t0 = Date.now();
+  if (!replay) {
+    o.innerHTML = '<div class="fn-splash"><div class="fn-time">¡TIEMPO!</div></div><div class="fn-flash"></div>';
+    buzz();
+    await sleepFinale(1000);                           // deja llegar los últimos resultados
+  }
+  if (!state.finaleActive) return;
+  let top;
+  try { top = await withTimeout(sbFetchLeaderboard(code, 3), 3000); } catch (e) { top = (state.leaderboard || []).slice(0, 3); }
+  if (!state.finaleActive || state.screen !== 'streamer') return;
+  if (!replay) { const wait = FINALE_SPLASH_MS - (Date.now() - t0); if (wait > 0) await sleepFinale(wait); }
+  if (!state.finaleActive) return;
+  o.innerHTML = finalePodiumHtml(top);
+  revealPodium(top);
+}
+
+function tickStreamer() {
+  if (state.screen !== 'streamer' || !state.currentGame) return;
+  const info = updateLiveTimer();
+  if (info && info.phase === 'done' && state.finaleFor !== state.currentGame.id) {
+    state.finaleFor = state.currentGame.id;
+    const en = new Date(state.currentGame.start_time).getTime() + (state.currentGame.game_duration_seconds || 300) * 1000;
+    if (Date.now() - en < 20000) startFinale(false);   // solo si el reto acaba de terminar delante de ti
+  }
+}
+
 function htmlStreamer() {
   const sd = sdStyle();
   return '' +
@@ -1938,6 +2159,7 @@ function htmlStreamer() {
         '<div class="hero-logo-shine" style="' + sd + '"></div>' +
       '</div>' +
     '</div>' +
+    '<div class="live-timer" id="live-timer">' + liveTimerInner(sd) + '</div>' +
     '<div class="panel count-panel">' +
       '<div class="count-chip"><span class="emoji-shine" style="' + sd + '">👥</span></div>' +
       '<div>' +
@@ -2008,6 +2230,8 @@ function attachHandlers() {
 }
 
 document.addEventListener('click', function (e) {
+  const rp = e.target && e.target.closest ? e.target.closest('[data-action="replay-finale"]') : null;
+  if (rp) { e.preventDefault(); startFinale(true); return; }
   const t = e.target && e.target.closest ? e.target.closest('[data-action="share-podium"]') : null;
   if (t) { e.preventDefault(); sharePodium(); }
 });
@@ -2029,6 +2253,7 @@ window.addEventListener('resize', fitPanelTitle);
 loadHomeData();
 topTimer = setInterval(loadHomeData, 60000);
 setInterval(tickNext, 250);
+setInterval(tickStreamer, 250);
 </script>
 </body>
 </html>
