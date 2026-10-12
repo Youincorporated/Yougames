@@ -733,10 +733,23 @@
   }
   @media (min-width: 1180px) { .home-main > .home-slogan { grid-column: 2; grid-row: 4; } }
   @media (prefers-reduced-motion: reduce) { .sl-text, .sl-text .yo { animation: none; } }
+
+  /* ---- PUBLICIDAD Y PATROCINADOR ---- */
+  .ad-wrap { max-width: 728px; margin: 0 auto; padding: 12px 16px 110px; text-align: center; }
+  .ad-wrap[hidden] { display: none; }
+  .ad-label { font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text-dim); margin-bottom: 6px; }
+  .sponsor { display: flex; align-items: center; justify-content: center; gap: 10px; margin: 14px auto 0; max-width: 480px; padding: 8px 14px; border-radius: 12px; text-decoration: none; color: #fff; border: 1px solid rgba(124,255,60,0.25); background: rgba(255,255,255,0.03); }
+  .sp-tag { font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text-dim); }
+  .sp-name { font-family: 'Bebas Neue', sans-serif; font-size: 22px; letter-spacing: 2px; }
+  .sponsor img { max-height: 34px; width: auto; }
+  .sponsor.fn { margin-top: 16px; }
+  a.menu-item { text-decoration: none; color: inherit; }
+  @media (min-width: 1180px) { .home-main > .sponsor { grid-column: 2; grid-row: 5; width: 100%; } }
 </style>
 </head>
 <body>
 <div id="app"></div>
+<noscript><div style="max-width:640px;margin:0 auto;padding:28px 18px;color:#fff;font-family:Arial,sans-serif;line-height:1.5;"><h1 style="color:#7CFF3C;">YOU GAMES</h1><p>YOU GAMES es un proyecto de entretenimiento competitivo creado dentro de YOU: retos de trivia en directo con preguntas de tiempo límite, ranking global y premios. Necesitas activar JavaScript para jugar.</p><p><a href="privacidad.html" style="color:#7CFF3C;">Política de Privacidad</a> · Contacto: youoficial.contact@gmail.com</p></div></noscript>
 
 <script>
 // ============================================
@@ -1573,6 +1586,7 @@ function render() {
   syncShine();
   fitPanelTitle();
   if (state.screen === 'streamer') updateLiveTimer();
+  updateAds();
 }
 
 function getScreenHtml() {
@@ -1638,6 +1652,7 @@ function htmlHome() {
       (state.loadError ? '<div class="error-text center">' + state.loadError + '</div>' : '') +
     '</div>' +
     '<div class="home-slogan" style="' + sd + '"><span class="sl-line"></span><div class="sl-text">En <span class="yo">YOU</span> Todo Es Posible</div><span class="sl-line r"></span></div>' +
+    sponsorHtml('home') +
     '</section>' +
     '<aside class="home-left"><div class="panel" id="panel-top">' + htmlTopGlobal() + '</div></aside>' +
     '<aside class="home-right"><div class="right-stack">' +
@@ -1676,6 +1691,7 @@ function htmlMenu() {
           '<div class="menu-group-label">Soporte</div>' +
           mi('contacto', '✉️', 'Contacto') +
           mi('legal', '⚖️', 'Aviso Legal') +
+          '<a class="menu-item" href="privacidad.html"><div class="menu-item-icon">🛡️</div><div class="menu-item-label">Política de Privacidad</div><div class="menu-item-chevron">›</div></a>' +
         '</div>' +
       '</div>';
   }
@@ -1844,6 +1860,44 @@ function htmlSaving() {
       '<div class="spinner"></div>' +
       '<div class="center subtitle">Guardando tu resultado...</div>' +
     '</div>';
+}
+
+// ================= PUBLICIDAD Y PATROCINADORES (apagado hasta que tú lo actives) =================
+// 1) Google AdSense: déjalo vacío hasta que Google apruebe tu sitio. Cuando tengas tus datos, escríbelos aquí.
+const ADSENSE_CLIENT = '';      // ejemplo: 'ca-pub-1234567890123456'
+const ADSENSE_SLOT_HOME = '';   // ejemplo: '1234567890' (número del bloque de anuncios que creas en AdSense)
+// 2) Patrocinador propio (una marca que paga por salir en tu página). Si 'name' está vacío no se muestra nada.
+const SPONSOR = { name: '', url: '', img: '' };    // ejemplo: { name: 'Mi Marca', url: 'https://mimarca.com', img: 'logo-marca.png' }
+
+let adsPushed = false;
+function initAds() {
+  if (!ADSENSE_CLIENT) return;
+  const sc = document.createElement('script');
+  sc.async = true; sc.crossOrigin = 'anonymous';
+  sc.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=' + encodeURIComponent(ADSENSE_CLIENT);
+  document.head.appendChild(sc);
+  if (!ADSENSE_SLOT_HOME) return;
+  const wrap = document.createElement('aside');
+  wrap.id = 'ad-wrap'; wrap.className = 'ad-wrap'; wrap.hidden = true; wrap.setAttribute('aria-label', 'Publicidad');
+  wrap.innerHTML = '<div class="ad-label">Publicidad</div><ins class="adsbygoogle" style="display:block" data-ad-client="' + esc(ADSENSE_CLIENT) + '" data-ad-slot="' + esc(ADSENSE_SLOT_HOME) + '" data-ad-format="auto" data-full-width-responsive="true"></ins>';
+  const app = document.getElementById('app');
+  app.parentNode.insertBefore(wrap, app.nextSibling);   // fuera de #app: el anuncio no se recarga cada vez que la página se redibuja
+}
+// El anuncio solo se ve en la portada (nunca durante el juego) y se pide una única vez
+function updateAds() {
+  const wrap = document.getElementById('ad-wrap');
+  if (!wrap) return;
+  const show = state.screen === 'home';
+  wrap.hidden = !show;
+  if (show && !adsPushed) { adsPushed = true; try { (window.adsbygoogle = window.adsbygoogle || []).push({}); } catch (e) {} }
+}
+function sponsorHtml(cls) {
+  if (!SPONSOR.name) return '';
+  const inner = SPONSOR.img ? '<img src="' + esc(SPONSOR.img) + '" alt="' + esc(SPONSOR.name) + '">' : '<span class="sp-name">' + esc(SPONSOR.name) + '</span>';
+  const body = '<span class="sp-tag">Patrocinado por</span>' + inner;
+  return SPONSOR.url
+    ? '<a class="sponsor ' + cls + '" href="' + esc(SPONSOR.url) + '" target="_blank" rel="sponsored noopener noreferrer">' + body + '</a>'
+    : '<div class="sponsor ' + cls + '">' + body + '</div>';
 }
 
 const ICON_INSTAGRAM = '<svg viewBox="0 0 16 16" width="16" height="16" fill="currentColor"><path d="M8 0C5.829 0 5.556.01 4.703.048 3.85.088 3.269.222 2.76.42a3.9 3.9 0 0 0-1.417.923A3.9 3.9 0 0 0 .42 2.76C.222 3.268.087 3.85.048 4.7.01 5.555 0 5.827 0 8.001c0 2.172.01 2.444.048 3.297.04.852.174 1.433.372 1.942.205.526.478.972.923 1.417.444.445.89.719 1.416.923.51.198 1.09.333 1.942.372C5.555 15.99 5.827 16 8 16s2.444-.01 3.298-.048c.851-.04 1.434-.174 1.943-.372a3.9 3.9 0 0 0 1.416-.923c.445-.445.718-.891.923-1.417.197-.509.332-1.09.372-1.942C15.99 10.445 16 10.173 16 8s-.01-2.445-.048-3.299c-.04-.851-.175-1.433-.372-1.941a3.9 3.9 0 0 0-.923-1.417A3.9 3.9 0 0 0 13.24.42c-.51-.198-1.092-.333-1.943-.372C10.443.01 10.172 0 7.998 0zm-.717 1.442h.718c2.136 0 2.389.007 3.232.046.78.035 1.204.166 1.486.275.373.145.64.319.92.599s.453.546.598.92c.11.281.24.705.275 1.485.039.843.047 1.096.047 3.231s-.008 2.389-.047 3.232c-.035.78-.166 1.203-.275 1.485a2.5 2.5 0 0 1-.599.919c-.28.28-.546.453-.92.598-.28.11-.704.24-1.485.276-.843.038-1.096.047-3.232.047s-2.39-.009-3.233-.047c-.78-.036-1.203-.166-1.485-.276a2.5 2.5 0 0 1-.92-.598 2.5 2.5 0 0 1-.6-.92c-.109-.281-.24-.705-.275-1.485-.038-.843-.046-1.096-.046-3.233s.008-2.388.046-3.231c.036-.78.166-1.204.276-1.486.145-.373.319-.64.599-.92s.546-.453.92-.598c.282-.11.705-.24 1.485-.276.738-.034 1.024-.044 2.515-.045zm4.988 1.328a.96.96 0 1 0 0 1.92.96.96 0 0 0 0-1.92m-4.27 1.122a4.109 4.109 0 1 0 0 8.217 4.109 4.109 0 0 0 0-8.217m0 1.441a2.667 2.667 0 1 1 0 5.334 2.667 2.667 0 0 1 0-5.334"/></svg>';
@@ -2118,6 +2172,7 @@ function finalePodiumHtml(top) {
     (top.length
       ? '<div class="fn-podium">' + finaleSlot(2, top[1]) + finaleSlot(1, top[0]) + finaleSlot(3, top[2]) + '</div>'
       : '<div class="fn-none">Nadie terminó este reto.</div>') +
+    sponsorHtml('fn') +
     '<div class="fn-hint">Toca para cerrar</div></div><div class="fn-flag bottom"></div><div class="fn-confetti" id="fn-confetti"></div>';
 }
 function confetti() {
@@ -2279,6 +2334,7 @@ document.addEventListener('keydown', function (e) {
     logoAction();
   }
 });
+initAds();
 render();
 if (document.fonts) {
   if (document.fonts.ready) document.fonts.ready.then(fitPanelTitle);
