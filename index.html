@@ -745,6 +745,63 @@
   .sponsor.fn { margin-top: 16px; }
   a.menu-item { text-decoration: none; color: inherit; }
   @media (min-width: 1180px) { .home-main > .sponsor { grid-column: 2; grid-row: 5; width: 100%; } }
+
+  /* ---- IDIOMAS: pantalla de bienvenida, menú desplegable y mensaje de transición ---- */
+  .lang-page { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 26px; min-height: calc(100vh - 60px); }
+  .lang-logo { margin-bottom: 0; }
+  .lang-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; width: 100%; max-width: 420px; }
+  @media (min-width: 640px) { .lang-grid { grid-template-columns: repeat(3, 1fr); max-width: 580px; gap: 18px; } }
+  .lang-card {
+    display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 20px 10px; border-radius: 18px; cursor: pointer; color: #fff;
+    font-family: inherit; font-weight: 800; font-size: 18px;
+    background: linear-gradient(180deg, rgba(255,255,255,0.05), rgba(0,0,0,0.22)); border: 1.5px solid rgba(124,255,60,0.3);
+    transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+  }
+  .lang-card:hover, .lang-card:focus-visible { transform: translateY(-3px); border-color: var(--brand-neon); box-shadow: 0 8px 24px rgba(124,255,60,0.2); outline: none; }
+  .lang-card:active { transform: scale(0.97); }
+  .lang-flag svg { display: block; width: 78px; height: 52px; border-radius: 7px; box-shadow: 0 4px 14px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.15); }
+  .lang-switch { position: fixed; top: 14px; right: 66px; z-index: 56; }
+  .ls-btn {
+    height: 44px; padding: 0 12px; display: flex; align-items: center; gap: 8px; cursor: pointer; font-family: inherit; font-weight: 800; font-size: 13px; color: #fff;
+    border-radius: 12px; background: rgba(3,10,6,0.88); border: 1px solid rgba(124,255,60,0.4); backdrop-filter: blur(6px);
+  }
+  .ls-btn:hover { border-color: var(--brand-neon); }
+  .ls-flag svg { display: block; width: 26px; height: 17px; border-radius: 3px; box-shadow: 0 0 0 1px rgba(255,255,255,0.2); }
+  .ls-caret { font-size: 11px; opacity: 0.8; }
+  .ls-backdrop { position: fixed; inset: 0; z-index: 57; }
+  .ls-menu {
+    position: absolute; top: 52px; right: 0; z-index: 58; min-width: 200px; padding: 6px; border-radius: 14px;
+    background: #07150b; border: 1px solid var(--line, rgba(124,255,60,0.25)); box-shadow: 0 14px 40px rgba(0,0,0,0.6); animation: lsIn 0.15s ease-out;
+  }
+  @keyframes lsIn { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: none; } }
+  .ls-item { display: flex; align-items: center; gap: 10px; width: 100%; padding: 10px; border-radius: 10px; cursor: pointer; border: none; background: none; color: #fff; font-family: inherit; font-weight: 700; font-size: 14px; text-align: left; }
+  .ls-item:hover, .ls-item.on { background: rgba(124,255,60,0.13); }
+  .ls-name { flex: 1; }
+  .ls-check { color: var(--brand-neon); font-weight: 800; }
+  .welcome { position: fixed; inset: 0; z-index: 120; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 22px; padding: 24px; text-align: center;
+    background: radial-gradient(circle at 50% 35%, #0f3a14 0%, #04100a 62%, #020805 100%); animation: fnIn 0.3s ease-out; transition: opacity 0.45s ease; }
+  .welcome.out { opacity: 0; pointer-events: none; }
+  .welcome-logo { width: min(230px, 56vw); height: auto; filter: drop-shadow(0 0 28px rgba(124,255,60,0.5)); animation: welcomePop 0.6s cubic-bezier(0.2, 1.3, 0.3, 1) both; }
+  .welcome-msg { font-family: 'Bebas Neue', sans-serif; font-size: clamp(30px, 8vw, 52px); letter-spacing: 2px; color: #fff; text-shadow: 0 0 24px rgba(124,255,60,0.6); animation: welcomePop 0.6s 0.15s cubic-bezier(0.2, 1.3, 0.3, 1) both; }
+  @keyframes welcomePop { from { opacity: 0; transform: translateY(16px) scale(0.92); } to { opacity: 1; transform: none; } }
+  @media (prefers-reduced-motion: reduce) { .welcome-logo, .welcome-msg, .ls-menu { animation: none; } }
+  /* Chino: fuente con caracteres chinos (Bebas Neue y Space Mono no los tienen) */
+  html[lang="zh"] body, html[lang="zh"] button, html[lang="zh"] input { font-family: 'Inter', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans CJK SC', 'Noto Sans SC', sans-serif; }
+  html[lang="zh"] .display-font,
+  html[lang="zh"] .hero-tagline,
+  html[lang="zh"] .menu-header-title,
+  html[lang="zh"] .menu-detail-title,
+  html[lang="zh"] .panel-title,
+  html[lang="zh"] .pod-block,
+  html[lang="zh"] .cd-tba,
+  html[lang="zh"] .pb-title,
+  html[lang="zh"] .fn-title,
+  html[lang="zh"] .fn-name,
+  html[lang="zh"] .fn-block,
+  html[lang="zh"] .fn-time,
+  html[lang="zh"] .sl-text,
+  html[lang="zh"] .sp-name { font-family: 'Inter', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans CJK SC', 'Noto Sans SC', sans-serif; font-weight: 800; letter-spacing: 1px; }
+  html[lang="de"] .stat-cap, html[lang="de"] .cd-lab, html[lang="pt"] .stat-cap { letter-spacing: 0.4px; }
 </style>
 </head>
 <body>
@@ -771,44 +828,45 @@ const sbHeaders = {
 };
 
 async function sbFetchGame(code) {
-  const res = await fetch(SUPABASE_URL + '/rest/v1/games?id=eq.' + encodeURIComponent(code) + '&select=*', { headers: sbHeaders });
+  const res = await sbReq(SUPABASE_URL + '/rest/v1/games?id=eq.' + encodeURIComponent(code) + '&select=*', { headers: sbHeaders });
   if (!res.ok) throw new Error('Error consultando el reto');
   const rows = await res.json();
   return rows[0] || null;
 }
 
 async function sbFetchQuestions(gameId) {
-  const res = await fetch(SUPABASE_URL + '/rest/v1/questions?game_id=eq.' + encodeURIComponent(gameId) + '&select=*&order=display_order.asc', { headers: sbHeaders });
+  const res = await sbReq(SUPABASE_URL + '/rest/v1/questions?game_id=eq.' + encodeURIComponent(gameId) + '&select=*&order=display_order.asc', { headers: sbHeaders });
   if (!res.ok) throw new Error('Error consultando preguntas');
   return await res.json();
 }
 
 async function sbCheckAlreadyPlayed(gameId, username) {
-  const res = await fetch(SUPABASE_URL + '/rest/v1/participations?game_id=eq.' + encodeURIComponent(gameId) + '&username=eq.' + encodeURIComponent(username) + '&select=id&limit=1', { headers: sbHeaders });
+  const res = await sbReq(SUPABASE_URL + '/rest/v1/participations?game_id=eq.' + encodeURIComponent(gameId) + '&username=eq.' + encodeURIComponent(username) + '&select=id&limit=1', { headers: sbHeaders });
   if (!res.ok) throw new Error('Error verificando participación');
   const rows = await res.json();
   return rows.length > 0;
 }
 
 async function sbInsertParticipation(record) {
-  const res = await fetch(SUPABASE_URL + '/rest/v1/participations', {
+  const res = await sbReq(SUPABASE_URL + '/rest/v1/participations', {
     method: 'POST',
-    headers: Object.assign({}, sbHeaders, { 'Prefer': 'return=representation' }),
+    headers: Object.assign({}, sbHeaders, { 'Prefer': 'return=minimal' }),
     body: JSON.stringify(record),
-  });
+  }, 5);
+  if (res.status === 409) return [];                 // ya estaba guardado (un reintento tras un corte de internet)
   if (!res.ok) throw new Error('Error guardando tu resultado');
-  return await res.json();
+  return [];
 }
 
 async function sbFetchLeaderboard(gameId, limit) {
   limit = limit || 10;
-  const res = await fetch(SUPABASE_URL + '/rest/v1/participations?game_id=eq.' + encodeURIComponent(gameId) + '&select=*&order=correct_answers.desc,time_taken_ms.asc&limit=' + limit, { headers: sbHeaders });
+  const res = await sbReq(SUPABASE_URL + '/rest/v1/participations?game_id=eq.' + encodeURIComponent(gameId) + '&select=*&order=correct_answers.desc,time_taken_ms.asc&limit=' + limit, { headers: sbHeaders });
   if (!res.ok) throw new Error('Error consultando ranking');
   return await res.json();
 }
 
 async function sbFetchPlayerWins() {
-  const res = await fetch(SUPABASE_URL + '/rest/v1/player_wins?select=*', { headers: sbHeaders });
+  const res = await sbReq(SUPABASE_URL + '/rest/v1/player_wins?select=*', { headers: sbHeaders });
   if (!res.ok) throw new Error('Error consultando coronas');
   return await res.json();
 }
@@ -927,12 +985,12 @@ function cdParts(ms) {
 function setText(id, v) { const el = document.getElementById(id); if (el) el.textContent = v; }
 
 async function sbFetchAllGames() {
-  const res = await fetch(SUPABASE_URL + '/rest/v1/games?select=id,title,prize,start_time,game_duration_seconds&order=start_time.desc&limit=1000', { headers: sbHeaders });
+  const res = await sbReq(SUPABASE_URL + '/rest/v1/games?select=id,prize,start_time,game_duration_seconds&order=start_time.desc&limit=1000', { headers: sbHeaders });
   if (!res.ok) throw new Error('Error consultando los retos');
   return await res.json();
 }
 async function sbFetchGameWinners() {
-  const res = await fetch(SUPABASE_URL + '/rest/v1/game_winners?select=game_id&limit=1000', { headers: sbHeaders });
+  const res = await sbReq(SUPABASE_URL + '/rest/v1/game_winners?select=game_id&limit=1000', { headers: sbHeaders });
   if (!res.ok) throw new Error('Error consultando los ganadores');
   return await res.json();
 }
@@ -965,6 +1023,11 @@ async function loadRightData() {
       podium: podium, nextGame: upcoming[0] || null, liveGame: live
     };
     if (mine.place) prepareCard();
+    if (live) {   // cuando el reto en vivo termine, la portada se actualiza una vez (con retraso aleatorio para no saturar)
+      const wait = new Date(live.start_time).getTime() + (live.game_duration_seconds || 300) * 1000 - Date.now() + 35000 + Math.random() * 20000;
+      clearTimeout(endRefreshTimer);
+      endRefreshTimer = setTimeout(function () { if (state.screen === 'home') loadHomeData(); }, Math.max(wait, 5000));
+    }
   } catch (err) {
     state.right.loaded = true;
     state.right.error = true;
@@ -1005,20 +1068,20 @@ function tzInfo(ms) {
   const d = new Date(ms);
   const out = { date: '', time: '', short: '', long: '', iana: '', utc: '' };
   try {
-    const date = new Intl.DateTimeFormat('es', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }).format(d);
+    const date = new Intl.DateTimeFormat(curLocale(), { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }).format(d);
     out.date = date.charAt(0).toUpperCase() + date.slice(1);
-    out.time = new Intl.DateTimeFormat('es', { hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).format(d);
-    new Intl.DateTimeFormat('es', { hour: '2-digit', timeZoneName: 'short' }).formatToParts(d)
+    out.time = new Intl.DateTimeFormat(curLocale(), { hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).format(d);
+    new Intl.DateTimeFormat(curLocale(), { hour: '2-digit', timeZoneName: 'short' }).formatToParts(d)
       .forEach(function (x) { if (x.type === 'timeZoneName') out.short = x.value; });
-    new Intl.DateTimeFormat('es', { hour: '2-digit', timeZoneName: 'long' }).formatToParts(d)
+    new Intl.DateTimeFormat(curLocale(), { hour: '2-digit', timeZoneName: 'long' }).formatToParts(d)
       .forEach(function (x) { if (x.type === 'timeZoneName') out.long = x.value; });
     out.iana = Intl.DateTimeFormat().resolvedOptions().timeZone || '';
-    const utcTime = new Intl.DateTimeFormat('es', { hour: '2-digit', minute: '2-digit', hourCycle: 'h23', timeZone: 'UTC' }).format(d);
+    const utcTime = new Intl.DateTimeFormat(curLocale(), { hour: '2-digit', minute: '2-digit', hourCycle: 'h23', timeZone: 'UTC' }).format(d);
     const dayLocal = new Intl.DateTimeFormat('en-CA', { year: 'numeric', month: '2-digit', day: '2-digit' }).format(d);
     const dayUtc = new Intl.DateTimeFormat('en-CA', { year: 'numeric', month: '2-digit', day: '2-digit', timeZone: 'UTC' }).format(d);
     if (dayLocal !== dayUtc || utcTime !== out.time) {
       out.utc = utcTime + ' UTC' + (dayLocal !== dayUtc
-        ? ' (' + new Intl.DateTimeFormat('es', { day: 'numeric', month: 'short', timeZone: 'UTC' }).format(d) + ')' : '');
+        ? ' (' + new Intl.DateTimeFormat(curLocale(), { day: 'numeric', month: 'short', timeZone: 'UTC' }).format(d) + ')' : '');
     }
   } catch (e) {
     out.date = d.toLocaleString();
@@ -1116,10 +1179,10 @@ async function buildPodiumCard(place, row) {
   } catch (e) {}
   ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
   ctx.font = '240px sans-serif'; ctx.fillStyle = '#fff'; ctx.fillText(copy.medal, W / 2, 1010);
-  const bigPx = fitText(ctx, copy.big, 940, 170, '"Bebas Neue", Impact, sans-serif', '');
+  const bigPx = fitText(ctx, tx(copy.big), 940, 170, '"Bebas Neue", Impact, sans-serif', '');
   ctx.font = bigPx + 'px "Bebas Neue", Impact, sans-serif'; ctx.fillStyle = '#7CFF3C';
-  ctx.shadowColor = 'rgba(124,255,60,0.6)'; ctx.shadowBlur = 30; ctx.fillText(copy.big, W / 2, 1200); ctx.shadowBlur = 0;
-  ctx.font = '84px "Bebas Neue", Impact, sans-serif'; ctx.fillStyle = '#ffffff'; ctx.fillText('DE YOU GAMES', W / 2, 1285);
+  ctx.shadowColor = 'rgba(124,255,60,0.6)'; ctx.shadowBlur = 30; ctx.fillText(tx(copy.big), W / 2, 1200); ctx.shadowBlur = 0;
+  ctx.font = '84px "Bebas Neue", Impact, sans-serif'; ctx.fillStyle = '#ffffff'; ctx.fillText(tx('DE YOU GAMES'), W / 2, 1285);
   const name = String(row.username);
   const npx = fitText(ctx, name, 700, 60, 'Inter, sans-serif', '800');
   ctx.font = '800 ' + npx + 'px Inter, sans-serif';
@@ -1129,8 +1192,8 @@ async function buildPodiumCard(place, row) {
   ctx.fillStyle = '#fff'; ctx.fillText(name, W / 2, y0 + ph / 2 + npx * 0.35);
   const n = Number(row.correct_answers) || 0;
   ctx.font = '700 46px "Space Mono", monospace'; ctx.fillStyle = '#cfe8c9';
-  ctx.fillText(n + (n === 1 ? ' acierto' : ' aciertos') + ' · ' + fmtMs(row.time_taken_ms || 0), W / 2, 1480);
-  ctx.font = '70px "Bebas Neue", Impact, sans-serif'; ctx.fillStyle = '#7CFF3C'; ctx.fillText('¿PUEDES SUPERARME?', W / 2, 1560);
+  ctx.fillText(n + ' ✓ · ' + fmtMs(row.time_taken_ms || 0), W / 2, 1480);
+  ctx.font = '70px "Bebas Neue", Impact, sans-serif'; ctx.fillStyle = '#7CFF3C'; ctx.fillText(tx('¿PUEDES SUPERARME?'), W / 2, 1560);
   const link = location.href.split('#')[0].split('?')[0].replace(/^https?:\/\//, '').replace(/\/(index\.html)?$/, '');
   ctx.font = '700 38px Inter, sans-serif'; ctx.fillStyle = '#cfe8c9'; ctx.fillText(link, W / 2, 1610);
   return await new Promise(function (resolve, reject) {
@@ -1170,12 +1233,12 @@ async function sharePodium() {
   const file = podiumCard.key === podiumKey() ? podiumCard.file : null;
   if (file && navigator.canShare && navigator.canShare({ files: [file] })) {
     try {
-      await navigator.share({ files: [file], title: 'YOU GAMES', text: copy.caption + '\n¡Entra y juega! ' + link });
+      await navigator.share({ files: [file], title: 'YOU GAMES', text: tx(copy.caption) + '\n' + tx('¡Entra y juega!') + ' ' + link });
       return;
     } catch (err) { if (err && err.name === 'AbortError') return; }
   }
   if (navigator.share) {
-    try { await navigator.share({ title: 'YOU GAMES', text: copy.caption, url: link }); return; }
+    try { await navigator.share({ title: 'YOU GAMES', text: tx(copy.caption), url: link }); return; }
     catch (err) { if (err && err.name === 'AbortError') return; }
   }
   // Escritorio: se descarga la imagen y se copia el texto
@@ -1186,7 +1249,7 @@ async function sharePodium() {
     setTimeout(function () { URL.revokeObjectURL(a.href); }, 4000);
   }
   let copied = false;
-  try { await navigator.clipboard.writeText(copy.caption + '\n¡Entra y juega! ' + link); copied = true; } catch (e) {}
+  try { await navigator.clipboard.writeText(tx(copy.caption) + '\n' + tx('¡Entra y juega!') + ' ' + link); copied = true; } catch (e) {}
   podiumFeedback(file ? (copied ? '¡Imagen descargada y texto copiado!' : '¡Imagen descargada!') : (copied ? '¡Texto copiado!' : 'No se pudo compartir'));
 }
 
@@ -1261,7 +1324,7 @@ function htmlNextPanel() {
 let topTimer = null;
 
 async function sbFetchTopGlobal() {
-  const res = await fetch(SUPABASE_URL + '/rest/v1/player_wins?select=*&order=wins.desc,username.asc&limit=10', { headers: sbHeaders });
+  const res = await sbReq(SUPABASE_URL + '/rest/v1/player_wins?select=*&order=wins.desc,username.asc&limit=10', { headers: sbHeaders });
   if (!res.ok) throw new Error('Error consultando el Top Global');
   return await res.json();
 }
@@ -1456,7 +1519,7 @@ function startQuiz() {
     if (remaining <= 0) {
       clearInterval(timers.quiz);
       timers.quiz = null;
-      finishQuiz();
+      finishQuiz(true);
     }
   }, 500);
 }
@@ -1481,13 +1544,14 @@ function answerQuestion(index) {
   }, 700);
 }
 
-async function finishQuiz() {
+async function finishQuiz(timedOut) {
   if (timers.quiz) { clearInterval(timers.quiz); timers.quiz = null; }
   const correctCount = state.userAnswers.filter(function (a, i) { return a === state.questions[i].correct_index; }).length;
   const timeTakenMs = Date.now() - state.quizStartedAt;
 
   state.screen = 'saving';
   render();
+  if (timedOut) await sleepMs(Math.random() * 2500);
 
   try {
     await sbInsertParticipation({
@@ -1525,13 +1589,13 @@ function startStreamerPolling() {
 // Cuántas personas han terminado este reto. Pide solo el total (HEAD), sin descargar a nadie.
 async function sbCountParticipants(gameId) {
   const base = SUPABASE_URL + '/rest/v1/participations?game_id=eq.' + encodeURIComponent(gameId) + '&select=id';
-  const res = await fetch(base, { method: 'HEAD', headers: Object.assign({}, sbHeaders, { 'Prefer': 'count=exact' }) });
+  const res = await sbReq(base, { method: 'HEAD', headers: Object.assign({}, sbHeaders, { 'Prefer': 'count=exact' }) });
   if (!res.ok) throw new Error('Error contando participantes');
   const range = res.headers.get('content-range');          // "*/37" o "0-9/37"
   const m = range && range.match(/\/(\d+)$/);
   if (m) return parseInt(m[1], 10);
   // Respaldo por si el servidor no expone ese encabezado: contar las filas
-  const res2 = await fetch(base, { headers: sbHeaders });
+  const res2 = await sbReq(base, { headers: sbHeaders });
   if (!res2.ok) throw new Error('Error contando participantes');
   return (await res2.json()).length;
 }
@@ -1581,7 +1645,7 @@ async function refreshStreamerData() {
 function render() {
   const app = document.getElementById('app');
   app.className = state.screen === 'home' ? 'is-home' : '';
-  app.innerHTML = getScreenHtml() + htmlFooter() + htmlMenu();
+  app.innerHTML = getScreenHtml() + (state.screen === 'lang' ? '' : htmlFooter() + htmlMenu() + htmlLangSwitch());
   attachHandlers();
   syncShine();
   fitPanelTitle();
@@ -1590,6 +1654,7 @@ function render() {
 }
 
 function getScreenHtml() {
+  if (state.screen === 'lang') return htmlLangLanding();
   switch (state.screen) {
     case 'home': return htmlHome();
     case 'waiting': return htmlWaiting();
@@ -1651,7 +1716,7 @@ function htmlHome() {
       '</button>' +
       (state.loadError ? '<div class="error-text center">' + state.loadError + '</div>' : '') +
     '</div>' +
-    '<div class="home-slogan" style="' + sd + '"><span class="sl-line"></span><div class="sl-text">En <span class="yo">YOU</span> Todo Es Posible</div><span class="sl-line r"></span></div>' +
+    '<div class="home-slogan" style="' + sd + '"><span class="sl-line"></span><div class="sl-text">' + esc(tx('En {YOU} Todo Es Posible')).replace('{YOU}', '<span class="yo">YOU</span>') + '</div><span class="sl-line r"></span></div>' +
     sponsorHtml('home') +
     '</section>' +
     '<aside class="home-left"><div class="panel" id="panel-top">' + htmlTopGlobal() + '</div></aside>' +
@@ -1900,6 +1965,299 @@ function sponsorHtml(cls) {
     : '<div class="sponsor ' + cls + '">' + body + '</div>';
 }
 
+// ================= IDIOMAS (6) =================
+const LANGS = [
+  { code: 'es', name: 'Español', locale: 'es', welcome: 'Bienvenido... buena suerte \u{1F340}' },
+  { code: 'en', name: 'English', locale: 'en', welcome: 'Welcome... good luck \u{1F340}' },
+  { code: 'pt', name: 'Português', locale: 'pt-BR', welcome: 'Bem-vindo... boa sorte \u{1F340}' },
+  { code: 'it', name: 'Italiano', locale: 'it', welcome: 'Benvenuto... buona fortuna \u{1F340}' },
+  { code: 'de', name: 'Deutsch', locale: 'de', welcome: 'Willkommen... viel Glück \u{1F340}' },
+  { code: 'zh', name: '中文', locale: 'zh-CN', welcome: '欢迎……祝你好运 \u{1F340}' }
+];
+const LANG_IDX = { es: -1, en: 0, pt: 1, it: 2, de: 3, zh: 4 };
+const FLAGS = {
+  es: '<svg viewBox="0 0 60 40" aria-hidden="true" focusable="false"><rect width="60" height="40" fill="#C60B1E"/><rect y="10" width="60" height="20" fill="#FFC400"/></svg>',
+  en: '<svg viewBox="0 0 60 40" aria-hidden="true" focusable="false"><rect width="60" height="40" fill="#012169"/><path d="M0 0L60 40M60 0L0 40" stroke="#fff" stroke-width="8"/><path d="M0 0L60 40M60 0L0 40" stroke="#C8102E" stroke-width="3"/><path d="M30 0V40M0 20H60" stroke="#fff" stroke-width="12"/><path d="M30 0V40M0 20H60" stroke="#C8102E" stroke-width="7"/></svg>',
+  pt: '<svg viewBox="0 0 60 40" aria-hidden="true" focusable="false"><rect width="60" height="40" fill="#009C3B"/><path d="M30 4L56 20L30 36L4 20Z" fill="#FFDF00"/><circle cx="30" cy="20" r="8.5" fill="#002776"/><path d="M21.7 18.2Q30 15.5 38.3 22.2" stroke="#fff" stroke-width="1.6" fill="none"/></svg>',
+  it: '<svg viewBox="0 0 60 40" aria-hidden="true" focusable="false"><rect width="20" height="40" fill="#009246"/><rect x="20" width="20" height="40" fill="#fff"/><rect x="40" width="20" height="40" fill="#CE2B37"/></svg>',
+  de: '<svg viewBox="0 0 60 40" aria-hidden="true" focusable="false"><rect width="60" height="13.4" fill="#000"/><rect y="13.3" width="60" height="13.4" fill="#DD0000"/><rect y="26.6" width="60" height="13.4" fill="#FFCE00"/></svg>',
+  zh: '<svg viewBox="0 0 60 40" aria-hidden="true" focusable="false"><rect width="60" height="40" fill="#DE2910"/><polygon points="10.00,4.00 11.35,8.15 15.71,8.15 12.18,10.71 13.53,14.85 10.00,12.29 6.47,14.85 7.82,10.71 4.29,8.15 8.65,8.15" fill="#FFDE00"/><polygon points="21.71,2.97 20.76,4.07 21.51,5.31 20.17,4.74 19.22,5.84 19.34,4.39 18.01,3.82 19.42,3.50 19.55,2.05 20.30,3.30" fill="#FFDE00"/><polygon points="25.98,7.72 24.68,8.36 24.88,9.80 23.87,8.75 22.56,9.39 23.24,8.11 22.23,7.07 23.66,7.31 24.34,6.03 24.55,7.47" fill="#FFDE00"/><polygon points="25.92,14.55 24.47,14.60 24.07,16.00 23.57,14.63 22.12,14.69 23.27,13.79 22.77,12.43 23.97,13.24 25.12,12.34 24.72,13.74" fill="#FFDE00"/><polygon points="21.56,19.25 20.20,18.74 19.29,19.87 19.36,18.42 18.00,17.91 19.40,17.52 19.47,16.07 20.27,17.29 21.67,16.90 20.76,18.04" fill="#FFDE00"/></svg>'
+};
+const DICT = {};
+function A(es, en, pt, it, de, zh) { DICT[es] = [en, pt, it, de, zh]; }
+// Cada línea: texto en español → [English, Português, Italiano, Deutsch, 中文]. Para cambiar una traducción, edita solo esa línea.
+A("DEMUESTRA LO QUE SABES", "SHOW WHAT YOU KNOW", "MOSTRE O QUE VOCÊ SABE", "DIMOSTRA QUELLO CHE SAI", "ZEIG, WAS DU WEISST", "展现你的真本事");
+A("Únete Al Reto, Responde Rápido y Gana Premios", "Join the Challenge, Answer Fast and Win Prizes", "Entre no Desafio, Responda Rápido e Ganhe Prêmios", "Unisciti alla Sfida, Rispondi Veloce e Vinci Premi", "Mach bei der Challenge mit, antworte schnell und gewinne Preise", "加入挑战，快速作答，赢取奖品");
+A("¿Qué eres?", "Who are you?", "Quem é você?", "Chi sei?", "Wer bist du?", "你是谁？");
+A("Jugador", "Player", "Jogador", "Giocatore", "Spieler", "玩家");
+A("Espectador", "Spectator", "Espectador", "Spettatore", "Zuschauer", "观众");
+A("Código del Reto", "Challenge Code", "Código do Desafio", "Codice della Sfida", "Challenge-Code", "挑战代码");
+A("Nombre de Usuario", "Username", "Nome de Usuário", "Nome utente", "Benutzername", "用户名");
+A("Tu nombre de usuario real", "Your real username", "Seu nome de usuário real", "Il tuo vero nome utente", "Dein echter Benutzername", "你的真实用户名");
+A("¿De dónde nos ves?", "Where are you watching from?", "De onde você nos assiste?", "Da dove ci guardi?", "Von wo aus schaust du zu?", "你从哪里观看我们？");
+A("(puedes elegir varias)", "(you can pick several)", "(você pode escolher várias)", "(puoi sceglierne più di una)", "(Mehrfachauswahl möglich)", "（可多选）");
+A("JUGAR AHORA", "PLAY NOW", "JOGAR AGORA", "GIOCA ORA", "JETZT SPIELEN", "立即开始");
+A("Ver Panel en Vivo", "View Live Panel", "Ver Painel ao Vivo", "Vedi il Pannello Live", "Live-Panel ansehen", "查看直播面板");
+A("Redes sociales", "Social media", "Redes sociais", "Social media", "Soziale Medien", "社交媒体");
+A("Página principal", "Home page", "Página inicial", "Pagina principale", "Startseite", "主页");
+A("YOU GAMES, página principal", "YOU GAMES, home page", "YOU GAMES, página inicial", "YOU GAMES, pagina principale", "YOU GAMES, Startseite", "YOU GAMES，主页");
+A("En {YOU} Todo Es Posible", "In {YOU}, Everything Is Possible", "Na {YOU}, Tudo É Possível", "In {YOU} Tutto È Possibile", "Bei {YOU} ist alles möglich", "在{YOU}，一切皆有可能");
+A("Ingresa el código del reto", "Enter the challenge code", "Digite o código do desafio", "Inserisci il codice della sfida", "Gib den Challenge-Code ein", "请输入挑战代码");
+A("Ingresa tu nombre", "Enter your name", "Digite seu nome", "Inserisci il tuo nome", "Gib deinen Namen ein", "请输入你的名字");
+A("Selecciona al menos una plataforma", "Select at least one platform", "Selecione pelo menos uma plataforma", "Seleziona almeno una piattaforma", "Wähle mindestens eine Plattform", "请至少选择一个平台");
+A("Ese código no existe. Verifica con el streamer.", "That code does not exist. Check with the streamer.", "Esse código não existe. Confirme com o streamer.", "Questo codice non esiste. Verifica con lo streamer.", "Diesen Code gibt es nicht. Frag den Streamer.", "该代码不存在，请向主播确认。");
+A("Este reto ya cerró 🤦🏼‍♂️ Está atento al próximo juego", "This challenge has closed 🤦🏼‍♂️ Stay tuned for the next game", "Este desafio já encerrou 🤦🏼‍♂️ Fique atento ao próximo jogo", "Questa sfida è chiusa 🤦🏼‍♂️ Resta sintonizzato per il prossimo gioco", "Diese Challenge ist beendet 🤦🏼‍♂️ Bleib dran für das nächste Spiel", "本场挑战已结束 🤦🏼‍♂️ 请关注下一场游戏");
+A("Este usuario ya participó en este reto, usa el mismo usuario con el que sigues a YOU Inc.", "This user already took part in this challenge; use the same username you follow YOU Inc. with.", "Este usuário já participou deste desafio; use o mesmo usuário com o qual você segue a YOU Inc.", "Questo utente ha già partecipato a questa sfida; usa lo stesso utente con cui segui YOU Inc.", "Dieser Benutzer hat bereits an dieser Challenge teilgenommen; verwende denselben Benutzernamen, mit dem du YOU Inc. folgst.", "该用户已参加过本场挑战，请使用你关注 YOU Inc. 时的同一用户名。");
+A("No se pudo conectar. Revisa tu internet e intenta de nuevo.", "Could not connect. Check your internet and try again.", "Não foi possível conectar. Verifique sua internet e tente novamente.", "Impossibile connettersi. Controlla la tua connessione e riprova.", "Verbindung nicht möglich. Prüfe dein Internet und versuche es erneut.", "无法连接。请检查网络后重试。");
+A("Se guardó tu resultado, pero no pudimos cargar el ranking completo.", "Your result was saved, but we could not load the full ranking.", "Seu resultado foi salvo, mas não conseguimos carregar o ranking completo.", "Il tuo risultato è stato salvato, ma non siamo riusciti a caricare la classifica completa.", "Dein Ergebnis wurde gespeichert, aber die vollständige Rangliste konnte nicht geladen werden.", "你的成绩已保存，但无法加载完整排行榜。");
+A("Premio", "Prize", "Prêmio", "Premio", "Preis", "奖品");
+A("El juego inicia automáticamente", "The game starts automatically", "O jogo começa automaticamente", "Il gioco inizia automaticamente", "Das Spiel startet automatisch", "游戏将自动开始");
+A("cuando llegue a 00:00", "when it reaches 00:00", "quando chegar a 00:00", "quando arriva a 00:00", "wenn es 00:00 erreicht", "倒计时到 00:00 时");
+A("¡Correcto!", "Correct!", "Correto!", "Corretto!", "Richtig!", "正确！");
+A("Incorrecto", "Incorrect", "Incorreto", "Sbagliato", "Falsch", "错误");
+A("Guardando tu resultado...", "Saving your result...", "Salvando seu resultado...", "Salvataggio del tuo risultato...", "Dein Ergebnis wird gespeichert...", "正在保存你的成绩...");
+A("¡Juego Finalizado!", "Game Over!", "Jogo Finalizado!", "Gioco Terminato!", "Spiel beendet!", "游戏结束！");
+A("Tu Resultado", "Your Result", "Seu Resultado", "Il Tuo Risultato", "Dein Ergebnis", "你的成绩");
+A("Compartir mi resultado", "Share my result", "Compartilhar meu resultado", "Condividi il mio risultato", "Mein Ergebnis teilen", "分享我的成绩");
+A("Volver al Inicio", "Back to Home", "Voltar ao Início", "Torna alla Home", "Zurück zur Startseite", "返回首页");
+A("TOP 10 JUGADORES", "TOP 10 PLAYERS", "TOP 10 JOGADORES", "TOP 10 GIOCATORI", "TOP 10 SPIELER", "玩家前十名");
+A("Aún no hay campeones. ¡Sé el primero!", "No champions yet. Be the first!", "Ainda não há campeões. Seja o primeiro!", "Ancora nessun campione. Sii il primo!", "Noch keine Champions. Sei der Erste!", "还没有冠军。成为第一个吧！");
+A("No se pudo cargar el ranking.", "Could not load the ranking.", "Não foi possível carregar o ranking.", "Impossibile caricare la classifica.", "Die Rangliste konnte nicht geladen werden.", "无法加载排行榜。");
+A("Retos Jugados", "Challenges Played", "Desafios Jogados", "Sfide Giocate", "Gespielte Challenges", "已进行挑战");
+A("Dinero repartido", "Money Awarded", "Dinheiro Distribuído", "Denaro Distribuito", "Ausgezahltes Geld", "已发放奖金");
+A("PRÓXIMO RETO", "NEXT CHALLENGE", "PRÓXIMO DESAFIO", "PROSSIMA SFIDA", "NÄCHSTE CHALLENGE", "下一场挑战");
+A("¡Reto en vivo ahora!", "Challenge live now!", "Desafio ao vivo agora!", "Sfida in diretta ora!", "Challenge jetzt live!", "挑战正在直播！");
+A("días", "days", "dias", "giorni", "Tage", "天");
+A("horas", "hours", "horas", "ore", "Std", "小时");
+A("min", "min", "min", "min", "Min", "分");
+A("seg", "sec", "seg", "sec", "Sek", "秒");
+A("Por anunciar", "To be announced", "A anunciar", "Da annunciare", "Wird bekannt gegeben", "待公布");
+A("Cargando...", "Loading...", "Carregando...", "Caricamento...", "Wird geladen...", "加载中...");
+A("No se pudo cargar.", "Could not load.", "Não foi possível carregar.", "Impossibile caricare.", "Konnte nicht geladen werden.", "无法加载。");
+A("PODIO DEL ÚLTIMO RETO", "LAST CHALLENGE PODIUM", "PÓDIO DO ÚLTIMO DESAFIO", "PODIO DELL’ULTIMA SFIDA", "PODIUM DER LETZTEN CHALLENGE", "上一场挑战领奖台");
+A("Todavía no hay un reto terminado.", "No challenge has finished yet.", "Ainda não há desafio concluído.", "Nessuna sfida è ancora terminata.", "Noch keine Challenge beendet.", "还没有已结束的挑战。");
+A("¡GANASTE EL ÚLTIMO RETO!", "YOU WON THE LAST CHALLENGE!", "VOCÊ GANHOU O ÚLTIMO DESAFIO!", "HAI VINTO L’ULTIMA SFIDA!", "DU HAST DIE LETZTE CHALLENGE GEWONNEN!", "你赢得了上一场挑战！");
+A("Presume tu victoria y reta a tus amigos.", "Show off your win and challenge your friends.", "Mostre sua vitória e desafie seus amigos.", "Mostra la tua vittoria e sfida i tuoi amici.", "Zeig deinen Sieg und fordere deine Freunde heraus.", "炫耀你的胜利，向朋友发起挑战。");
+A("¡CASI LO LOGRAS!", "SO CLOSE!", "QUASE LÁ!", "CI SEI QUASI!", "FAST GESCHAFFT!", "就差一点！");
+A("Quedaste 2.º en el último reto. ¡Compártelo!", "You placed 2nd in the last challenge. Share it!", "Você ficou em 2º no último desafio. Compartilhe!", "Sei arrivato 2º nell’ultima sfida. Condividilo!", "Du bist in der letzten Challenge Zweiter geworden. Teile es!", "你在上一场挑战中获得第2名，快分享吧！");
+A("¡ESTÁS EN EL PODIO!", "YOU’RE ON THE PODIUM!", "VOCÊ ESTÁ NO PÓDIO!", "SEI SUL PODIO!", "DU BIST AUF DEM PODIUM!", "你登上了领奖台！");
+A("Quedaste 3.º en el último reto. ¡Compártelo!", "You placed 3rd in the last challenge. Share it!", "Você ficou em 3º no último desafio. Compartilhe!", "Sei arrivato 3º nell’ultima sfida. Condividilo!", "Du bist in der letzten Challenge Dritter geworden. Teile es!", "你在上一场挑战中获得第3名，快分享吧！");
+A("Compartir mi victoria", "Share my win", "Compartilhar minha vitória", "Condividi la mia vittoria", "Meinen Sieg teilen", "分享我的胜利");
+A("Compartir mi podio", "Share my podium", "Compartilhar meu pódio", "Condividi il mio podio", "Mein Podium teilen", "分享我的领奖台");
+A("¡Copiado!", "Copied!", "Copiado!", "Copiato!", "Kopiert!", "已复制！");
+A("¡Imagen descargada y texto copiado!", "Image downloaded and text copied!", "Imagem baixada e texto copiado!", "Immagine scaricata e testo copiato!", "Bild heruntergeladen und Text kopiert!", "图片已下载，文字已复制！");
+A("¡Imagen descargada!", "Image downloaded!", "Imagem baixada!", "Immagine scaricata!", "Bild heruntergeladen!", "图片已下载！");
+A("¡Texto copiado!", "Text copied!", "Texto copiado!", "Testo copiato!", "Text kopiert!", "文字已复制！");
+A("No se pudo compartir", "Could not share", "Não foi possível compartilhar", "Impossibile condividere", "Teilen nicht möglich", "无法分享");
+A("Copia tu resultado y compártelo:", "Copy your result and share it:", "Copie seu resultado e compartilhe:", "Copia il tuo risultato e condividilo:", "Kopiere dein Ergebnis und teile es:", "复制你的成绩并分享：");
+A("¡Entra y juega!", "Join and play!", "Entre e jogue!", "Entra e gioca!", "Mach mit und spiel!", "快来玩吧！");
+A("GANÉ EL RETO", "I WON THE CHALLENGE", "GANHEI O DESAFIO", "HO VINTO LA SFIDA", "ICH HABE DIE CHALLENGE GEWONNEN", "我赢得了挑战");
+A("CASI GANÉ EL RETO", "I ALMOST WON THE CHALLENGE", "QUASE GANHEI O DESAFIO", "HO QUASI VINTO LA SFIDA", "ICH HABE FAST GEWONNEN", "我差点赢得挑战");
+A("SOY EL TERCERO", "I CAME THIRD", "FIQUEI EM TERCEIRO", "SONO TERZO", "ICH BIN DRITTER", "我获得第三名");
+A("Gané el Reto de You Games 😎🏆 #yougames1", "I won the You Games Challenge 😎🏆 #yougames1", "Ganhei o Desafio da You Games 😎🏆 #yougames1", "Ho vinto la Sfida di You Games 😎🏆 #yougames1", "Ich habe die You Games Challenge gewonnen 😎🏆 #yougames1", "我赢得了 You Games 挑战 😎🏆 #yougames1");
+A("Casi gané el Reto de You Games 🥈 #yougames2", "I almost won the You Games Challenge 🥈 #yougames2", "Quase ganhei o Desafio da You Games 🥈 #yougames2", "Ho quasi vinto la Sfida di You Games 🥈 #yougames2", "Ich hätte die You Games Challenge fast gewonnen 🥈 #yougames2", "我差点赢得 You Games 挑战 🥈 #yougames2");
+A("Soy el Tercero de You Games 🥉 #yougames3", "I came third in You Games 🥉 #yougames3", "Fiquei em terceiro na You Games 🥉 #yougames3", "Sono terzo a You Games 🥉 #yougames3", "Ich bin Dritter bei You Games 🥉 #yougames3", "我在 You Games 中获得第三名 🥉 #yougames3");
+A("DE YOU GAMES", "AT YOU GAMES", "NA YOU GAMES", "A YOU GAMES", "BEI YOU GAMES", "在 YOU GAMES");
+A("¿PUEDES SUPERARME?", "CAN YOU BEAT ME?", "VOCÊ CONSEGUE ME SUPERAR?", "RIESCI A BATTERMI?", "KANNST DU MICH SCHLAGEN?", "你能超越我吗？");
+A("{c}/{n} ✅ en {t}", "{c}/{n} ✅ in {t}", "{c}/{n} ✅ em {t}", "{c}/{n} ✅ in {t}", "{c}/{n} ✅ in {t}", "{c}/{n} ✅ 用时 {t}");
+A("Voy #{rank} en YOU GAMES 🏆 con {score}. ¿Puedes superarme?", "I’m #{rank} on YOU GAMES 🏆 with {score}. Can you beat me?", "Estou em #{rank} na YOU GAMES 🏆 com {score}. Consegue me superar?", "Sono #{rank} su YOU GAMES 🏆 con {score}. Riesci a battermi?", "Ich bin #{rank} bei YOU GAMES 🏆 mit {score}. Kannst du mich schlagen?", "我在 YOU GAMES 排名第{rank} 🏆，成绩 {score}。你能超越我吗？");
+A("En YOU GAMES hice {score}. ¿Puedes superarme?", "On YOU GAMES I scored {score}. Can you beat me?", "Na YOU GAMES fiz {score}. Consegue me superar?", "Su YOU GAMES ho fatto {score}. Riesci a battermi?", "Bei YOU GAMES habe ich {score} geschafft. Kannst du mich schlagen?", "我在 YOU GAMES 的成绩是 {score}。你能超越我吗？");
+A("Top 10 en Vivo", "Top 10 Live", "Top 10 ao Vivo", "Top 10 in Diretta", "Top 10 Live", "实时前十名");
+A("Participantes", "Participants", "Participantes", "Partecipanti", "Teilnehmer", "参与者");
+A("han terminado el reto", "have finished the challenge", "terminaram o desafio", "hanno terminato la sfida", "haben die Challenge beendet", "已完成挑战");
+A("EMPIEZA EN", "STARTS IN", "COMEÇA EM", "INIZIA TRA", "STARTET IN", "距开始");
+A("TIEMPO RESTANTE", "TIME LEFT", "TEMPO RESTANTE", "TEMPO RIMANENTE", "VERBLEIBENDE ZEIT", "剩余时间");
+A("RETO FINALIZADO", "CHALLENGE ENDED", "DESAFIO ENCERRADO", "SFIDA CONCLUSA", "CHALLENGE BEENDET", "挑战已结束");
+A("Página Principal", "Home Page", "Página Principal", "Pagina Principale", "Startseite", "主页");
+A("Ver podio otra vez", "View podium again", "Ver pódio novamente", "Rivedi il podio", "Podium erneut ansehen", "再次查看领奖台");
+A("Todavía nadie ha terminado el reto...", "Nobody has finished the challenge yet...", "Ninguém terminou o desafio ainda...", "Nessuno ha ancora terminato la sfida...", "Noch hat niemand die Challenge beendet...", "还没有人完成挑战...");
+A("¡TIEMPO!", "TIME!", "TEMPO!", "TEMPO!", "ZEIT!", "时间到！");
+A("PODIO FINAL", "FINAL PODIUM", "PÓDIO FINAL", "PODIO FINALE", "FINALES PODIUM", "最终领奖台");
+A("Nadie terminó este reto.", "Nobody finished this challenge.", "Ninguém terminou este desafio.", "Nessuno ha terminato questa sfida.", "Niemand hat diese Challenge beendet.", "没有人完成这场挑战。");
+A("Toca para cerrar", "Tap to close", "Toque para fechar", "Tocca per chiudere", "Zum Schließen tippen", "点击关闭");
+A("Subió {n} puesto", "Moved up {n} place", "Subiu {n} posição", "Salito di {n} posizione", "{n} Platz gestiegen", "上升 {n} 位");
+A("Subió {n} puestos", "Moved up {n} places", "Subiu {n} posições", "Salito di {n} posizioni", "{n} Plätze gestiegen", "上升 {n} 位");
+A("Bajó {n} puesto", "Dropped {n} place", "Caiu {n} posição", "Sceso di {n} posizione", "{n} Platz gefallen", "下降 {n} 位");
+A("Bajó {n} puestos", "Dropped {n} places", "Caiu {n} posições", "Sceso di {n} posizioni", "{n} Plätze gefallen", "下降 {n} 位");
+A("Entró al Top 10", "Entered the Top 10", "Entrou no Top 10", "È entrato nella Top 10", "In die Top 10 eingestiegen", "进入前十名");
+A("Patrocinado por", "Sponsored by", "Patrocinado por", "Sponsorizzato da", "Gesponsert von", "赞助商");
+A("Publicidad", "Advertising", "Publicidade", "Pubblicità", "Werbung", "广告");
+A("MENÚ", "MENU", "MENU", "MENU", "MENÜ", "菜单");
+A("El proyecto", "The project", "O projeto", "Il progetto", "Das Projekt", "项目");
+A("Comunidad", "Community", "Comunidade", "Community", "Community", "社区");
+A("Soporte", "Support", "Suporte", "Supporto", "Support", "支持");
+A("Quiénes Somos", "About Us", "Quem Somos", "Chi Siamo", "Über uns", "关于我们");
+A("Reglas del Juego", "Game Rules", "Regras do Jogo", "Regole del Gioco", "Spielregeln", "游戏规则");
+A("Donaciones y Colaboración", "Donations & Support", "Doações e Colaboração", "Donazioni e Collaborazione", "Spenden & Unterstützung", "捐赠与支持");
+A("Contacto", "Contact", "Contato", "Contatti", "Kontakt", "联系我们");
+A("Aviso Legal", "Legal Notice", "Aviso Legal", "Avviso Legale", "Rechtliche Hinweise", "法律声明");
+A("Política de Privacidad", "Privacy Policy", "Política de Privacidade", "Informativa sulla Privacy", "Datenschutzerklärung", "隐私政策");
+A("‹ Volver", "‹ Back", "‹ Voltar", "‹ Indietro", "‹ Zurück", "‹ 返回");
+A("Solo pueden competir personas mayores de edad.", "Only people of legal age can compete.", "Somente pessoas maiores de idade podem competir.", "Possono partecipare solo persone maggiorenni.", "Nur volljährige Personen dürfen teilnehmen.", "仅限成年人参赛。");
+A("Escribe el código del reto que el streamer muestra en directo.", "Enter the challenge code the streamer shows live.", "Digite o código do desafio que o streamer mostra ao vivo.", "Inserisci il codice della sfida che lo streamer mostra in diretta.", "Gib den Challenge-Code ein, den der Streamer live zeigt.", "输入主播在直播中展示的挑战代码。");
+A("Usa tu nombre de usuario real, el mismo con el que sigues al canal.", "Use your real username, the same one you follow the channel with.", "Use seu nome de usuário real, o mesmo com que você segue o canal.", "Usa il tuo vero nome utente, lo stesso con cui segui il canale.", "Verwende deinen echten Benutzernamen, denselben, mit dem du dem Kanal folgst.", "请使用你的真实用户名，即你关注频道时使用的用户名。");
+A("Solo se permite una participación por reto, utilizando el nombre de usuario con el que sigues el canal.", "Only one entry per challenge is allowed, using the username you follow the channel with.", "Só é permitida uma participação por desafio, usando o nome de usuário com o qual você segue o canal.", "È consentita una sola partecipazione per sfida, usando il nome utente con cui segui il canale.", "Pro Challenge ist nur eine Teilnahme erlaubt, mit dem Benutzernamen, mit dem du dem Kanal folgst.", "每场挑战只能参加一次，并使用你关注频道时的用户名。");
+A("Para reclamar el premio en caso de resultar ganador, es necesario seguir a YOU en al menos una de sus plataformas.", "To claim the prize if you win, you must follow YOU on at least one of its platforms.", "Para reivindicar o prêmio caso você vença, é necessário seguir a YOU em pelo menos uma de suas plataformas.", "Per ritirare il premio in caso di vittoria, devi seguire YOU su almeno una delle sue piattaforme.", "Um den Preis im Gewinnfall zu erhalten, musst du YOU auf mindestens einer seiner Plattformen folgen.", "如果获胜，需要在至少一个平台上关注 YOU 才能领取奖品。");
+A("Una vez el reto cierra (pasado su tiempo), ya no se puede entrar.", "Once the challenge closes (when its time is up), nobody can enter anymore.", "Depois que o desafio fecha (terminado o tempo), não é mais possível entrar.", "Quando la sfida si chiude (scaduto il tempo), non si può più entrare.", "Sobald die Challenge endet (nach Ablauf der Zeit), kann man nicht mehr teilnehmen.", "挑战结束（时间到）后，就不能再加入了。");
+A("Gana quien conteste más preguntas correctas; si hay empate, gana quien las respondió en menos tiempo.", "Whoever answers the most questions correctly wins; in a tie, whoever answered them in the least time wins.", "Vence quem responder mais perguntas corretamente; em caso de empate, vence quem respondeu em menos tempo.", "Vince chi risponde correttamente a più domande; in caso di parità, vince chi ha risposto nel minor tempo.", "Es gewinnt, wer die meisten Fragen richtig beantwortet; bei Gleichstand gewinnt, wer dafür weniger Zeit gebraucht hat.", "答对题数最多者获胜；若并列，用时更短者获胜。");
+A("El streamer entrega el premio anunciado por sus propios medios (transferencia, efectivo, etc).", "The streamer delivers the announced prize through their own means (bank transfer, cash, etc.).", "O streamer entrega o prêmio anunciado por seus próprios meios (transferência, dinheiro em espécie, etc.).", "Lo streamer consegna il premio annunciato con i propri mezzi (bonifico, contanti, ecc.).", "Der Streamer übergibt den angekündigten Preis auf eigene Weise (Überweisung, Bargeld usw.).", "主播通过自己的方式（转账、现金等）发放所公布的奖品。");
+A("You Games es un proyecto de entretenimiento competitivo creado dentro de YOU, donde el conocimiento y la rapidez se convierten en el centro del juego.", "You Games is a competitive entertainment project created within YOU, where knowledge and speed take center stage.", "A You Games é um projeto de entretenimento competitivo criado dentro da YOU, onde o conhecimento e a rapidez se tornam o centro do jogo.", "You Games è un progetto di intrattenimento competitivo nato all’interno di YOU, dove la conoscenza e la rapidità diventano il cuore del gioco.", "You Games ist ein wettbewerbsorientiertes Unterhaltungsprojekt innerhalb von YOU, bei dem Wissen und Schnelligkeit im Mittelpunkt des Spiels stehen.", "You Games 是在 YOU 内部创建的竞技娱乐项目，知识与速度是游戏的核心。");
+A("Ponemos a prueba a los participantes mediante preguntas con tiempo límite, dinero en juego y un ranking global, en una experiencia donde cada segundo y cada respuesta pueden marcar la diferencia.", "We put participants to the test with timed questions, money at stake and a global ranking, in an experience where every second and every answer can make the difference.", "Colocamos os participantes à prova com perguntas com tempo limite, dinheiro em jogo e um ranking global, em uma experiência onde cada segundo e cada resposta podem fazer a diferença.", "Mettiamo alla prova i partecipanti con domande a tempo limitato, denaro in palio e una classifica globale, in un’esperienza in cui ogni secondo e ogni risposta possono fare la differenza.", "Wir stellen die Teilnehmer mit zeitlich begrenzten Fragen, Geld im Spiel und einer globalen Rangliste auf die Probe – in einem Erlebnis, in dem jede Sekunde und jede Antwort den Unterschied machen kann.", "我们通过限时提问、真金白银的奖励和全球排行榜来考验参与者，在这里每一秒、每一个答案都可能决定胜负。");
+A("Nuestro objetivo es construir una comunidad alrededor de la competición, los retos y el entretenimiento, tanto en nuestros directos como en los desafíos que llevamos a la calle.", "Our goal is to build a community around competition, challenges and entertainment, both in our live streams and in the challenges we take to the streets.", "Nosso objetivo é construir uma comunidade em torno da competição, dos desafios e do entretenimento, tanto em nossas transmissões ao vivo quanto nos desafios que levamos para as ruas.", "Il nostro obiettivo è costruire una community attorno alla competizione, alle sfide e all’intrattenimento, sia nelle nostre dirette sia nelle sfide che portiamo per strada.", "Unser Ziel ist es, eine Community rund um Wettbewerb, Challenges und Unterhaltung aufzubauen – sowohl in unseren Livestreams als auch bei den Challenges, die wir auf die Straße bringen.", "我们的目标是围绕竞技、挑战和娱乐打造一个社区，无论是在我们的直播中，还是在我们带到街头的挑战中。");
+A("Demuestra lo que sabes.", "Show what you know.", "Mostre o que você sabe.", "Dimostra quello che sai.", "Zeig, was du weißt.", "展现你的真本事。");
+A("«En YOU, todo es posible»", "“In YOU, everything is possible”", "«Na YOU, tudo é possível»", "«In YOU, tutto è possibile»", "„Bei YOU ist alles möglich“", "“在 YOU，一切皆有可能”");
+A("YOU Games crece gracias a la comunidad. Si quieres apoyar el proyecto y ayudarnos a seguir creando retos, puedes colaborar con nosotros.", "YOU Games grows thanks to the community. If you want to support the project and help us keep creating challenges, you can support us.", "A YOU Games cresce graças à comunidade. Se quiser apoiar o projeto e nos ajudar a continuar criando desafios, você pode colaborar conosco.", "YOU Games cresce grazie alla community. Se vuoi sostenere il progetto e aiutarci a continuare a creare sfide, puoi collaborare con noi.", "YOU Games wächst dank der Community. Wenn du das Projekt unterstützen und uns helfen möchtest, weiterhin Challenges zu erstellen, kannst du mit uns zusammenarbeiten.", "YOU Games 因社区而成长。如果你想支持这个项目，帮助我们继续创建挑战，欢迎与我们一起合作。");
+A("Apoyar en Patreon", "Support on Patreon", "Apoiar no Patreon", "Sostieni su Patreon", "Auf Patreon unterstützen", "在 Patreon 上支持");
+A("Las colaboraciones son voluntarias y no dan ventajas en los retos ni en los premios.", "Contributions are voluntary and do not give advantages in the challenges or the prizes.", "As colaborações são voluntárias e não dão vantagens nos desafios nem nos prêmios.", "Le collaborazioni sono volontarie e non danno vantaggi nelle sfide né nei premi.", "Unterstützungen sind freiwillig und bringen keine Vorteile bei den Challenges oder den Preisen.", "赞助完全自愿，不会在挑战或奖品中带来任何优势。");
+A("Próximamente", "Coming soon", "Em breve", "Prossimamente", "Demnächst", "敬请期待");
+A("Estamos preparando la tienda oficial de YOU, con productos exclusivos para la comunidad.", "We are preparing the official YOU store, with exclusive products for the community.", "Estamos preparando a loja oficial da YOU, com produtos exclusivos para a comunidade.", "Stiamo preparando lo store ufficiale di YOU, con prodotti esclusivi per la community.", "Wir bereiten den offiziellen YOU-Shop mit exklusiven Produkten für die Community vor.", "我们正在筹备 YOU 官方商店，为社区提供专属商品。");
+A("Síguenos en nuestras redes para ser de los primeros en enterarte.", "Follow us on our social networks to be among the first to know.", "Siga-nos em nossas redes para ser um dos primeiros a saber.", "Seguici sui nostri social per essere tra i primi a saperlo.", "Folge uns in unseren sozialen Netzwerken, um als Erster Bescheid zu wissen.", "关注我们的社交账号，第一时间获取消息。");
+A("¿Tienes dudas o sugerencias? Escríbenos.", "Do you have questions or suggestions? Write to us.", "Tem dúvidas ou sugestões? Escreva para nós.", "Hai dubbi o suggerimenti? Scrivici.", "Hast du Fragen oder Vorschläge? Schreib uns.", "有疑问或建议吗？欢迎联系我们。");
+A("YOU GAMES es una plataforma independiente y no está afiliada a Twitch, TikTok, YouTube ni Instagram.", "YOU GAMES is an independent platform and is not affiliated with Twitch, TikTok, YouTube or Instagram.", "A YOU GAMES é uma plataforma independente e não é afiliada à Twitch, TikTok, YouTube nem Instagram.", "YOU GAMES è una piattaforma indipendente e non è affiliata a Twitch, TikTok, YouTube né Instagram.", "YOU GAMES ist eine unabhängige Plattform und steht in keiner Verbindung zu Twitch, TikTok, YouTube oder Instagram.", "YOU GAMES 是一个独立平台，与 Twitch、TikTok、YouTube 和 Instagram 无任何关联。");
+A("Solo pueden participar usuarios mayores de edad que además sigan a YOU en al menos una de sus plataformas oficiales.", "Only users of legal age who also follow YOU on at least one of its official platforms may take part.", "Só podem participar usuários maiores de idade que também sigam a YOU em pelo menos uma de suas plataformas oficiais.", "Possono partecipare solo utenti maggiorenni che seguano anche YOU su almeno una delle sue piattaforme ufficiali.", "Teilnehmen dürfen nur volljährige Nutzer, die YOU zusätzlich auf mindestens einer seiner offiziellen Plattformen folgen.", "仅限成年用户参与，并且需要在至少一个 YOU 官方平台上关注 YOU。");
+A("Los premios ofrecidos en cada reto son entregados voluntariamente por el streamer organizador, no por YOU GAMES. No se requiere compra ni pago alguno para participar.", "The prizes offered in each challenge are voluntarily provided by the organizing streamer, not by YOU GAMES. No purchase or payment of any kind is required to take part.", "Os prêmios oferecidos em cada desafio são entregues voluntariamente pelo streamer organizador, e não pela YOU GAMES. Não é necessária nenhuma compra nem pagamento para participar.", "I premi offerti in ogni sfida sono consegnati volontariamente dallo streamer organizzatore, non da YOU GAMES. Non è richiesto alcun acquisto né pagamento per partecipare.", "Die Preise jeder Challenge werden freiwillig vom organisierenden Streamer bereitgestellt, nicht von YOU GAMES. Für die Teilnahme ist weder ein Kauf noch eine Zahlung erforderlich.", "每场挑战的奖品由主办主播自愿提供，而非 YOU GAMES。参与无需购买或支付任何费用。");
+A("El tiempo de entrega del premio depende exclusivamente del streamer organizador y no de YOU GAMES; dicho tiempo puede variar de un reto a otro.", "The prize delivery time depends exclusively on the organizing streamer and not on YOU GAMES; it may vary from one challenge to another.", "O prazo de entrega do prêmio depende exclusivamente do streamer organizador e não da YOU GAMES; esse prazo pode variar de um desafio para outro.", "I tempi di consegna del premio dipendono esclusivamente dallo streamer organizzatore e non da YOU GAMES; possono variare da una sfida all’altra.", "Die Lieferzeit des Preises hängt ausschließlich vom organisierenden Streamer ab und nicht von YOU GAMES; sie kann von Challenge zu Challenge variieren.", "奖品的发放时间完全取决于主办主播，而非 YOU GAMES；不同挑战的发放时间可能不同。");
+A("El streamer organizador es responsable de la entrega del premio y de cumplir la normativa local que aplique a sorteos o promociones en su país.", "The organizing streamer is responsible for delivering the prize and for complying with the local regulations that apply to raffles or promotions in their country.", "O streamer organizador é responsável pela entrega do prêmio e pelo cumprimento da legislação local aplicável a sorteios ou promoções em seu país.", "Lo streamer organizzatore è responsabile della consegna del premio e del rispetto della normativa locale applicabile a concorsi o promozioni nel suo paese.", "Der organisierende Streamer ist für die Übergabe des Preises und die Einhaltung der in seinem Land geltenden Vorschriften für Gewinnspiele oder Aktionen verantwortlich.", "主办主播负责发放奖品，并遵守其所在国家适用于抽奖或促销活动的当地法规。");
+A("Nos reservamos el derecho de descalificar participaciones fraudulentas o repetidas.", "We reserve the right to disqualify fraudulent or repeated entries.", "Reservamo-nos o direito de desclassificar participações fraudulentas ou repetidas.", "Ci riserviamo il diritto di squalificare partecipazioni fraudolente o ripetute.", "Wir behalten uns das Recht vor, betrügerische oder wiederholte Teilnahmen zu disqualifizieren.", "我们保留取消欺诈或重复参与资格的权利。");
+const PFX = [
+  ["Reto #", ["Challenge #", "Desafio #", "Sfida #", "Challenge #", "挑战 #"]],
+  ["Pregunta ", ["Question ", "Pergunta ", "Domanda ", "Frage ", "问题 "]],
+  ["Zona horaria: ", ["Time zone: ", "Fuso horário: ", "Fuso orario: ", "Zeitzone: ", "时区："]],
+  ["Equivale a ", ["Equals ", "Equivale a ", "Equivale a ", "Entspricht ", "相当于 "]]
+];
+let LANG = 'es';
+function curLocale() { for (let i = 0; i < LANGS.length; i++) { if (LANGS[i].code === LANG) return LANGS[i].locale; } return 'es'; }
+function tx(es) { if (LANG === 'es') return es; const r = DICT[es]; return r ? r[LANG_IDX[LANG]] : es; }
+function txf(es, vars) { let r = tx(es); for (const k in vars) { r = r.split('{' + k + '}').join(vars[k]); } return r; }
+
+// Traductor automático de la pantalla: cada texto nuevo que aparece se traduce al instante (antes de pintarse)
+const TR_EDGE = /^([\s\u00a0\u200d\ufe0f\p{Extended_Pictographic}\u{1F3FB}-\u{1F3FF}]*)([\s\S]*?)([\s\u00a0\u200d\ufe0f\p{Extended_Pictographic}\u{1F3FB}-\u{1F3FF}]*)$/u;
+function trString(str) {
+  if (LANG === 'es') return str;
+  const m = TR_EDGE.exec(str);
+  if (!m || !m[2]) return str;
+  const core = m[2], idx = LANG_IDX[LANG], hit = DICT[core];
+  if (hit) return m[1] + hit[idx] + m[3];
+  for (let i = 0; i < PFX.length; i++) {
+    if (core.indexOf(PFX[i][0]) === 0) return m[1] + PFX[i][1][idx] + core.slice(PFX[i][0].length) + m[3];
+  }
+  return str;
+}
+const trOut = new WeakMap();
+function trTextNode(n) {
+  const v = n.nodeValue;
+  if (!v || trOut.get(n) === v || !v.trim()) return;
+  const out = trString(v);
+  if (out !== v) { trOut.set(n, out); n.nodeValue = out; }
+}
+const TR_ATTRS = ['placeholder', 'aria-label', 'title', 'alt'];
+function trAttr(el, name) {
+  const v = el.getAttribute(name);
+  if (!v) return;
+  const out = trString(v);
+  if (out !== v) el.setAttribute(name, out);
+}
+function trTree(root) {
+  if (LANG === 'es' || !root) return;
+  if (root.nodeType === 3) { trTextNode(root); return; }
+  if (root.nodeType !== 1 || /^(SCRIPT|STYLE|NOSCRIPT|TEXTAREA)$/.test(root.tagName)) return;
+  const w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
+    acceptNode: function (n) { return /^(SCRIPT|STYLE|NOSCRIPT|TEXTAREA)$/.test(n.parentNode.tagName) ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT; }
+  });
+  let n; while ((n = w.nextNode())) trTextNode(n);
+  const sel = TR_ATTRS.map(function (a) { return '[' + a + ']'; }).join(',');
+  TR_ATTRS.forEach(function (a) { if (root.hasAttribute(a)) trAttr(root, a); });
+  root.querySelectorAll(sel).forEach(function (el) { TR_ATTRS.forEach(function (a) { if (el.hasAttribute(a)) trAttr(el, a); }); });
+}
+let trObs = null;
+function startTranslator() {
+  if (trObs || !window.MutationObserver) return;
+  trObs = new MutationObserver(function (muts) {
+    if (LANG === 'es') return;
+    muts.forEach(function (m) {
+      if (m.type === 'childList') m.addedNodes.forEach(trTree);
+      else if (m.type === 'characterData') trTextNode(m.target);
+      else if (m.type === 'attributes') trAttr(m.target, m.attributeName);
+    });
+  });
+  trObs.observe(document.body, { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: TR_ATTRS });
+}
+
+function applyLang(code, save) {
+  LANG = code; document.documentElement.lang = code;
+  if (save) { try { localStorage.setItem('yg_lang', code); } catch (e) {} }
+}
+function initLanguage() {
+  let code = null;
+  try { const q = new URLSearchParams(location.search).get('lang'); if (q && Object.prototype.hasOwnProperty.call(LANG_IDX, q)) code = q; } catch (e) {}
+  if (!code) { try { const sv = localStorage.getItem('yg_lang'); if (sv && Object.prototype.hasOwnProperty.call(LANG_IDX, sv)) code = sv; } catch (e) {} }
+  startTranslator();
+  if (code) applyLang(code, true); else state.screen = 'lang';   // primera visita: se elige el idioma
+}
+
+// Pantalla de bienvenida: solo las 6 banderas
+function htmlLangLanding() {
+  const sd = sdStyle();
+  const cards = LANGS.map(function (l) {
+    return '<button class="lang-card" data-action="pick-lang" data-lang="' + l.code + '" lang="' + l.code + '"><span class="lang-flag">' + FLAGS[l.code] + '</span><span class="lang-name">' + esc(l.name) + '</span></button>';
+  }).join('');
+  return '<div class="lang-page"><div class="hero-logo-wrap lang-logo"><img src="logo.webp" alt="YOU GAMES" class="hero-logo" draggable="false"><div class="hero-logo-shine" style="' + sd + '"></div></div><div class="lang-grid">' + cards + '</div></div>';
+}
+// Menú desplegable de idioma (arriba a la derecha de la portada)
+function htmlLangSwitch() {
+  if (state.screen !== 'home') return '';
+  let cur = LANGS[0]; LANGS.forEach(function (l) { if (l.code === LANG) cur = l; });
+  const items = LANGS.map(function (l) {
+    return '<button class="ls-item' + (l.code === LANG ? ' on' : '') + '" role="option" aria-selected="' + (l.code === LANG) + '" data-action="lang-pick" data-lang="' + l.code + '" lang="' + l.code + '"><span class="ls-flag">' + FLAGS[l.code] + '</span><span class="ls-name">' + esc(l.name) + '</span>' + (l.code === LANG ? '<span class="ls-check">✓</span>' : '') + '</button>';
+  }).join('');
+  return '<div class="lang-switch"><button class="ls-btn" data-action="lang-toggle" aria-haspopup="listbox" aria-expanded="' + (!!state.langOpen) + '" aria-label="Idioma / Language"><span class="ls-flag">' + FLAGS[cur.code] + '</span><span class="ls-code">' + cur.code.toUpperCase() + '</span><span class="ls-caret">▾</span></button>' +
+    (state.langOpen ? '<div class="ls-backdrop" data-action="lang-close"></div><div class="ls-menu" role="listbox">' + items + '</div>' : '') + '</div>';
+}
+function refreshLangSwitch() { const el = document.querySelector('.lang-switch'); if (el) el.outerHTML = htmlLangSwitch(); }
+function showWelcome(code) {
+  let l = LANGS[0]; LANGS.forEach(function (x) { if (x.code === code) l = x; });
+  const o = document.createElement('div'); o.id = 'welcome'; o.className = 'welcome';
+  o.innerHTML = '<img class="welcome-logo" src="logo.webp" alt="YOU GAMES"><div class="welcome-msg" lang="' + l.code + '">' + esc(l.welcome) + '</div>';
+  document.body.appendChild(o);
+  setTimeout(function () { o.classList.add('out'); }, 1400);
+  setTimeout(function () { if (o.parentNode) o.parentNode.removeChild(o); }, 1900);
+}
+function chooseLanguage(code) {
+  applyLang(code, true);
+  state.screen = 'home'; state.langOpen = false;
+  render();                 // la portada se prepara detrás del mensaje de bienvenida
+  loadHomeData();
+  showWelcome(code);
+}
+function setLanguage(code) { applyLang(code, true); state.langOpen = false; render(); }
+document.addEventListener('click', function (e) {
+  const el = e.target && e.target.closest ? e.target.closest('[data-action]') : null;
+  if (!el) return;
+  const a = el.getAttribute('data-action');
+  if (a === 'pick-lang') { chooseLanguage(el.getAttribute('data-lang')); }
+  else if (a === 'lang-toggle') { state.langOpen = !state.langOpen; refreshLangSwitch(); }
+  else if (a === 'lang-close') { state.langOpen = false; refreshLangSwitch(); }
+  else if (a === 'lang-pick') { setLanguage(el.getAttribute('data-lang')); }
+});
+document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && state.langOpen) { state.langOpen = false; refreshLangSwitch(); } });
+
+// ================= RED ROBUSTA (reintentos con espera creciente y aleatoria) =================
+function sleepMs(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
+async function sbReq(url, opts, tries) {
+  tries = tries || 3;
+  let lastErr;
+  for (let i = 0; i < tries; i++) {
+    try {
+      const res = await fetch(url, opts);
+      if (res.status < 500 && res.status !== 429) return res;
+      lastErr = new Error('HTTP ' + res.status);
+      if (i === tries - 1) return res;
+    } catch (e) { lastErr = e; if (i === tries - 1) throw e; }
+    await sleepMs(Math.round(400 * Math.pow(2.2, i) * (0.7 + Math.random() * 0.6)));
+  }
+  throw lastErr;
+}
+
 const ICON_INSTAGRAM = '<svg viewBox="0 0 16 16" width="16" height="16" fill="currentColor"><path d="M8 0C5.829 0 5.556.01 4.703.048 3.85.088 3.269.222 2.76.42a3.9 3.9 0 0 0-1.417.923A3.9 3.9 0 0 0 .42 2.76C.222 3.268.087 3.85.048 4.7.01 5.555 0 5.827 0 8.001c0 2.172.01 2.444.048 3.297.04.852.174 1.433.372 1.942.205.526.478.972.923 1.417.444.445.89.719 1.416.923.51.198 1.09.333 1.942.372C5.555 15.99 5.827 16 8 16s2.444-.01 3.298-.048c.851-.04 1.434-.174 1.943-.372a3.9 3.9 0 0 0 1.416-.923c.445-.445.718-.891.923-1.417.197-.509.332-1.09.372-1.942C15.99 10.445 16 10.173 16 8s-.01-2.445-.048-3.299c-.04-.851-.175-1.433-.372-1.941a3.9 3.9 0 0 0-.923-1.417A3.9 3.9 0 0 0 13.24.42c-.51-.198-1.092-.333-1.943-.372C10.443.01 10.172 0 7.998 0zm-.717 1.442h.718c2.136 0 2.389.007 3.232.046.78.035 1.204.166 1.486.275.373.145.64.319.92.599s.453.546.598.92c.11.281.24.705.275 1.485.039.843.047 1.096.047 3.231s-.008 2.389-.047 3.232c-.035.78-.166 1.203-.275 1.485a2.5 2.5 0 0 1-.599.919c-.28.28-.546.453-.92.598-.28.11-.704.24-1.485.276-.843.038-1.096.047-3.232.047s-2.39-.009-3.233-.047c-.78-.036-1.203-.166-1.485-.276a2.5 2.5 0 0 1-.92-.598 2.5 2.5 0 0 1-.6-.92c-.109-.281-.24-.705-.275-1.485-.038-.843-.046-1.096-.046-3.233s.008-2.388.046-3.231c.036-.78.166-1.204.276-1.486.145-.373.319-.64.599-.92s.546-.453.92-.598c.282-.11.705-.24 1.485-.276.738-.034 1.024-.044 2.515-.045zm4.988 1.328a.96.96 0 1 0 0 1.92.96.96 0 0 0 0-1.92m-4.27 1.122a4.109 4.109 0 1 0 0 8.217 4.109 4.109 0 0 0 0-8.217m0 1.441a2.667 2.667 0 1 1 0 5.334 2.667 2.667 0 0 1 0-5.334"/></svg>';
 const ICON_FACEBOOK = '<svg viewBox="0 0 16 16" width="16" height="16" fill="currentColor"><path d="M16 8.049c0-4.446-3.582-8.05-8-8.05C3.58 0-.002 3.603-.002 8.05c0 4.017 2.926 7.347 6.75 7.951v-5.625h-2.03V8.05H6.75V6.275c0-2.017 1.195-3.131 3.022-3.131.876 0 1.791.157 1.791.157v1.98h-1.009c-.993 0-1.303.621-1.303 1.258v1.51h2.218l-.354 2.326H9.25V16c3.824-.604 6.75-3.934 6.75-7.951"/></svg>';
 const ICON_X = '<svg viewBox="0 0 16 16" width="16" height="16" fill="currentColor"><path d="M12.6.75h2.454l-5.36 6.142L16 15.25h-4.937l-3.867-5.07-4.425 5.07H.316l5.733-6.57L0 .75h5.063l3.495 4.633L12.601.75Zm-.86 13.028h1.36L4.323 2.145H2.865z"/></svg>';
@@ -1924,10 +2282,10 @@ function shareTextFor() {
   if (!me) return '';
   let rank = -1;
   state.leaderboard.forEach(function (p, i) { if (rank < 0 && p.username === state.username) rank = i + 1; });
-  const score = me.correct + '/' + state.questions.length + ' ✅ en ' + fmtMs(me.timeMs);
+  const score = txf('{c}/{n} ✅ en {t}', { c: me.correct, n: state.questions.length, t: fmtMs(me.timeMs) });
   return rank > 0
-    ? 'Voy #' + rank + ' en YOU GAMES 🏆 con ' + score + '. ¿Puedes superarme?'
-    : 'En YOU GAMES hice ' + score + '. ¿Puedes superarme?';
+    ? txf('Voy #{rank} en YOU GAMES \u{1F3C6} con {score}. ¿Puedes superarme?', { rank: rank, score: score })
+    : txf('En YOU GAMES hice {score}. ¿Puedes superarme?', { score: score });
 }
 
 async function shareResult() {
@@ -1950,7 +2308,7 @@ async function shareResult() {
       copied = true;
     }
   } catch (e) {}
-  if (!copied) { window.prompt('Copia tu resultado y compártelo:', full); return; }
+  if (!copied) { window.prompt(tx('Copia tu resultado y compártelo:'), full); return; }
   const label = document.getElementById('share-label');
   if (label) {
     label.textContent = '¡Copiado!';
@@ -2043,8 +2401,9 @@ function liveMove(username) {
   return m;
 }
 function moveArrow(m) {
-  const pl = function (n) { return n + (n === 1 ? ' puesto' : ' puestos'); };
-  const label = m.dir === 'up' ? (m.delta ? 'Subió ' + pl(m.delta) : 'Entró al Top 10') : 'Bajó ' + pl(m.delta);
+  const label = m.dir === 'up'
+    ? (m.delta ? txf(m.delta === 1 ? 'Subió {n} puesto' : 'Subió {n} puestos', { n: m.delta }) : tx('Entró al Top 10'))
+    : txf(m.delta === 1 ? 'Bajó {n} puesto' : 'Bajó {n} puestos', { n: m.delta });
   const svg = m.dir === 'up'
     ? '<svg viewBox="0 0 10 10" fill="currentColor"><path d="M5 1 9.5 9h-9z"/></svg>'
     : '<svg viewBox="0 0 10 10" fill="currentColor"><path d="M5 9 .5 1h9z"/></svg>';
@@ -2334,6 +2693,7 @@ document.addEventListener('keydown', function (e) {
     logoAction();
   }
 });
+initLanguage();
 initAds();
 render();
 if (document.fonts) {
@@ -2341,8 +2701,21 @@ if (document.fonts) {
   if (document.fonts.addEventListener) document.fonts.addEventListener('loadingdone', fitPanelTitle);
 }
 window.addEventListener('resize', fitPanelTitle);
+// La portada se actualiza cada ~5 min (con variación aleatoria), solo si la pestaña se ve; y al volver a verla si pasaron >2 min
+const HOME_REFRESH_MS = 300000;
+let homeLoadedAt = Date.now(), homeTimer = null, endRefreshTimer = null;
+function scheduleHomeRefresh() {
+  clearTimeout(homeTimer);
+  homeTimer = setTimeout(function () {
+    if (document.visibilityState === 'visible' && state.screen === 'home') { homeLoadedAt = Date.now(); loadHomeData(); }
+    scheduleHomeRefresh();
+  }, HOME_REFRESH_MS * (0.8 + Math.random() * 0.4));
+}
+document.addEventListener('visibilitychange', function () {
+  if (document.visibilityState === 'visible' && state.screen === 'home' && Date.now() - homeLoadedAt > 120000) { homeLoadedAt = Date.now(); loadHomeData(); }
+});
 loadHomeData();
-topTimer = setInterval(loadHomeData, 60000);
+scheduleHomeRefresh();
 setInterval(tickNext, 250);
 setInterval(tickStreamer, 250);
 </script>
