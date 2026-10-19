@@ -719,7 +719,7 @@
   .sl-line { flex: 1 1 20px; height: 1px; background: linear-gradient(90deg, transparent, rgba(124,255,60,0.6)); }
   .sl-line.r { background: linear-gradient(270deg, transparent, rgba(124,255,60,0.6)); }
   .sl-text {
-    flex: 0 1 auto; text-align: center; font-family: 'Bebas Neue', sans-serif; font-size: clamp(22px, 6vw, 32px); line-height: 1.1; letter-spacing: 3px; text-wrap: balance;
+    flex: 0 1 auto; text-align: center; font-family: 'Bebas Neue', sans-serif; font-size: clamp(22px, 6vw, 32px); line-height: 1.1; letter-spacing: 0.1em; text-wrap: balance;
     background: linear-gradient(100deg, #cfe8c9 0%, #cfe8c9 42%, #ffffff 50%, #cfe8c9 58%, #cfe8c9 100%); background-size: 260% 100%;
     -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: transparent;
     animation: sloganShine 6s linear var(--sd, 0s) infinite;
@@ -950,7 +950,7 @@ function fitPanelTitle() {
   if (sl) {
     sl.style.fontSize = '';
     let spx = parseFloat(getComputedStyle(sl).fontSize);
-    while (sl.getBoundingClientRect().height > spx * 1.5 && spx > 15) { spx -= 1; sl.style.fontSize = spx + 'px'; }
+    while (sl.getBoundingClientRect().height > spx * 1.5 && spx > 11) { spx -= 1; sl.style.fontSize = spx + 'px'; }
   }
   const els = document.querySelectorAll('.panel-title');
   if (!els.length) return;
@@ -1986,27 +1986,25 @@ const FLAGS = {
 const DICT = {};
 function A(es, en, pt, it, de, zh) { DICT[es] = [en, pt, it, de, zh]; }
 // Cada línea: texto en español → [English, Português, Italiano, Deutsch, 中文]. Para cambiar una traducción, edita solo esa línea.
-A("DEMUESTRA LO QUE SABES", "SHOW WHAT YOU KNOW", "MOSTRE O QUE VOCÊ SABE", "DIMOSTRA QUELLO CHE SAI", "ZEIG, WAS DU WEISST", "展现你的真本事");
 A("Únete Al Reto, Responde Rápido y Gana Premios", "Join the Challenge, Answer Fast and Win Prizes", "Entre no Desafio, Responda Rápido e Ganhe Prêmios", "Unisciti alla Sfida, Rispondi Veloce e Vinci Premi", "Mach bei der Challenge mit, antworte schnell und gewinne Preise", "加入挑战，快速作答，赢取奖品");
-A("¿Qué eres?", "Who are you?", "Quem é você?", "Chi sei?", "Wer bist du?", "你是谁？");
+A("¿Qué eres?", "Join as", "Entrar como", "Partecipa come", "Beitreten als", "你的身份");
 A("Jugador", "Player", "Jogador", "Giocatore", "Spieler", "玩家");
 A("Espectador", "Spectator", "Espectador", "Spettatore", "Zuschauer", "观众");
 A("Código del Reto", "Challenge Code", "Código do Desafio", "Codice della Sfida", "Challenge-Code", "挑战代码");
 A("Nombre de Usuario", "Username", "Nome de Usuário", "Nome utente", "Benutzername", "用户名");
 A("Tu nombre de usuario real", "Your real username", "Seu nome de usuário real", "Il tuo vero nome utente", "Dein echter Benutzername", "你的真实用户名");
-A("¿De dónde nos ves?", "Where are you watching from?", "De onde você nos assiste?", "Da dove ci guardi?", "Von wo aus schaust du zu?", "你从哪里观看我们？");
-A("(puedes elegir varias)", "(you can pick several)", "(você pode escolher várias)", "(puoi sceglierne più di una)", "(Mehrfachauswahl möglich)", "（可多选）");
+A("¿De dónde nos ves?", "Where do you watch us?", "Onde você nos assiste?", "Dove ci segui?", "Wo siehst du uns?", "你在哪个平台观看我们？");
+A("(puedes elegir varias)", "(you can pick more than one)", "(você pode escolher mais de uma)", "(puoi sceglierne più di una)", "(Mehrfachauswahl möglich)", "（可多选）");
 A("JUGAR AHORA", "PLAY NOW", "JOGAR AGORA", "GIOCA ORA", "JETZT SPIELEN", "立即开始");
-A("Ver Panel en Vivo", "View Live Panel", "Ver Painel ao Vivo", "Vedi il Pannello Live", "Live-Panel ansehen", "查看直播面板");
+A("Ver Panel en Vivo", "Open Live Panel", "Abrir Painel ao Vivo", "Apri il Pannello Live", "Live-Panel öffnen", "打开直播面板");
 A("Redes sociales", "Social media", "Redes sociais", "Social media", "Soziale Medien", "社交媒体");
 A("Página principal", "Home page", "Página inicial", "Pagina principale", "Startseite", "主页");
 A("YOU GAMES, página principal", "YOU GAMES, home page", "YOU GAMES, página inicial", "YOU GAMES, pagina principale", "YOU GAMES, Startseite", "YOU GAMES，主页");
-A("En {YOU} Todo Es Posible", "In {YOU}, Everything Is Possible", "Na {YOU}, Tudo É Possível", "In {YOU} Tutto È Possibile", "Bei {YOU} ist alles möglich", "在{YOU}，一切皆有可能");
 A("Ingresa el código del reto", "Enter the challenge code", "Digite o código do desafio", "Inserisci il codice della sfida", "Gib den Challenge-Code ein", "请输入挑战代码");
 A("Ingresa tu nombre", "Enter your name", "Digite seu nome", "Inserisci il tuo nome", "Gib deinen Namen ein", "请输入你的名字");
 A("Selecciona al menos una plataforma", "Select at least one platform", "Selecione pelo menos uma plataforma", "Seleziona almeno una piattaforma", "Wähle mindestens eine Plattform", "请至少选择一个平台");
 A("Ese código no existe. Verifica con el streamer.", "That code does not exist. Check with the streamer.", "Esse código não existe. Confirme com o streamer.", "Questo codice non esiste. Verifica con lo streamer.", "Diesen Code gibt es nicht. Frag den Streamer.", "该代码不存在，请向主播确认。");
-A("Este reto ya cerró 🤦🏼‍♂️ Está atento al próximo juego", "This challenge has closed 🤦🏼‍♂️ Stay tuned for the next game", "Este desafio já encerrou 🤦🏼‍♂️ Fique atento ao próximo jogo", "Questa sfida è chiusa 🤦🏼‍♂️ Resta sintonizzato per il prossimo gioco", "Diese Challenge ist beendet 🤦🏼‍♂️ Bleib dran für das nächste Spiel", "本场挑战已结束 🤦🏼‍♂️ 请关注下一场游戏");
+A("Este reto ya cerró 🤦🏼‍♂️ Está atento al próximo juego", "This challenge has closed 🤦🏼‍♂️ Stay tuned for the next game", "Este desafio já encerrou 🤦🏼‍♂️ Fique atento ao próximo jogo", "Questa sfida è chiusa 🤦🏼‍♂️ Resta sintonizzato per la prossima sfida", "Diese Challenge ist beendet 🤦🏼‍♂️ Bleib dran für das nächste Spiel", "本场挑战已结束 🤦🏼‍♂️ 请关注下一场游戏");
 A("Este usuario ya participó en este reto, usa el mismo usuario con el que sigues a YOU Inc.", "This user already took part in this challenge; use the same username you follow YOU Inc. with.", "Este usuário já participou deste desafio; use o mesmo usuário com o qual você segue a YOU Inc.", "Questo utente ha già partecipato a questa sfida; usa lo stesso utente con cui segui YOU Inc.", "Dieser Benutzer hat bereits an dieser Challenge teilgenommen; verwende denselben Benutzernamen, mit dem du YOU Inc. folgst.", "该用户已参加过本场挑战，请使用你关注 YOU Inc. 时的同一用户名。");
 A("No se pudo conectar. Revisa tu internet e intenta de nuevo.", "Could not connect. Check your internet and try again.", "Não foi possível conectar. Verifique sua internet e tente novamente.", "Impossibile connettersi. Controlla la tua connessione e riprova.", "Verbindung nicht möglich. Prüfe dein Internet und versuche es erneut.", "无法连接。请检查网络后重试。");
 A("Se guardó tu resultado, pero no pudimos cargar el ranking completo.", "Your result was saved, but we could not load the full ranking.", "Seu resultado foi salvo, mas não conseguimos carregar o ranking completo.", "Il tuo risultato è stato salvato, ma non siamo riusciti a caricare la classifica completa.", "Dein Ergebnis wurde gespeichert, aber die vollständige Rangliste konnte nicht geladen werden.", "你的成绩已保存，但无法加载完整排行榜。");
@@ -2016,7 +2014,7 @@ A("cuando llegue a 00:00", "when it reaches 00:00", "quando chegar a 00:00", "qu
 A("¡Correcto!", "Correct!", "Correto!", "Corretto!", "Richtig!", "正确！");
 A("Incorrecto", "Incorrect", "Incorreto", "Sbagliato", "Falsch", "错误");
 A("Guardando tu resultado...", "Saving your result...", "Salvando seu resultado...", "Salvataggio del tuo risultato...", "Dein Ergebnis wird gespeichert...", "正在保存你的成绩...");
-A("¡Juego Finalizado!", "Game Over!", "Jogo Finalizado!", "Gioco Terminato!", "Spiel beendet!", "游戏结束！");
+A("¡Juego Finalizado!", "Game Complete!", "Jogo Finalizado!", "Gioco Terminato!", "Spiel beendet!", "游戏结束！");
 A("Tu Resultado", "Your Result", "Seu Resultado", "Il Tuo Risultato", "Dein Ergebnis", "你的成绩");
 A("Compartir mi resultado", "Share my result", "Compartilhar meu resultado", "Condividi il mio risultato", "Mein Ergebnis teilen", "分享我的成绩");
 A("Volver al Inicio", "Back to Home", "Voltar ao Início", "Torna alla Home", "Zurück zur Startseite", "返回首页");
@@ -2024,7 +2022,7 @@ A("TOP 10 JUGADORES", "TOP 10 PLAYERS", "TOP 10 JOGADORES", "TOP 10 GIOCATORI", 
 A("Aún no hay campeones. ¡Sé el primero!", "No champions yet. Be the first!", "Ainda não há campeões. Seja o primeiro!", "Ancora nessun campione. Sii il primo!", "Noch keine Champions. Sei der Erste!", "还没有冠军。成为第一个吧！");
 A("No se pudo cargar el ranking.", "Could not load the ranking.", "Não foi possível carregar o ranking.", "Impossibile caricare la classifica.", "Die Rangliste konnte nicht geladen werden.", "无法加载排行榜。");
 A("Retos Jugados", "Challenges Played", "Desafios Jogados", "Sfide Giocate", "Gespielte Challenges", "已进行挑战");
-A("Dinero repartido", "Money Awarded", "Dinheiro Distribuído", "Denaro Distribuito", "Ausgezahltes Geld", "已发放奖金");
+A("Dinero repartido", "Prize Money Paid Out", "Dinheiro Distribuído", "Denaro Distribuito", "Ausgezahlte Preisgelder", "已发放奖金");
 A("PRÓXIMO RETO", "NEXT CHALLENGE", "PRÓXIMO DESAFIO", "PROSSIMA SFIDA", "NÄCHSTE CHALLENGE", "下一场挑战");
 A("¡Reto en vivo ahora!", "Challenge live now!", "Desafio ao vivo agora!", "Sfida in diretta ora!", "Challenge jetzt live!", "挑战正在直播！");
 A("días", "days", "dias", "giorni", "Tage", "天");
@@ -2034,7 +2032,7 @@ A("seg", "sec", "seg", "sec", "Sek", "秒");
 A("Por anunciar", "To be announced", "A anunciar", "Da annunciare", "Wird bekannt gegeben", "待公布");
 A("Cargando...", "Loading...", "Carregando...", "Caricamento...", "Wird geladen...", "加载中...");
 A("No se pudo cargar.", "Could not load.", "Não foi possível carregar.", "Impossibile caricare.", "Konnte nicht geladen werden.", "无法加载。");
-A("PODIO DEL ÚLTIMO RETO", "LAST CHALLENGE PODIUM", "PÓDIO DO ÚLTIMO DESAFIO", "PODIO DELL’ULTIMA SFIDA", "PODIUM DER LETZTEN CHALLENGE", "上一场挑战领奖台");
+A("PODIO DEL ÚLTIMO RETO", "LAST CHALLENGE PODIUM", "PÓDIO DO ÚLTIMO DESAFIO", "PODIO DELL’ULTIMA SFIDA", "PODIUM LETZTE CHALLENGE", "上一场挑战领奖台");
 A("Todavía no hay un reto terminado.", "No challenge has finished yet.", "Ainda não há desafio concluído.", "Nessuna sfida è ancora terminata.", "Noch keine Challenge beendet.", "还没有已结束的挑战。");
 A("¡GANASTE EL ÚLTIMO RETO!", "YOU WON THE LAST CHALLENGE!", "VOCÊ GANHOU O ÚLTIMO DESAFIO!", "HAI VINTO L’ULTIMA SFIDA!", "DU HAST DIE LETZTE CHALLENGE GEWONNEN!", "你赢得了上一场挑战！");
 A("Presume tu victoria y reta a tus amigos.", "Show off your win and challenge your friends.", "Mostre sua vitória e desafie seus amigos.", "Mostra la tua vittoria e sfida i tuoi amici.", "Zeig deinen Sieg und fordere deine Freunde heraus.", "炫耀你的胜利，向朋友发起挑战。");
@@ -2051,13 +2049,13 @@ A("¡Texto copiado!", "Text copied!", "Texto copiado!", "Testo copiato!", "Text 
 A("No se pudo compartir", "Could not share", "Não foi possível compartilhar", "Impossibile condividere", "Teilen nicht möglich", "无法分享");
 A("Copia tu resultado y compártelo:", "Copy your result and share it:", "Copie seu resultado e compartilhe:", "Copia il tuo risultato e condividilo:", "Kopiere dein Ergebnis und teile es:", "复制你的成绩并分享：");
 A("¡Entra y juega!", "Join and play!", "Entre e jogue!", "Entra e gioca!", "Mach mit und spiel!", "快来玩吧！");
-A("GANÉ EL RETO", "I WON THE CHALLENGE", "GANHEI O DESAFIO", "HO VINTO LA SFIDA", "ICH HABE DIE CHALLENGE GEWONNEN", "我赢得了挑战");
-A("CASI GANÉ EL RETO", "I ALMOST WON THE CHALLENGE", "QUASE GANHEI O DESAFIO", "HO QUASI VINTO LA SFIDA", "ICH HABE FAST GEWONNEN", "我差点赢得挑战");
-A("SOY EL TERCERO", "I CAME THIRD", "FIQUEI EM TERCEIRO", "SONO TERZO", "ICH BIN DRITTER", "我获得第三名");
+A("GANÉ EL RETO", "I WON THE CHALLENGE", "GANHEI O DESAFIO", "HO VINTO LA SFIDA", "ICH HABE DIE CHALLENGE GEWONNEN", "我赢了！");
+A("CASI GANÉ EL RETO", "I ALMOST WON THE CHALLENGE", "QUASE GANHEI O DESAFIO", "HO QUASI VINTO LA SFIDA", "ICH HABE FAST GEWONNEN", "我差一点就赢了！");
+A("SOY EL TERCERO", "I CAME THIRD", "FIQUEI EM TERCEIRO", "SONO TERZO", "ICH BIN DRITTER", "我拿到第三名！");
 A("Gané el Reto de You Games 😎🏆 #yougames1", "I won the You Games Challenge 😎🏆 #yougames1", "Ganhei o Desafio da You Games 😎🏆 #yougames1", "Ho vinto la Sfida di You Games 😎🏆 #yougames1", "Ich habe die You Games Challenge gewonnen 😎🏆 #yougames1", "我赢得了 You Games 挑战 😎🏆 #yougames1");
 A("Casi gané el Reto de You Games 🥈 #yougames2", "I almost won the You Games Challenge 🥈 #yougames2", "Quase ganhei o Desafio da You Games 🥈 #yougames2", "Ho quasi vinto la Sfida di You Games 🥈 #yougames2", "Ich hätte die You Games Challenge fast gewonnen 🥈 #yougames2", "我差点赢得 You Games 挑战 🥈 #yougames2");
-A("Soy el Tercero de You Games 🥉 #yougames3", "I came third in You Games 🥉 #yougames3", "Fiquei em terceiro na You Games 🥉 #yougames3", "Sono terzo a You Games 🥉 #yougames3", "Ich bin Dritter bei You Games 🥉 #yougames3", "我在 You Games 中获得第三名 🥉 #yougames3");
-A("DE YOU GAMES", "AT YOU GAMES", "NA YOU GAMES", "A YOU GAMES", "BEI YOU GAMES", "在 YOU GAMES");
+A("Soy el Tercero de You Games 🥉 #yougames3", "I’m third at You Games 🥉 #yougames3", "Sou o terceiro na You Games 🥉 #yougames3", "Sono terzo a You Games 🥉 #yougames3", "Ich bin Dritter bei You Games 🥉 #yougames3", "我在 You Games 拿到了第三名 🥉 #yougames3");
+A("DE YOU GAMES", "AT YOU GAMES", "NA YOU GAMES", "A YOU GAMES", "BEI YOU GAMES", "在 YOU GAMES 挑战中");
 A("¿PUEDES SUPERARME?", "CAN YOU BEAT ME?", "VOCÊ CONSEGUE ME SUPERAR?", "RIESCI A BATTERMI?", "KANNST DU MICH SCHLAGEN?", "你能超越我吗？");
 A("{c}/{n} ✅ en {t}", "{c}/{n} ✅ in {t}", "{c}/{n} ✅ em {t}", "{c}/{n} ✅ in {t}", "{c}/{n} ✅ in {t}", "{c}/{n} ✅ 用时 {t}");
 A("Voy #{rank} en YOU GAMES 🏆 con {score}. ¿Puedes superarme?", "I’m #{rank} on YOU GAMES 🏆 with {score}. Can you beat me?", "Estou em #{rank} na YOU GAMES 🏆 com {score}. Consegue me superar?", "Sono #{rank} su YOU GAMES 🏆 con {score}. Riesci a battermi?", "Ich bin #{rank} bei YOU GAMES 🏆 mit {score}. Kannst du mich schlagen?", "我在 YOU GAMES 排名第{rank} 🏆，成绩 {score}。你能超越我吗？");
@@ -2071,7 +2069,7 @@ A("RETO FINALIZADO", "CHALLENGE ENDED", "DESAFIO ENCERRADO", "SFIDA CONCLUSA", "
 A("Página Principal", "Home Page", "Página Principal", "Pagina Principale", "Startseite", "主页");
 A("Ver podio otra vez", "View podium again", "Ver pódio novamente", "Rivedi il podio", "Podium erneut ansehen", "再次查看领奖台");
 A("Todavía nadie ha terminado el reto...", "Nobody has finished the challenge yet...", "Ninguém terminou o desafio ainda...", "Nessuno ha ancora terminato la sfida...", "Noch hat niemand die Challenge beendet...", "还没有人完成挑战...");
-A("¡TIEMPO!", "TIME!", "TEMPO!", "TEMPO!", "ZEIT!", "时间到！");
+A("¡TIEMPO!", "TIME’S UP!", "TEMPO ESGOTADO!", "TEMPO SCADUTO!", "ZEIT ABGELAUFEN!", "时间到！");
 A("PODIO FINAL", "FINAL PODIUM", "PÓDIO FINAL", "PODIO FINALE", "FINALES PODIUM", "最终领奖台");
 A("Nadie terminó este reto.", "Nobody finished this challenge.", "Ninguém terminou este desafio.", "Nessuno ha terminato questa sfida.", "Niemand hat diese Challenge beendet.", "没有人完成这场挑战。");
 A("Toca para cerrar", "Tap to close", "Toque para fechar", "Tocca per chiudere", "Zum Schließen tippen", "点击关闭");
@@ -2104,8 +2102,6 @@ A("El streamer entrega el premio anunciado por sus propios medios (transferencia
 A("You Games es un proyecto de entretenimiento competitivo creado dentro de YOU, donde el conocimiento y la rapidez se convierten en el centro del juego.", "You Games is a competitive entertainment project created within YOU, where knowledge and speed take center stage.", "A You Games é um projeto de entretenimento competitivo criado dentro da YOU, onde o conhecimento e a rapidez se tornam o centro do jogo.", "You Games è un progetto di intrattenimento competitivo nato all’interno di YOU, dove la conoscenza e la rapidità diventano il cuore del gioco.", "You Games ist ein wettbewerbsorientiertes Unterhaltungsprojekt innerhalb von YOU, bei dem Wissen und Schnelligkeit im Mittelpunkt des Spiels stehen.", "You Games 是在 YOU 内部创建的竞技娱乐项目，知识与速度是游戏的核心。");
 A("Ponemos a prueba a los participantes mediante preguntas con tiempo límite, dinero en juego y un ranking global, en una experiencia donde cada segundo y cada respuesta pueden marcar la diferencia.", "We put participants to the test with timed questions, money at stake and a global ranking, in an experience where every second and every answer can make the difference.", "Colocamos os participantes à prova com perguntas com tempo limite, dinheiro em jogo e um ranking global, em uma experiência onde cada segundo e cada resposta podem fazer a diferença.", "Mettiamo alla prova i partecipanti con domande a tempo limitato, denaro in palio e una classifica globale, in un’esperienza in cui ogni secondo e ogni risposta possono fare la differenza.", "Wir stellen die Teilnehmer mit zeitlich begrenzten Fragen, Geld im Spiel und einer globalen Rangliste auf die Probe – in einem Erlebnis, in dem jede Sekunde und jede Antwort den Unterschied machen kann.", "我们通过限时提问、真金白银的奖励和全球排行榜来考验参与者，在这里每一秒、每一个答案都可能决定胜负。");
 A("Nuestro objetivo es construir una comunidad alrededor de la competición, los retos y el entretenimiento, tanto en nuestros directos como en los desafíos que llevamos a la calle.", "Our goal is to build a community around competition, challenges and entertainment, both in our live streams and in the challenges we take to the streets.", "Nosso objetivo é construir uma comunidade em torno da competição, dos desafios e do entretenimento, tanto em nossas transmissões ao vivo quanto nos desafios que levamos para as ruas.", "Il nostro obiettivo è costruire una community attorno alla competizione, alle sfide e all’intrattenimento, sia nelle nostre dirette sia nelle sfide che portiamo per strada.", "Unser Ziel ist es, eine Community rund um Wettbewerb, Challenges und Unterhaltung aufzubauen – sowohl in unseren Livestreams als auch bei den Challenges, die wir auf die Straße bringen.", "我们的目标是围绕竞技、挑战和娱乐打造一个社区，无论是在我们的直播中，还是在我们带到街头的挑战中。");
-A("Demuestra lo que sabes.", "Show what you know.", "Mostre o que você sabe.", "Dimostra quello che sai.", "Zeig, was du weißt.", "展现你的真本事。");
-A("«En YOU, todo es posible»", "“In YOU, everything is possible”", "«Na YOU, tudo é possível»", "«In YOU, tutto è possibile»", "„Bei YOU ist alles möglich“", "“在 YOU，一切皆有可能”");
 A("YOU Games crece gracias a la comunidad. Si quieres apoyar el proyecto y ayudarnos a seguir creando retos, puedes colaborar con nosotros.", "YOU Games grows thanks to the community. If you want to support the project and help us keep creating challenges, you can support us.", "A YOU Games cresce graças à comunidade. Se quiser apoiar o projeto e nos ajudar a continuar criando desafios, você pode colaborar conosco.", "YOU Games cresce grazie alla community. Se vuoi sostenere il progetto e aiutarci a continuare a creare sfide, puoi collaborare con noi.", "YOU Games wächst dank der Community. Wenn du das Projekt unterstützen und uns helfen möchtest, weiterhin Challenges zu erstellen, kannst du mit uns zusammenarbeiten.", "YOU Games 因社区而成长。如果你想支持这个项目，帮助我们继续创建挑战，欢迎与我们一起合作。");
 A("Apoyar en Patreon", "Support on Patreon", "Apoiar no Patreon", "Sostieni su Patreon", "Auf Patreon unterstützen", "在 Patreon 上支持");
 A("Las colaboraciones son voluntarias y no dan ventajas en los retos ni en los premios.", "Contributions are voluntary and do not give advantages in the challenges or the prizes.", "As colaborações são voluntárias e não dão vantagens nos desafios nem nos prêmios.", "Le collaborazioni sono volontarie e non danno vantaggi nelle sfide né nei premi.", "Unterstützungen sind freiwillig und bringen keine Vorteile bei den Challenges oder den Preisen.", "赞助完全自愿，不会在挑战或奖品中带来任何优势。");
@@ -2119,6 +2115,12 @@ A("Los premios ofrecidos en cada reto son entregados voluntariamente por el stre
 A("El tiempo de entrega del premio depende exclusivamente del streamer organizador y no de YOU GAMES; dicho tiempo puede variar de un reto a otro.", "The prize delivery time depends exclusively on the organizing streamer and not on YOU GAMES; it may vary from one challenge to another.", "O prazo de entrega do prêmio depende exclusivamente do streamer organizador e não da YOU GAMES; esse prazo pode variar de um desafio para outro.", "I tempi di consegna del premio dipendono esclusivamente dallo streamer organizzatore e non da YOU GAMES; possono variare da una sfida all’altra.", "Die Lieferzeit des Preises hängt ausschließlich vom organisierenden Streamer ab und nicht von YOU GAMES; sie kann von Challenge zu Challenge variieren.", "奖品的发放时间完全取决于主办主播，而非 YOU GAMES；不同挑战的发放时间可能不同。");
 A("El streamer organizador es responsable de la entrega del premio y de cumplir la normativa local que aplique a sorteos o promociones en su país.", "The organizing streamer is responsible for delivering the prize and for complying with the local regulations that apply to raffles or promotions in their country.", "O streamer organizador é responsável pela entrega do prêmio e pelo cumprimento da legislação local aplicável a sorteios ou promoções em seu país.", "Lo streamer organizzatore è responsabile della consegna del premio e del rispetto della normativa locale applicabile a concorsi o promozioni nel suo paese.", "Der organisierende Streamer ist für die Übergabe des Preises und die Einhaltung der in seinem Land geltenden Vorschriften für Gewinnspiele oder Aktionen verantwortlich.", "主办主播负责发放奖品，并遵守其所在国家适用于抽奖或促销活动的当地法规。");
 A("Nos reservamos el derecho de descalificar participaciones fraudulentas o repetidas.", "We reserve the right to disqualify fraudulent or repeated entries.", "Reservamo-nos o direito de desclassificar participações fraudulentas ou repetidas.", "Ci riserviamo il diritto di squalificare partecipazioni fraudolente o ripetute.", "Wir behalten uns das Recht vor, betrügerische oder wiederholte Teilnahmen zu disqualifizieren.", "我们保留取消欺诈或重复参与资格的权利。");
+A("Error consultando el reto", "Error loading the challenge", "Erro ao consultar o desafio", "Errore nel caricamento della sfida", "Fehler beim Laden der Challenge", "加载挑战时出错");
+A("Error verificando participación", "Error checking participation", "Erro ao verificar a participação", "Errore nella verifica della partecipazione", "Fehler bei der Prüfung der Teilnahme", "验证参与记录时出错");
+A("Error guardando tu resultado", "Error saving your result", "Erro ao salvar seu resultado", "Errore nel salvataggio del risultato", "Fehler beim Speichern deines Ergebnisses", "保存成绩时出错");
+A("Error consultando los retos", "Error loading the challenges", "Erro ao consultar os desafios", "Errore nel caricamento delle sfide", "Fehler beim Laden der Challenges", "加载挑战列表时出错");
+A("Error consultando los ganadores", "Error loading the winners", "Erro ao consultar os vencedores", "Errore nel caricamento dei vincitori", "Fehler beim Laden der Gewinner", "加载获奖者时出错");
+A("Error consultando el Top Global", "Error loading the Global Top", "Erro ao consultar o Top Global", "Errore nel caricamento della Top Globale", "Fehler beim Laden der globalen Top-Liste", "加载全球排行榜时出错");
 const PFX = [
   ["Reto #", ["Challenge #", "Desafio #", "Sfida #", "Challenge #", "挑战 #"]],
   ["Pregunta ", ["Question ", "Pergunta ", "Domanda ", "Frage ", "问题 "]],
@@ -2169,7 +2171,11 @@ function trTree(root) {
   TR_ATTRS.forEach(function (a) { if (root.hasAttribute(a)) trAttr(root, a); });
   root.querySelectorAll(sel).forEach(function (el) { TR_ATTRS.forEach(function (a) { if (el.hasAttribute(a)) trAttr(el, a); }); });
 }
-let trObs = null;
+let trObs = null, trFitQ = false;
+function scheduleFit() {
+  if (trFitQ) return; trFitQ = true;
+  requestAnimationFrame(function () { trFitQ = false; if (typeof fitPanelTitle === 'function') fitPanelTitle(); });
+}
 function startTranslator() {
   if (trObs || !window.MutationObserver) return;
   trObs = new MutationObserver(function (muts) {
@@ -2179,12 +2185,14 @@ function startTranslator() {
       else if (m.type === 'characterData') trTextNode(m.target);
       else if (m.type === 'attributes') trAttr(m.target, m.attributeName);
     });
+    scheduleFit();
   });
   trObs.observe(document.body, { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: TR_ATTRS });
 }
 
+const TITLES = { es: 'YOU GAMES - Trivia en Directo', en: 'YOU GAMES - Live Trivia', pt: 'YOU GAMES - Quiz ao Vivo', it: 'YOU GAMES - Quiz in Diretta', de: 'YOU GAMES - Live-Quiz', zh: 'YOU GAMES - 直播问答' };
 function applyLang(code, save) {
-  LANG = code; document.documentElement.lang = code;
+  LANG = code; document.documentElement.lang = code; document.title = TITLES[code] || document.title;
   if (save) { try { localStorage.setItem('yg_lang', code); } catch (e) {} }
 }
 function initLanguage() {
