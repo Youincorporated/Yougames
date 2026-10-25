@@ -807,6 +807,16 @@
   html[lang="zh"] .sl-text,
   html[lang="zh"] .sp-name { font-family: 'Inter', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans CJK SC', 'Noto Sans SC', sans-serif; font-weight: 800; letter-spacing: 1px; }
   html[lang="de"] .stat-cap, html[lang="de"] .cd-lab, html[lang="pt"] .stat-cap { letter-spacing: 0.4px; }
+
+  /* ---- BANDERAS: destello en el mismo ciclo de 6 s que todo lo demás ---- */
+  .lang-flag svg { animation: flagShine 6s ease-in-out var(--sd, 0s) infinite; }
+  @keyframes flagShine {
+    0%, 52% { filter: brightness(1) drop-shadow(0 0 0 rgba(124,255,60,0)); transform: scale(1); }
+    65% { filter: brightness(1.35) drop-shadow(0 0 12px rgba(124,255,60,0.95)); transform: scale(1.1); }
+    78%, 100% { filter: brightness(1) drop-shadow(0 0 0 rgba(124,255,60,0)); transform: scale(1); }
+  }
+  .lang-page .home-slogan { margin-top: 6px; }
+  @media (prefers-reduced-motion: reduce) { .lang-flag svg { animation: none; } }
 </style>
 </head>
 <body>
@@ -1785,7 +1795,7 @@ function htmlMenu() {
       icon: '🎮',
       title: 'Quiénes Somos',
       html: '<p>You Games es un proyecto de entretenimiento competitivo creado dentro de YOU, donde el conocimiento y la rapidez se convierten en el centro del juego. ' + glow('🙌🏻') + glow('🏆') + '</p>' +
-        '<p>Ponemos a prueba a los participantes mediante preguntas con tiempo límite, dinero en juego y un ranking global, en una experiencia donde cada segundo y cada respuesta pueden marcar la diferencia. ' + glow('🥇') + glow('💰') + '</p>' +
+        '<p>Ponemos a prueba a los participantes mediante preguntas con tiempo límite, premios en dinero y un ranking global, en una experiencia donde cada segundo y cada respuesta pueden marcar la diferencia. ' + glow('🥇') + glow('💰') + '</p>' +
         '<p>Nuestro objetivo es construir una comunidad alrededor de la competición, los retos y el entretenimiento, tanto en nuestros directos como en los desafíos que llevamos a la calle.</p>' +
         '<p class="menu-slogan">Demuestra lo que sabes. ' + glow('🧠') + glow('⚡️') + '</p>' +
         '<p class="menu-quote">«En YOU, todo es posible»</p>',
@@ -2110,7 +2120,7 @@ A("Una vez el reto cierra (pasado su tiempo), ya no se puede entrar.", "Once the
 A("Gana quien conteste más preguntas correctas; si hay empate, gana quien las respondió en menos tiempo.", "Whoever answers the most questions correctly wins; in a tie, whoever answered them in the least time wins.", "Vence quem responder mais perguntas corretamente; em caso de empate, vence quem respondeu em menos tempo.", "Vince chi risponde correttamente a più domande; in caso di parità, vince chi ha risposto nel minor tempo.", "Es gewinnt, wer die meisten Fragen richtig beantwortet; bei Gleichstand gewinnt, wer dafür weniger Zeit gebraucht hat.", "答对题数最多者获胜；若并列，用时更短者获胜。");
 A("El streamer entrega el premio anunciado por sus propios medios (transferencia, efectivo, etc).", "The streamer delivers the announced prize through their own means (bank transfer, cash, etc.).", "O streamer entrega o prêmio anunciado por seus próprios meios (transferência, dinheiro em espécie, etc.).", "Lo streamer consegna il premio annunciato con i propri mezzi (bonifico, contanti, ecc.).", "Der Streamer übergibt den angekündigten Preis auf eigene Weise (Überweisung, Bargeld usw.).", "主播通过自己的方式（转账、现金等）发放所公布的奖品。");
 A("You Games es un proyecto de entretenimiento competitivo creado dentro de YOU, donde el conocimiento y la rapidez se convierten en el centro del juego.", "You Games is a competitive entertainment project created within YOU, where knowledge and speed take center stage.", "A You Games é um projeto de entretenimento competitivo criado dentro da YOU, onde o conhecimento e a rapidez se tornam o centro do jogo.", "You Games è un progetto di intrattenimento competitivo nato all’interno di YOU, dove la conoscenza e la rapidità diventano il cuore del gioco.", "You Games ist ein wettbewerbsorientiertes Unterhaltungsprojekt innerhalb von YOU, bei dem Wissen und Schnelligkeit im Mittelpunkt des Spiels stehen.", "You Games 是在 YOU 内部创建的竞技娱乐项目，知识与速度是游戏的核心。");
-A("Ponemos a prueba a los participantes mediante preguntas con tiempo límite, dinero en juego y un ranking global, en una experiencia donde cada segundo y cada respuesta pueden marcar la diferencia.", "We put participants to the test with timed questions, money at stake and a global ranking, in an experience where every second and every answer can make the difference.", "Colocamos os participantes à prova com perguntas com tempo limite, dinheiro em jogo e um ranking global, em uma experiência onde cada segundo e cada resposta podem fazer a diferença.", "Mettiamo alla prova i partecipanti con domande a tempo limitato, denaro in palio e una classifica globale, in un’esperienza in cui ogni secondo e ogni risposta possono fare la differenza.", "Wir stellen die Teilnehmer mit zeitlich begrenzten Fragen, Geld im Spiel und einer globalen Rangliste auf die Probe – in einem Erlebnis, in dem jede Sekunde und jede Antwort den Unterschied machen kann.", "我们通过限时提问、真金白银的奖励和全球排行榜来考验参与者，在这里每一秒、每一个答案都可能决定胜负。");
+A("Ponemos a prueba a los participantes mediante preguntas con tiempo límite, premios en dinero y un ranking global, en una experiencia donde cada segundo y cada respuesta pueden marcar la diferencia.", "We put participants to the test with timed questions, cash prizes and a global ranking, in an experience where every second and every answer can make the difference.", "Colocamos os participantes à prova com perguntas com tempo limite, prêmios em dinheiro e um ranking global, em uma experiência onde cada segundo e cada resposta podem fazer a diferença.", "Mettiamo alla prova i partecipanti con domande a tempo limitato, premi in denaro e una classifica globale, in un’esperienza in cui ogni secondo e ogni risposta possono fare la differenza.", "Wir stellen die Teilnehmer mit zeitlich begrenzten Fragen, Geldpreisen und einer globalen Rangliste auf die Probe – in einem Erlebnis, in dem jede Sekunde und jede Antwort den Unterschied machen kann.", "我们通过限时提问、现金奖励和全球排行榜来考验参与者，在这里每一秒、每一个答案都可能决定胜负。");
 A("Nuestro objetivo es construir una comunidad alrededor de la competición, los retos y el entretenimiento, tanto en nuestros directos como en los desafíos que llevamos a la calle.", "Our goal is to build a community around competition, challenges and entertainment, both in our live streams and in the challenges we take to the streets.", "Nosso objetivo é construir uma comunidade em torno da competição, dos desafios e do entretenimento, tanto em nossas transmissões ao vivo quanto nos desafios que levamos para as ruas.", "Il nostro obiettivo è costruire una community attorno alla competizione, alle sfide e all’intrattenimento, sia nelle nostre dirette sia nelle sfide che portiamo per strada.", "Unser Ziel ist es, eine Community rund um Wettbewerb, Challenges und Unterhaltung aufzubauen – sowohl in unseren Livestreams als auch bei den Challenges, die wir auf die Straße bringen.", "我们的目标是围绕竞技、挑战和娱乐打造一个社区，无论是在我们的直播中，还是在我们带到街头的挑战中。");
 A("YOU Games crece gracias a la comunidad. Si quieres apoyar el proyecto y ayudarnos a seguir creando retos, puedes colaborar con nosotros.", "YOU Games grows thanks to the community. If you want to support the project and help us keep creating challenges, you can support us.", "A YOU Games cresce graças à comunidade. Se quiser apoiar o projeto e nos ajudar a continuar criando desafios, você pode colaborar conosco.", "YOU Games cresce grazie alla community. Se vuoi sostenere il progetto e aiutarci a continuare a creare sfide, puoi collaborare con noi.", "YOU Games wächst dank der Community. Wenn du das Projekt unterstützen und uns helfen möchtest, weiterhin Challenges zu erstellen, kannst du mit uns zusammenarbeiten.", "YOU Games 因社区而成长。如果你想支持这个项目，帮助我们继续创建挑战，欢迎与我们一起合作。");
 A("Apoyar en Patreon", "Support on Patreon", "Apoiar no Patreon", "Sostieni su Patreon", "Auf Patreon unterstützen", "在 Patreon 上支持");
@@ -2248,13 +2258,14 @@ function initLanguage() {
 function htmlLangLanding() {
   const sd = sdStyle();
   const cards = LANGS.map(function (l) {
-    return '<button class="lang-card" data-action="pick-lang" data-lang="' + l.code + '" lang="' + l.code + '"><span class="lang-flag">' + FLAGS[l.code] + '</span><span class="lang-name">' + esc(l.name) + '</span></button>';
+    return '<button class="lang-card" data-action="pick-lang" data-lang="' + l.code + '" lang="' + l.code + '"><span class="lang-flag" style="' + sd + '">' + FLAGS[l.code] + '</span><span class="lang-name">' + esc(l.name) + '</span></button>';
   }).join('');
-  return '<div class="lang-page"><div class="hero-logo-wrap lang-logo"><img src="logo.webp" alt="YOU GAMES" class="hero-logo" draggable="false"><div class="hero-logo-shine" style="' + sd + '"></div></div><div class="lang-grid">' + cards + '</div></div>';
+  return '<div class="lang-page"><div class="hero-logo-wrap lang-logo"><img src="logo.webp" alt="YOU GAMES" class="hero-logo" draggable="false"><div class="hero-logo-shine" style="' + sd + '"></div></div><div class="lang-grid">' + cards + '</div>' +
+    '<div class="home-slogan" style="' + sd + '"><span class="sl-line"></span><div class="sl-text">' + esc(tx('En {YOU} Todo Es Posible')).replace('{YOU}', '<span class="yo">YOU</span>') + '</div><span class="sl-line r"></span></div></div>';
 }
 // Menú desplegable de idioma (arriba a la derecha de la portada)
 function htmlLangSwitch() {
-  if (state.screen !== 'home') return '';
+  if (state.screen !== 'home' && state.screen !== 'streamer') return '';
   let cur = LANGS[0]; LANGS.forEach(function (l) { if (l.code === LANG) cur = l; });
   const items = LANGS.map(function (l) {
     return '<button class="ls-item' + (l.code === LANG ? ' on' : '') + '" role="option" aria-selected="' + (l.code === LANG) + '" data-action="lang-pick" data-lang="' + l.code + '" lang="' + l.code + '"><span class="ls-flag">' + FLAGS[l.code] + '</span><span class="ls-name">' + esc(l.name) + '</span>' + (l.code === LANG ? '<span class="ls-check">✓</span>' : '') + '</button>';
