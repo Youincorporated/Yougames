@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="preconnect" href="https://evcearuijddrkcdmekwl.supabase.co" crossorigin>
 <title>YOU GAMES - Trivia en Directo</title>
 <meta name="description" content="Únete al reto, responde rápido y gana premios 🎁">
 <meta property="og:type" content="website">
@@ -817,6 +818,8 @@
   }
   .lang-page .home-slogan { margin-top: 6px; }
   @media (prefers-reduced-motion: reduce) { .lang-flag svg { animation: none; } }
+
+  .option.picked { background: rgba(124,255,60,0.18); border-color: var(--brand-neon); box-shadow: 0 0 16px rgba(124,255,60,0.25); }
 </style>
 </head>
 <body>
@@ -849,28 +852,11 @@ async function sbFetchGame(code) {
   return rows[0] || null;
 }
 
-async function sbFetchQuestions(gameId) {
-  const res = await sbReq(SUPABASE_URL + '/rest/v1/questions?game_id=eq.' + encodeURIComponent(gameId) + '&select=*&order=display_order.asc', { headers: sbHeaders });
-  if (!res.ok) throw new Error('Error consultando preguntas');
-  return await res.json();
-}
-
 async function sbCheckAlreadyPlayed(gameId, username) {
   const res = await sbReq(SUPABASE_URL + '/rest/v1/participations?game_id=eq.' + encodeURIComponent(gameId) + '&username=eq.' + encodeURIComponent(username) + '&select=id&limit=1', { headers: sbHeaders });
   if (!res.ok) throw new Error('Error verificando participación');
   const rows = await res.json();
   return rows.length > 0;
-}
-
-async function sbInsertParticipation(record) {
-  const res = await sbReq(SUPABASE_URL + '/rest/v1/participations', {
-    method: 'POST',
-    headers: Object.assign({}, sbHeaders, { 'Prefer': 'return=minimal' }),
-    body: JSON.stringify(record),
-  }, 5);
-  if (res.status === 409) return [];                 // ya estaba guardado (un reintento tras un corte de internet)
-  if (!res.ok) throw new Error('Error guardando tu resultado');
-  return [];
 }
 
 async function sbFetchLeaderboard(gameId, limit) {
@@ -945,7 +931,7 @@ function esc(s) {
 
 // Reloj compartido: logo, botón y coronas toman su fase del mismo instante => destellan siempre a la vez
 const SHINE_PERIOD_MS = 6000;
-function sdStyle() { return '--sd:-' + ((Date.now() % SHINE_PERIOD_MS) / 1000).toFixed(3) + 's;'; }
+function sdStyle() { return '--sd:-' + ((nowMs() % SHINE_PERIOD_MS) / 1000).toFixed(3) + 's;'; }
 
 // Alinea al milisegundo TODAS las animaciones de 6s (logo, botón, coronas) al mismo origen de tiempo
 function syncShine() {
@@ -1015,7 +1001,7 @@ async function loadRightData() {
   try {
     const results = await Promise.all([sbFetchAllGames(), sbFetchGameWinners()]);
     const games = results[0], winners = results[1];
-    const now = Date.now();
+    const now = nowMs();
     const startOf = function (g) { return new Date(g.start_time).getTime(); };
     const endOf = function (g) { return startOf(g) + (g.game_duration_seconds || 300) * 1000; };
     const hasWinner = {};
@@ -1039,7 +1025,7 @@ async function loadRightData() {
     };
     if (mine.place) prepareCard();
     if (live) {   // cuando el reto en vivo termine, la portada se actualiza una vez (con retraso aleatorio para no saturar)
-      const wait = new Date(live.start_time).getTime() + (live.game_duration_seconds || 300) * 1000 - Date.now() + 35000 + Math.random() * 20000;
+      const wait = new Date(live.start_time).getTime() + (live.game_duration_seconds || 300) * 1000 - nowMs() + 35000 + Math.random() * 20000;
       clearTimeout(endRefreshTimer);
       endRefreshTimer = setTimeout(function () { if (state.screen === 'home') loadHomeData(); }, Math.max(wait, 5000));
     }
@@ -1069,11 +1055,11 @@ let lastNextReload = 0;
 function tickNext() {
   const g = state.right && state.right.nextGame;
   if (!g || state.screen !== 'home') return;
-  const diff = new Date(g.start_time).getTime() - Date.now();
+  const diff = new Date(g.start_time).getTime() - nowMs();
   const p = cdParts(diff);
   setText('cd-d', pad2(p.d)); setText('cd-h', pad2(p.h)); setText('cd-m', pad2(p.m)); setText('cd-s', pad2(p.s));
-  if (diff <= 0 && Date.now() - lastNextReload > 10000) {
-    lastNextReload = Date.now();
+  if (diff <= 0 && nowMs() - lastNextReload > 10000) {
+    lastNextReload = nowMs();
     loadHomeData();
   }
 }
@@ -1136,7 +1122,7 @@ function findMyPodium(last, podium) {
   const none = { place: 0, row: null, game: '' };
   if (!last || !podium.length) return none;
   const endMs = new Date(last.start_time).getTime() + (last.game_duration_seconds || 300) * 1000;
-  if (Date.now() < endMs + 30000) return none;           // esperar a que el resultado sea definitivo
+  if (nowMs() < endMs + 30000) return none;           // esperar a que el resultado sea definitivo
   const plays = loadPlays();
   for (let i = 0; i < Math.min(3, podium.length); i++) {
     if (plays.some(function (pl) { return pl.game === last.id && pl.user === podium[i].username; })) {
@@ -1319,7 +1305,7 @@ function htmlNextPanel() {
   let out = '<div class="panel-head"><div class="panel-title"><span class="emoji-shine soft" style="' + sdStyle() + '">🕒</span> PRÓXIMO RETO</div></div>';
   if (r.liveGame) out += '<div class="live-pill">🔴 ¡Reto en vivo ahora!</div>';
   if (g) {
-    const p = cdParts(new Date(g.start_time).getTime() - Date.now());
+    const p = cdParts(new Date(g.start_time).getTime() - nowMs());
     out += '<div class="cd-grid">' + cdCell('cd-d', p.d, 'días') + cdCell('cd-h', p.h, 'horas') + cdCell('cd-m', p.m, 'min') + cdCell('cd-s', p.s, 'seg') + '</div>';
     const z = tzInfo(new Date(g.start_time).getTime());
     const zoneLine = [z.iana, z.long].filter(function (x) { return x; }).join(' · ') + (z.short ? ' (' + z.short + ')' : '');
@@ -1453,11 +1439,9 @@ async function startGame() {
       render();
       return;
     }
-    const questions = await sbFetchQuestions(code);
-
     state.gameCode = code;
     state.currentGame = game;
-    state.questions = questions;
+    state.questions = [];          // las preguntas llegan al empezar, sin las respuestas correctas
 
     if (state.mode === 'streamer') {
       state.loading = false;
@@ -1472,14 +1456,14 @@ async function startGame() {
 
     const gameStartMs = new Date(game.start_time).getTime();
     const gameEndMs = gameStartMs + (game.game_duration_seconds || 300) * 1000;
-    if (Date.now() > gameEndMs) {
+    if (nowMs() > gameEndMs) {
       state.loading = false;
       state.errors = { gameCode: 'Este reto ya cerró 🤦🏼‍♂️ Está atento al próximo juego 😁' };
       render();
       return;
     }
 
-    const username = state.usernameInput.trim();
+    const username = state.usernameInput.trim().replace(/\s+/g, ' ');
     const alreadyPlayed = await sbCheckAlreadyPlayed(code, username);
     if (alreadyPlayed) {
       state.loading = false;
@@ -1504,7 +1488,7 @@ async function startGame() {
 
 function startCountdown() {
   timers.countdown = setInterval(() => {
-    const remaining = Math.round((state.countdownEndTime - Date.now()) / 1000);
+    const remaining = Math.round((state.countdownEndTime - nowMs()) / 1000);
     const el = document.getElementById('countdown-timer');
     if (el) el.textContent = fmtTime(remaining);
     if (remaining <= 0) {
@@ -1515,20 +1499,41 @@ function startCountdown() {
   }, 200);
 }
 
-function startQuiz() {
+// ---------- PARTIDA CON EL SERVIDOR ----------
+async function startQuiz() {
+  if (state.starting) return;
+  state.starting = true;
+  let r = null, lastErr = null;
+  for (let i = 0; i < 6; i++) {
+    try {
+      r = await sbRpc('start_attempt', { p_game: state.gameCode, p_username: state.username, p_platform: state.platform, p_device: getDeviceId() }, 3);
+      break;
+    } catch (e) {
+      lastErr = e;
+      if (e && e.code === 'not_started') { await sleepMs(500); continue; }   // el reloj del servidor va unas décimas por detrás
+      break;
+    }
+  }
+  state.starting = false;
+  if (!r) { failStart(lastErr); return; }
+  applyServerNow(r.server_now_ms);
+  state.attempt = { id: r.attempt_id, token: r.token, endsAtMs: r.ends_at_ms };
+  state.questions = r.questions || [];
+  beginQuiz(0, []);
+}
+
+function beginQuiz(index, answers) {
   state.screen = 'quiz';
-  state.questionIndex = 0;
-  state.userAnswers = [];
+  state.questionIndex = index;
+  state.userAnswers = answers;
   state.selectedAnswer = null;
   state.showFeedback = false;
-  state.quizStartedAt = Date.now();
-  // Nadie puede seguir jugando después del cierre del reto: así el podio es definitivo
-  const durMs = (state.currentGame.game_duration_seconds || 300) * 1000;
-  const closeMs = new Date(state.currentGame.start_time).getTime() + durMs;
-  state.quizEndTime = Math.min(Date.now() + durMs, closeMs);
+  state.quizEndTime = state.attempt.endsAtMs;      // hora de cierre dada por el servidor
+  saveProgress();
   render();
+  if (timers.quiz) clearInterval(timers.quiz);
   timers.quiz = setInterval(() => {
-    const remaining = Math.round((state.quizEndTime - Date.now()) / 1000);
+    const remaining = Math.round((state.quizEndTime - nowMs()) / 1000);
     const el = document.getElementById('quiz-timer');
     if (el) el.textContent = fmtTime(remaining);
     if (remaining <= 0) {
@@ -1539,59 +1544,55 @@ function startQuiz() {
   }, 500);
 }
 
+// La respuesta se marca sin decir si es buena o mala (así no se pueden pasar las respuestas)
 function answerQuestion(index) {
-  if (state.showFeedback) return;
+  if (state.showFeedback || state.screen !== 'quiz') return;
   state.selectedAnswer = index;
   state.showFeedback = true;
+  state.userAnswers[state.questionIndex] = index;
+  saveProgress();
   render();
-
   setTimeout(function () {
-    state.userAnswers.push(index);
-    state.selectedAnswer = null;
+    if (state.screen !== 'quiz') return;
     state.showFeedback = false;
-
-    if (state.questionIndex < state.questions.length - 1) {
-      state.questionIndex++;
-      render();
-    } else {
-      finishQuiz();
-    }
-  }, 700);
+    state.selectedAnswer = null;
+    if (state.questionIndex + 1 >= state.questions.length) { finishQuiz(false); }
+    else { state.questionIndex += 1; render(); }
+  }, 450);
 }
 
 async function finishQuiz(timedOut) {
   if (timers.quiz) { clearInterval(timers.quiz); timers.quiz = null; }
-  const correctCount = state.userAnswers.filter(function (a, i) { return a === state.questions[i].correct_index; }).length;
-  const timeTakenMs = Date.now() - state.quizStartedAt;
-
+  if (state.screen === 'saving') return;
   state.screen = 'saving';
   render();
-  if (timedOut) await sleepMs(Math.random() * 2500);
+  if (timedOut) await sleepMs(Math.random() * 2500);   // evita que todos guarden en el mismo segundo
 
+  const n = state.questions.length, answers = [];
+  for (let i = 0; i < n; i++) answers.push(typeof state.userAnswers[i] === 'number' ? state.userAnswers[i] : -1);
+  let res = null;
   try {
-    await sbInsertParticipation({
-      game_id: state.gameCode,
-      username: state.username,
-      platform: state.platform,
-      correct_answers: correctCount,
-      time_taken_ms: timeTakenMs,
-    });
-    rememberPlay(state.gameCode, state.username);
-    const lb = await sbFetchLeaderboard(state.gameCode, 10);
-    state.leaderboard = lb;
+    res = await sbRpc('submit_answers', { p_attempt: state.attempt.id, p_token: state.attempt.token, p_answers: answers }, 5);
+  } catch (err) {
+    const code = err && err.code;
+    if (code === 'too_late' || code === 'invalid_attempt') clearProgress();   // si fue otro fallo, la partida se conserva para reintentar
+    state.screen = 'home';
+    state.loadError = code === 'too_late' ? 'Se agotó el tiempo para enviar tu resultado.' : 'No se pudo guardar tu resultado. Abre la página otra vez para reintentar.';
+    render(); loadHomeData();
+    return;
+  }
+  clearProgress();
+  rememberPlay(state.gameCode, state.username);
+  const mine = { username: state.username, platform: state.platform, correct_answers: res.correct, time_taken_ms: res.time_ms };
+  try {
+    state.leaderboard = await sbFetchLeaderboard(state.gameCode, 10);
     state.loadError = '';
-    try {
-      const winsRows = await sbFetchPlayerWins();
-      state.winsMap = buildWinsMap(winsRows);
-    } catch (e2) {
-      // Si falla, simplemente no se muestran coronas esta vez
-    }
+    try { state.winsMap = buildWinsMap(await sbFetchPlayerWins()); } catch (e2) {}
   } catch (err) {
     state.loadError = 'Se guardó tu resultado, pero no pudimos cargar el ranking completo.';
-    state.leaderboard = [{ username: state.username, platform: state.platform, correct_answers: correctCount, time_taken_ms: timeTakenMs }];
+    state.leaderboard = [mine];
   }
-
-  state.myResult = { correct: correctCount, timeMs: timeTakenMs };
+  state.myResult = { correct: res.correct, timeMs: res.time_ms };
   state.screen = 'results';
   render();
 }
@@ -1632,8 +1633,8 @@ function updateParticipantCount(n) {
 
 let streamerBusy = 0;
 async function refreshStreamerData() {
-  if (streamerBusy && Date.now() - streamerBusy < 10000) return;      // la consulta anterior sigue en curso
-  streamerBusy = Date.now();
+  if (streamerBusy && nowMs() - streamerBusy < 10000) return;      // la consulta anterior sigue en curso
+  streamerBusy = nowMs();
   try {
     const code = state.gameCode;
     const results = await Promise.all([
@@ -1881,7 +1882,7 @@ function ruleItem(text, emoji) {
 
 function htmlWaiting() {
   const g = state.currentGame;
-  const remaining = Math.round((state.countdownEndTime - Date.now()) / 1000);
+  const remaining = Math.round((state.countdownEndTime - nowMs()) / 1000);
   return '' +
     '<div class="center" style="margin-bottom:8px;">' +
       '<div class="subtitle">Reto #' + esc(g.id) + '</div>' +
@@ -1906,15 +1907,13 @@ function htmlQuiz() {
   const q = state.questions[state.questionIndex];
   const qNum = state.questionIndex + 1;
   const total = state.questions.length;
-  const remaining = Math.round((state.quizEndTime - Date.now()) / 1000);
+  const remaining = Math.round((state.quizEndTime - nowMs()) / 1000);
   const progress = (qNum / total) * 100;
 
   let optionsHtml = '';
   q.options.forEach(function (opt, i) {
     let cls = 'option';
-    if (state.showFeedback && state.selectedAnswer === i) {
-      cls += (i === q.correct_index) ? ' correct' : ' incorrect';
-    }
+    if (state.showFeedback && state.selectedAnswer === i) cls += ' picked';
     optionsHtml += '' +
       '<button class="' + cls + '" data-action="answer" data-index="' + i + '" ' + (state.showFeedback ? 'disabled' : '') + '>' +
         '<span class="letter">' + String.fromCharCode(65 + i) + '</span>' +
@@ -1922,11 +1921,7 @@ function htmlQuiz() {
       '</button>';
   });
 
-  let feedbackHtml = '';
-  if (state.showFeedback) {
-    const ok = state.selectedAnswer === q.correct_index;
-    feedbackHtml = '<div class="feedback ' + (ok ? 'ok' : 'bad') + '">' + (ok ? '✅ ¡Correcto!' : '❌ Incorrecto') + '</div>';
-  }
+  const feedbackHtml = '';
 
   return '' +
     '<div class="row" style="justify-content:space-between; align-items:center; margin-bottom:16px;">' +
@@ -2172,6 +2167,10 @@ A("No pedimos", "We do not ask for", "Não pedimos", "Non chiediamo", "Wir verla
 A("contraseñas, no creamos cuentas de jugador y no solicitamos datos de pago para participar.", "passwords, we do not create player accounts and we do not request payment details to take part.", "senhas, não criamos contas de jogador e não solicitamos dados de pagamento para participar.", "password, non creiamo account di giocatore e non richiediamo dati di pagamento per partecipare.", "Passwörter, legen keine Spielerkonten an und fragen für die Teilnahme keine Zahlungsdaten ab.", "密码，不会创建玩家账号，参与时也不会索取支付信息。");
 A("Mantener la seguridad y evitar participaciones fraudulentas o repetidas.", "Keeping the site secure and preventing fraudulent or repeated entries.", "Manter a segurança e evitar participações fraudulentas ou repetidas.", "Mantenere la sicurezza ed evitare partecipazioni fraudolente o ripetute.", "Die Sicherheit gewährleisten und betrügerische oder wiederholte Teilnahmen verhindern.", "维护安全，防止欺诈或重复参与。");
 A("Si visitas el sitio desde el Espacio Económico Europeo, el Reino Unido o Suiza, te pediremos tu consentimiento antes de mostrar anuncios personalizados, y podrás cambiar tu decisión cuando quieras.", "If you visit the site from the European Economic Area, the United Kingdom or Switzerland, we will ask for your consent before showing personalized ads, and you can change your decision at any time.", "Se você visitar o site a partir do Espaço Econômico Europeu, do Reino Unido ou da Suíça, pediremos o seu consentimento antes de exibir anúncios personalizados, e você poderá mudar de decisão quando quiser.", "Se visiti il sito dallo Spazio economico europeo, dal Regno Unito o dalla Svizzera, ti chiederemo il consenso prima di mostrare annunci personalizzati e potrai cambiare idea in qualsiasi momento.", "Wenn du die Seite aus dem Europäischen Wirtschaftsraum, dem Vereinigten Königreich oder der Schweiz besuchst, bitten wir dich um deine Einwilligung, bevor wir personalisierte Anzeigen zeigen; du kannst deine Entscheidung jederzeit ändern.", "如果你从欧洲经济区、英国或瑞士访问本站，我们会在展示个性化广告之前征求你的同意，你也可以随时更改决定。");
+A("Este dispositivo ya participó en este reto con otro nombre de usuario.", "This device has already taken part in this challenge with a different username.", "Este dispositivo já participou deste desafio com outro nome de usuário.", "Questo dispositivo ha già partecipato a questa sfida con un altro nome utente.", "Mit diesem Gerät wurde bereits unter einem anderen Benutzernamen an dieser Challenge teilgenommen.", "该设备已用另一个用户名参加过本场挑战。");
+A("Escribe un nombre de usuario de 1 a 20 caracteres.", "Enter a username of 1 to 20 characters.", "Digite um nome de usuário de 1 a 20 caracteres.", "Inserisci un nome utente da 1 a 20 caratteri.", "Gib einen Benutzernamen mit 1 bis 20 Zeichen ein.", "请输入1到20个字符的用户名。");
+A("Se agotó el tiempo para enviar tu resultado.", "The time to submit your result has run out.", "O tempo para enviar seu resultado esgotou.", "Il tempo per inviare il tuo risultato è scaduto.", "Die Zeit zum Senden deines Ergebnisses ist abgelaufen.", "提交成绩的时间已用完。");
+A("No se pudo guardar tu resultado. Abre la página otra vez para reintentar.", "Your result could not be saved. Open the page again to retry.", "Não foi possível salvar seu resultado. Abra a página novamente para tentar de novo.", "Impossibile salvare il tuo risultato. Riapri la pagina per riprovare.", "Dein Ergebnis konnte nicht gespeichert werden. Öffne die Seite erneut, um es noch einmal zu versuchen.", "无法保存你的成绩。请重新打开页面再试一次。");
 const PFX = [
   ["Reto #", ["Challenge #", "Desafio #", "Sfida #", "Challenge #", "挑战 #"]],
   ["Pregunta ", ["Question ", "Pergunta ", "Domanda ", "Frage ", "问题 "]],
@@ -2336,6 +2335,94 @@ function privacyHtml() {
     h("9. Contacto") + '<p>YOU GAMES · ' + MAIL + '</p>';
 }
 
+// ================= SEGURIDAD: hora del servidor, dispositivo y partida en el servidor =================
+var SERVER_OFFSET = 0;
+function nowMs() { return Date.now() + SERVER_OFFSET; }
+function applyServerNow(serverMs) { if (typeof serverMs === 'number' && isFinite(serverMs)) SERVER_OFFSET = serverMs - Date.now(); }
+async function syncServerTime() {
+  try {
+    const t0 = performance.now();
+    const res = await fetch(SUPABASE_URL + '/rest/v1/rpc/server_now', { method: 'POST', headers: sbHeaders, body: '{}' });
+    if (!res.ok) return;
+    const ms = await res.json();
+    applyServerNow(Number(ms) + (performance.now() - t0) / 2);
+  } catch (e) {}
+}
+var DEVICE_ID = null;
+function getDeviceId() {
+  if (DEVICE_ID) return DEVICE_ID;
+  let id = null;
+  try { id = localStorage.getItem('yg_device'); } catch (e) {}
+  if (!id || id.length < 16) {
+    id = (window.crypto && window.crypto.randomUUID) ? window.crypto.randomUUID() : ('d' + Math.random().toString(36).slice(2) + Date.now().toString(36) + Math.random().toString(36).slice(2));
+    try { localStorage.setItem('yg_device', id); } catch (e) {}
+  }
+  DEVICE_ID = id;
+  return id;
+}
+// Llama a una función del servidor (RPC). Los errores del servidor traen un código: name_taken, device_used, closed, too_late…
+async function sbRpc(name, body, tries) {
+  const res = await sbReq(SUPABASE_URL + '/rest/v1/rpc/' + name, { method: 'POST', headers: sbHeaders, body: JSON.stringify(body) }, tries || 3);
+  let data = null;
+  try { data = await res.json(); } catch (e) {}
+  if (!res.ok) {
+    const msg = String((data && (data.message || '')) || '');
+    const m = msg.match(/\b(bad_username|bad_device|no_game|not_started|closed|name_taken|device_used|invalid_attempt|too_late)\b/);
+    const err = new Error(msg || ('HTTP ' + res.status));
+    err.code = m ? m[1] : ''; err.status = res.status;
+    throw err;
+  }
+  return data;
+}
+function failStart(err) {
+  const code = err && err.code;
+  clearTimers();
+  state.loading = false; state.screen = 'home'; state.errors = {}; state.loadError = '';
+  if (code === 'name_taken') state.errors = { username: 'Este usuario ya participó en este reto, usa el mismo usuario con el que sigues a YOU Inc.' };
+  else if (code === 'device_used') state.errors = { username: 'Este dispositivo ya participó en este reto con otro nombre de usuario.' };
+  else if (code === 'bad_username') state.errors = { username: 'Escribe un nombre de usuario de 1 a 20 caracteres.' };
+  else if (code === 'closed') state.errors = { gameCode: 'Este reto ya cerró 🤦🏼\u200d♂️ Está atento al próximo juego 😁' };
+  else if (code === 'no_game') state.errors = { gameCode: 'Ese código no existe. Verifica con el streamer.' };
+  else state.loadError = 'No se pudo conectar. Revisa tu internet e intenta de nuevo.';
+  render(); loadHomeData();
+}
+// La partida en curso se guarda en este dispositivo: si se recarga la página, se retoma donde iba
+function saveProgress() {
+  try {
+    localStorage.setItem('yg_attempt', JSON.stringify({ game: state.gameCode, username: state.username, platform: state.platform,
+      attemptId: state.attempt.id, token: state.attempt.token, endsAtMs: state.attempt.endsAtMs, n: state.questions.length, answers: state.userAnswers }));
+  } catch (e) {}
+}
+function clearProgress() { try { localStorage.removeItem('yg_attempt'); } catch (e) {} }
+function loadProgress() { try { const v = JSON.parse(localStorage.getItem('yg_attempt') || 'null'); return v && v.attemptId && v.game ? v : null; } catch (e) { return null; } }
+async function resumeIfAny() {
+  const sv = loadProgress();
+  if (!sv || state.screen !== 'home') return;
+  await syncServerTime();
+  const now = nowMs();
+  if (now > sv.endsAtMs + 25000) { clearProgress(); return; }          // ya no se puede enviar
+  state.gameCode = sv.game; state.username = sv.username; state.platform = sv.platform;
+  state.attempt = { id: sv.attemptId, token: sv.token, endsAtMs: sv.endsAtMs };
+  try { state.currentGame = await sbFetchGame(sv.game); } catch (e) {}
+  if (now >= sv.endsAtMs - 500) {                                      // el tiempo terminó con la página cerrada: se envía lo contestado
+    state.questions = new Array(sv.n || 0).fill({ options: [] });
+    state.userAnswers = sv.answers || [];
+    finishQuiz(false);
+    return;
+  }
+  try {
+    const r = await sbRpc('start_attempt', { p_game: sv.game, p_username: sv.username, p_platform: sv.platform, p_device: getDeviceId() }, 3);
+    applyServerNow(r.server_now_ms);
+    state.attempt.endsAtMs = r.ends_at_ms;
+    state.questions = r.questions || [];
+    const answers = (sv.answers || []).slice(0, state.questions.length);
+    if (answers.length >= state.questions.length) { state.userAnswers = answers; finishQuiz(false); return; }
+    beginQuiz(answers.length, answers);
+  } catch (e) {
+    if (e && (e.code === 'closed' || e.code === 'name_taken' || e.code === 'device_used' || e.code === 'no_game')) clearProgress();
+  }
+}
+
 const ICON_INSTAGRAM = '<svg viewBox="0 0 16 16" width="16" height="16" fill="currentColor"><path d="M8 0C5.829 0 5.556.01 4.703.048 3.85.088 3.269.222 2.76.42a3.9 3.9 0 0 0-1.417.923A3.9 3.9 0 0 0 .42 2.76C.222 3.268.087 3.85.048 4.7.01 5.555 0 5.827 0 8.001c0 2.172.01 2.444.048 3.297.04.852.174 1.433.372 1.942.205.526.478.972.923 1.417.444.445.89.719 1.416.923.51.198 1.09.333 1.942.372C5.555 15.99 5.827 16 8 16s2.444-.01 3.298-.048c.851-.04 1.434-.174 1.943-.372a3.9 3.9 0 0 0 1.416-.923c.445-.445.718-.891.923-1.417.197-.509.332-1.09.372-1.942C15.99 10.445 16 10.173 16 8s-.01-2.445-.048-3.299c-.04-.851-.175-1.433-.372-1.941a3.9 3.9 0 0 0-.923-1.417A3.9 3.9 0 0 0 13.24.42c-.51-.198-1.092-.333-1.943-.372C10.443.01 10.172 0 7.998 0zm-.717 1.442h.718c2.136 0 2.389.007 3.232.046.78.035 1.204.166 1.486.275.373.145.64.319.92.599s.453.546.598.92c.11.281.24.705.275 1.485.039.843.047 1.096.047 3.231s-.008 2.389-.047 3.232c-.035.78-.166 1.203-.275 1.485a2.5 2.5 0 0 1-.599.919c-.28.28-.546.453-.92.598-.28.11-.704.24-1.485.276-.843.038-1.096.047-3.232.047s-2.39-.009-3.233-.047c-.78-.036-1.203-.166-1.485-.276a2.5 2.5 0 0 1-.92-.598 2.5 2.5 0 0 1-.6-.92c-.109-.281-.24-.705-.275-1.485-.038-.843-.046-1.096-.046-3.233s.008-2.388.046-3.231c.036-.78.166-1.204.276-1.486.145-.373.319-.64.599-.92s.546-.453.92-.598c.282-.11.705-.24 1.485-.276.738-.034 1.024-.044 2.515-.045zm4.988 1.328a.96.96 0 1 0 0 1.92.96.96 0 0 0 0-1.92m-4.27 1.122a4.109 4.109 0 1 0 0 8.217 4.109 4.109 0 0 0 0-8.217m0 1.441a2.667 2.667 0 1 1 0 5.334 2.667 2.667 0 0 1 0-5.334"/></svg>';
 const ICON_FACEBOOK = '<svg viewBox="0 0 16 16" width="16" height="16" fill="currentColor"><path d="M16 8.049c0-4.446-3.582-8.05-8-8.05C3.58 0-.002 3.603-.002 8.05c0 4.017 2.926 7.347 6.75 7.951v-5.625h-2.03V8.05H6.75V6.275c0-2.017 1.195-3.131 3.022-3.131.876 0 1.791.157 1.791.157v1.98h-1.009c-.993 0-1.303.621-1.303 1.258v1.51h2.218l-.354 2.326H9.25V16c3.824-.604 6.75-3.934 6.75-7.951"/></svg>';
 const ICON_X = '<svg viewBox="0 0 16 16" width="16" height="16" fill="currentColor"><path d="M12.6.75h2.454l-5.36 6.142L16 15.25h-4.937l-3.867-5.07-4.425 5.07H.316l5.733-6.57L0 .75h5.063l3.495 4.633L12.601.75Zm-.86 13.028h1.36L4.323 2.145H2.865z"/></svg>';
@@ -2448,13 +2535,13 @@ const OPEN_GRACE_MS = 8000;    // margen para los últimos resultados que llegan
 function liveWindowOpen() {
   const g = state.currentGame;
   if (!g) return false;
-  const st = new Date(g.start_time).getTime(), en = st + (g.game_duration_seconds || 300) * 1000, n = Date.now();
+  const st = new Date(g.start_time).getTime(), en = st + (g.game_duration_seconds || 300) * 1000, n = nowMs();
   return n >= st && n <= en + OPEN_GRACE_MS;
 }
 
 // Compara el puesto de cada jugador con la consulta anterior (como en las tablas de fútbol)
 function trackMoves(rows) {
-  const now = Date.now(), cur = {};
+  const now = nowMs(), cur = {};
   rows.forEach(function (r, i) { cur[r.username] = i + 1; });
   const prev = state.prevRanks;
   if (!state.moves) state.moves = {};
@@ -2475,7 +2562,7 @@ function trackMoves(rows) {
 
 function liveMove(username) {
   const m = state.moves && state.moves[username];
-  if (!m || !liveWindowOpen() || Date.now() - m.at > ARROW_MS) return null;
+  if (!m || !liveWindowOpen() || nowMs() - m.at > ARROW_MS) return null;
   return m;
 }
 function moveArrow(m) {
@@ -2537,7 +2624,7 @@ const FINALE_HOLD_MS = 3500;     // cuánto se queda el podio completo antes de 
 function liveTimerInfo() {
   const g = state.currentGame;
   if (!g) return null;
-  const st = new Date(g.start_time).getTime(), dur = (g.game_duration_seconds || 300) * 1000, en = st + dur, n = Date.now();
+  const st = new Date(g.start_time).getTime(), dur = (g.game_duration_seconds || 300) * 1000, en = st + dur, n = nowMs();
   if (n < st) return { phase: 'before', ms: st - n, frac: 1, label: 'EMPIEZA EN' };
   if (n < en) return { phase: 'open', ms: en - n, frac: (en - n) / dur, label: 'TIEMPO RESTANTE' };
   return { phase: 'done', ms: 0, frac: 0, label: 'RETO FINALIZADO' };
@@ -2649,7 +2736,7 @@ async function startFinale(replay) {
   document.body.appendChild(o);
   o.addEventListener('click', endFinale);
   document.addEventListener('keydown', finaleKey);
-  const t0 = Date.now();
+  const t0 = nowMs();
   if (!replay) {
     o.innerHTML = '<div class="fn-splash"><div class="fn-time">¡TIEMPO!</div></div><div class="fn-flash"></div>';
     fitSplash(o);
@@ -2660,7 +2747,7 @@ async function startFinale(replay) {
   let top;
   try { top = await withTimeout(sbFetchLeaderboard(code, 3), 3000); } catch (e) { top = (state.leaderboard || []).slice(0, 3); }
   if (!state.finaleActive || state.screen !== 'streamer') return;
-  if (!replay) { const wait = FINALE_SPLASH_MS - (Date.now() - t0); if (wait > 0) await sleepFinale(wait); }
+  if (!replay) { const wait = FINALE_SPLASH_MS - (nowMs() - t0); if (wait > 0) await sleepFinale(wait); }
   if (!state.finaleActive) return;
   o.innerHTML = finalePodiumHtml(top);
   revealPodium(top);
@@ -2672,7 +2759,7 @@ function tickStreamer() {
   if (info && info.phase === 'done' && state.finaleFor !== state.currentGame.id) {
     state.finaleFor = state.currentGame.id;
     const en = new Date(state.currentGame.start_time).getTime() + (state.currentGame.game_duration_seconds || 300) * 1000;
-    if (Date.now() - en < 20000) startFinale(false);   // solo si el reto acaba de terminar delante de ti
+    if (nowMs() - en < 20000) startFinale(false);   // solo si el reto acaba de terminar delante de ti
   }
 }
 
@@ -2774,6 +2861,8 @@ document.addEventListener('keydown', function (e) {
 initLanguage();
 initAds();
 render();
+syncServerTime();
+resumeIfAny();
 if (document.fonts) {
   if (document.fonts.ready) document.fonts.ready.then(fitPanelTitle);
   if (document.fonts.addEventListener) document.fonts.addEventListener('loadingdone', fitPanelTitle);
@@ -2781,16 +2870,16 @@ if (document.fonts) {
 window.addEventListener('resize', fitPanelTitle);
 // La portada se actualiza cada ~5 min (con variación aleatoria), solo si la pestaña se ve; y al volver a verla si pasaron >2 min
 const HOME_REFRESH_MS = 300000;
-let homeLoadedAt = Date.now(), homeTimer = null, endRefreshTimer = null;
+let homeLoadedAt = nowMs(), homeTimer = null, endRefreshTimer = null;
 function scheduleHomeRefresh() {
   clearTimeout(homeTimer);
   homeTimer = setTimeout(function () {
-    if (document.visibilityState === 'visible' && state.screen === 'home') { homeLoadedAt = Date.now(); loadHomeData(); }
+    if (document.visibilityState === 'visible' && state.screen === 'home') { homeLoadedAt = nowMs(); loadHomeData(); }
     scheduleHomeRefresh();
   }, HOME_REFRESH_MS * (0.8 + Math.random() * 0.4));
 }
 document.addEventListener('visibilitychange', function () {
-  if (document.visibilityState === 'visible' && state.screen === 'home' && Date.now() - homeLoadedAt > 120000) { homeLoadedAt = Date.now(); loadHomeData(); }
+  if (document.visibilityState === 'visible' && state.screen === 'home' && nowMs() - homeLoadedAt > 120000) { homeLoadedAt = nowMs(); loadHomeData(); }
 });
 loadHomeData();
 scheduleHomeRefresh();
