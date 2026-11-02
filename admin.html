@@ -131,6 +131,21 @@
   .toast { position: fixed; left: 50%; bottom: 96px; transform: translate(-50%, 20px); z-index: 80; max-width: 92vw; padding: 12px 18px; border-radius: 12px; font-size: 14px; font-weight: 700; opacity: 0; pointer-events: none; transition: opacity .2s, transform .2s; background: #0d2a12; border: 1px solid var(--neon); color: #fff; text-align: center; }
   .toast.show { opacity: 1; transform: translate(-50%, 0); }
   .toast.bad { border-color: var(--bad); background: #2a0f0f; }
+
+  /* ---- GANADORES ---- */
+  .w-note { font-size: 13px; color: #d7ffc9; background: rgba(30,90,0,0.2); border: 1px dashed rgba(124,255,60,0.4); border-radius: 12px; padding: 10px 12px; line-height: 1.5; margin: 8px 0 12px; }
+  .w-note ol { margin: 6px 0 8px 18px; }
+  .my-ch { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-bottom: 12px; font-size: 12px; color: var(--dim); }
+  .w-row { border: 1px solid rgba(255,255,255,0.1); border-radius: 14px; padding: 12px; margin-bottom: 10px; background: rgba(0,0,0,0.2); }
+  .w-row.top3 { border-color: rgba(250,204,21,0.45); }
+  .w-row.ok { border-color: var(--neon); background: rgba(63,174,0,0.14); }
+  .w-top { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 17px; word-break: break-word; }
+  .w-stat { font-size: 12px; color: var(--dim); margin: 4px 0 8px; }
+  .chip2 { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 800; border: 1px solid rgba(124,255,60,0.4); color: #d7ffc9; margin-left: 4px; }
+  .w-actions { display: flex; flex-wrap: wrap; gap: 6px; }
+  .w-actions a.btn-ghost, .my-ch a.btn-ghost { text-decoration: none; display: inline-block; }
+  .btn-ghost.on { background: var(--green); border-color: var(--neon); color: #fff; }
+  .w-warn { color: var(--gold); font-size: 12px; }
 </style>
 </head>
 <body>
@@ -454,7 +469,8 @@ function renderGames() {
     return '<div class="g-row"><span class="g-code">' + esc(g.id) + '</span>' +
       '<div class="g-main"><div class="g-title">' + esc(g.title) + '</div><div class="g-meta">' + esc(w.date.split(',')[0] + ' ' + w.time) + ' · ' + Math.round((g.game_duration_seconds || 300) / 60) + ' min · ' + esc(g.prize) + '</div></div>' +
       '<span class="badge ' + kind[1] + '">' + kind[0] + '</span>' +
-      '<div class="g-actions"><button class="btn-ghost" data-act="copy-game" data-id="' + esc(g.id) + '" type="button">📋 Código</button>' +
+      '<div class="g-actions"><button class="btn-ghost" data-act="winners" data-id="' + esc(g.id) + '" type="button">🏆 Ganadores</button>' +
+      '<button class="btn-ghost" data-act="copy-game" data-id="' + esc(g.id) + '" type="button">📋 Código</button>' +
       '<button class="btn-ghost" data-act="use-q" data-id="' + esc(g.id) + '" type="button">Usar sus preguntas</button>' +
       (now < st ? '<button class="btn-ghost btn-danger" data-act="del-game" data-id="' + esc(g.id) + '" type="button">🗑 Eliminar</button>' : '') + '</div></div>';
   }).join('');
@@ -485,6 +501,84 @@ async function deleteGame(id) {
 }
 
 // ---------- Eventos ----------
+// ---------- Ganadores: comprobar que siguen tu canal antes de pagar ----------
+const PROFILE = {
+  twitch: { name: 'Twitch', url: function (n) { return 'https://www.twitch.tv/' + encodeURIComponent(n); } },
+  tiktok: { name: 'TikTok', url: function (n) { return 'https://www.tiktok.com/@' + encodeURIComponent(n); } },
+  youtube: { name: 'YouTube', url: function (n) { return 'https://www.youtube.com/@' + encodeURIComponent(n); } },
+  instagram: { name: 'Instagram', url: function (n) { return 'https://www.instagram.com/' + encodeURIComponent(n) + '/'; } },
+  facebook: { name: 'Facebook', url: function (n) { return 'https://www.facebook.com/' + encodeURIComponent(n); } },
+  x: { name: 'X', url: function (n) { return 'https://x.com/' + encodeURIComponent(n); } }
+};
+const MY_CHANNELS = {
+  youtube: 'https://www.youtube.com/@you.offici', tiktok: 'https://www.tiktok.com/@you.oficiall', twitch: 'https://www.twitch.tv/youofi',
+  instagram: 'https://www.instagram.com/you.officialcount/', facebook: 'https://www.facebook.com/profile.php?id=61595116976383', x: 'https://x.com/Youoficiall'
+};
+function parsePlatforms(str) {
+  const found = [];
+  String(str || '').toLowerCase().split(/[\s,;/|+]+/).forEach(function (t) { if (PROFILE[t] && found.indexOf(t) < 0) found.push(t); });
+  return found;
+}
+function msClock(ms) { const t = Math.round((ms || 0) / 1000); return pad(Math.floor(t / 60)) + ':' + pad(t % 60); }
+function getVer() { try { return JSON.parse(localStorage.getItem('yg_verified') || '{}'); } catch (e) { return {}; } }
+function toggleVerified(key) {
+  const v = getVer();
+  if (v[key]) delete v[key]; else v[key] = Date.now();
+  try { localStorage.setItem('yg_verified', JSON.stringify(v)); } catch (e) {}
+  const box = document.querySelector('.modal-box'), top = box ? box.scrollTop : 0;
+  renderWinners();
+  const b2 = document.querySelector('.modal-box'); if (b2) b2.scrollTop = top;
+}
+async function showWinners(id) {
+  S.winnersFor = id;
+  openModal('<h3>🏆 Ganadores · ' + esc(id) + '</h3><p class="muted">Cargando…</p>');
+  try {
+    S.winners = await (await api('participations?game_id=eq.' + encodeURIComponent(id) + '&select=username,platform,correct_answers,time_taken_ms&order=correct_answers.desc,time_taken_ms.asc&limit=10')).json();
+  } catch (e) { closeModal(); if (!e.expired) toast(explain(e), true); return; }
+  renderWinners();
+}
+function renderWinners() {
+  const id = S.winnersFor, rows = S.winners || [], ver = getVer(), medals = ['🥇', '🥈', '🥉'];
+  const my = Object.keys(MY_CHANNELS).map(function (k) { return '<a class="btn-ghost" href="' + MY_CHANNELS[k] + '" target="_blank" rel="noopener noreferrer">' + PROFILE[k].name + ' ↗</a>'; }).join('');
+  let list = '';
+  if (!rows.length) list = '<div class="empty">Todavía nadie terminó este reto.</div>';
+  rows.forEach(function (r, i) {
+    const plats = parsePlatforms(r.platform), shown = plats.length ? plats : ['twitch', 'tiktok', 'youtube'];
+    const okName = /^[A-Za-z0-9._-]{2,30}$/.test(r.username || '');
+    const key = id + '|' + r.username, done = !!ver[key];
+    const links = shown.map(function (k) { return '<a class="btn-ghost" href="' + esc(PROFILE[k].url(r.username)) + '" target="_blank" rel="noopener noreferrer">Su perfil en ' + PROFILE[k].name + ' ↗</a>'; }).join('');
+    const chips = (plats.length ? plats : []).map(function (k) { return '<span class="chip2">' + PROFILE[k].name + '</span>'; }).join('');
+    list += '<div class="w-row' + (i < 3 ? ' top3' : '') + (done ? ' ok' : '') + '">' +
+      '<div class="w-top"><span>' + (medals[i] || ('#' + (i + 1))) + '</span><b>' + esc(r.username) + '</b>' + (okName ? '' : '<span class="w-warn">⚠ nombre con espacios o símbolos raros</span>') + '</div>' +
+      '<div class="w-stat">' + esc(r.correct_answers) + ' ✓ · ' + msClock(r.time_taken_ms) + ' ' + chips + (plats.length ? '' : ' <span class="muted">(no indicó plataforma)</span>') + '</div>' +
+      '<div class="w-actions">' + links +
+        '<button class="btn-ghost" data-act="copy-name" data-name="' + esc(r.username) + '" type="button">📋 Copiar nombre</button>' +
+        '<button class="btn-ghost' + (done ? ' on' : '') + '" data-act="verify" data-key="' + esc(key) + '" type="button">' + (done ? '✔ Verificado' : 'Marcar verificado') + '</button>' +
+        '<button class="btn-ghost btn-danger" data-act="disq" data-name="' + esc(r.username) + '" type="button">🗑 Descalificar</button>' +
+      '</div></div>';
+  });
+  openModal('<h3>🏆 Ganadores · ' + esc(id) + '</h3>' +
+    '<div class="w-note"><b>Cómo comprobar que te sigue (10 segundos por ganador):</b><ol>' +
+      '<li>Pulsa <b>📋 Copiar nombre</b>.</li>' +
+      '<li>Abre <b>tu</b> canal con los botones de abajo y entra a tu lista de seguidores.</li>' +
+      '<li>Pega el nombre en el buscador de esa lista. Si aparece, pulsa <b>Marcar verificado</b>. En algunas plataformas la lista también muestra desde cuándo te sigue.</li></ol>' +
+      'Hazlo con los 3 primeros antes de entregar el premio. Si alguno no te sigue, pulsa <b>🗑 Descalificar</b> y el siguiente sube un puesto.</div>' +
+    '<div class="my-ch"><span>Mis canales:</span>' + my + '</div>' + list +
+    '<div class="modal-actions"><button class="btn-ghost" data-act="close-modal" type="button">Cerrar</button></div>');
+}
+function askDisqualify(name) {
+  openModal('<h3>¿Descalificar a ' + esc(name) + '?</h3><p class="muted">Se borra su resultado de este reto: ya no saldrá en el ranking, en las coronas ni en el podio, y el siguiente sube un puesto. No se puede deshacer.</p>' +
+    '<div class="modal-actions"><button class="btn-ghost" data-act="back-winners" type="button">Cancelar</button><button class="btn" data-act="disq-yes" data-name="' + esc(name) + '" type="button" style="background:linear-gradient(135deg,#dc2626,#7f1d1d);padding:13px;">Sí, descalificar</button></div>');
+}
+async function disqualify(name) {
+  try {
+    const res = await api('participations?game_id=eq.' + encodeURIComponent(S.winnersFor) + '&username=eq.' + encodeURIComponent(name), { method: 'DELETE', headers: { 'Prefer': 'return=representation' } });
+    const gone = await res.json();
+    if (!gone.length) { renderWinners(); toast('No se pudo descalificar: falta el permiso de borrado en la base de datos (ejecuta el SQL de permisos) o ese resultado ya no existe.', true); return; }
+    toast(name + ' fue descalificado.'); await showWinners(S.winnersFor);
+  } catch (e) { renderWinners(); if (!e.expired) toast(explain(e), true); }
+}
+
 function genCode() {
   const A = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; let c = '';
   for (let i = 0; i < 6; i++) c += A.charAt(Math.floor(Math.random() * A.length));
@@ -544,6 +638,12 @@ document.addEventListener('click', async function (e) {
   if (act === 'copy-msg') { copyText(announceText(), 'Mensaje copiado. Pégalo en el chat.'); return; }
   if (act === 'dismiss-created') { S.created = null; document.getElementById('created').innerHTML = ''; return; }
   if (act === 'copy-game') { copyText(el.dataset.id, 'Código copiado'); return; }
+  if (act === 'winners') { showWinners(el.dataset.id); return; }
+  if (act === 'copy-name') { copyText(el.dataset.name, 'Nombre copiado: ' + el.dataset.name); return; }
+  if (act === 'verify') { toggleVerified(el.dataset.key); return; }
+  if (act === 'disq') { askDisqualify(el.dataset.name); return; }
+  if (act === 'disq-yes') { el.disabled = true; el.textContent = 'Descalificando…'; disqualify(el.dataset.name); return; }
+  if (act === 'back-winners') { renderWinners(); return; }
   if (act === 'use-q') { useQuestions(el.dataset.id); return; }
   if (act === 'del-game') { askDelete(el.dataset.id); return; }
   if (act === 'confirm-del') { el.disabled = true; el.textContent = 'Eliminando…'; deleteGame(el.dataset.id); return; }
