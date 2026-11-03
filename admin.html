@@ -146,6 +146,8 @@
   .w-actions a.btn-ghost, .my-ch a.btn-ghost { text-decoration: none; display: inline-block; }
   .btn-ghost.on { background: var(--green); border-color: var(--neon); color: #fff; }
   .w-warn { color: var(--gold); font-size: 12px; }
+.at-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; padding: 8px 0; border-bottom: 1px solid var(--line); font-size: 14px; }
+.at-row b { flex: 1 1 120px; word-break: break-all; }
 </style>
 </head>
 <body>
@@ -222,6 +224,7 @@ function explain(err) {
   if (err && err.expired) return 'Tu sesión expiró. Vuelve a entrar.';
   if (err && err.status === 403 && /42501/.test(err.body || '')) return 'Tu cuenta no tiene permiso para crear o borrar retos. Falta ejecutar el SQL de permisos (paso 1 de la configuración) o entraste con otro correo.';
   if (err && (err.status === 409 || /23505/.test(err.body || ''))) return 'Ese código ya existe. Elige otro.';
+  if (err && err.status === 404) return 'Falta ejecutar el SQL de seguridad (seguridad.sql) en Supabase antes de usar esta función.';
   if (err instanceof TypeError) return 'No hay conexión. Revisa tu internet e inténtalo de nuevo.';
   return 'No se pudo completar. Inténtalo de nuevo.';
 }
@@ -265,7 +268,7 @@ function loginHtml() {
 function appHtml() {
   const f = S.form;
   return '<div class="top"><img src="logo.webp" alt="YOU GAMES"><div class="h-title">PANEL DE RETOS</div>' +
-      '<div class="who">' + esc(S.session.email) + '</div><button class="btn-ghost" data-act="logout">Salir</button></div>' +
+      '<div class="who">' + esc(S.session.email) + '</div><button class="btn-ghost" data-act="security" type="button">🛡️ Seguridad</button><button class="btn-ghost" data-act="logout">Salir</button></div>' +
     '<div class="wrap">' +
       '<div id="created"></div>' +
       '<section class="card" id="step1">' +
@@ -419,10 +422,14 @@ async function createGame() {
     if (exist.length) { closeModal(); S.errors = { code: 'Ese código ya existe. Elige otro o pulsa «Generar».' }; S.errShown = true; paintErrors(); toast('Ese código ya existe.', true); document.getElementById('f-code').scrollIntoView({ block: 'center' }); return; }
     await api('games', { method: 'POST', headers: { 'Prefer': 'return=minimal' }, body: JSON.stringify({ id: code, title: f.title.trim(), start_time: start.toISOString(), game_duration_seconds: minutes * 60, prize: f.prize.trim(), status: 'waiting' }) });
     try {
-      const rows = f.questions.map(function (q, i) { return { id: code + '_Q' + (i + 1), game_id: code, question_text: q.text.trim(), options: q.opts.map(function (o) { return o.trim(); }), correct_index: q.correct, display_order: i + 1 }; });
+      const rows = f.questions.map(function (q, i) { return { id: code + '_Q' + (i + 1), game_id: code, question_text: q.text.trim(), options: q.opts.map(function (o) { return o.trim(); }), display_order: i + 1 }; });
       await api('questions', { method: 'POST', headers: { 'Prefer': 'return=minimal' }, body: JSON.stringify(rows) });
+      const keys = f.questions.map(function (q, i) { return { question_id: code + '_Q' + (i + 1), game_id: code, correct_index: q.correct }; });
+      await api('question_keys', { method: 'POST', headers: { 'Prefer': 'return=minimal' }, body: JSON.stringify(keys) });
     } catch (e2) {
-      try { await api('games?id=eq.' + encodeURIComponent(code), { method: 'DELETE' }); } catch (e3) {}   // si fallan las preguntas, no deja un reto vacío
+      // si algo falla, no deja un reto a medias
+      try { await api('questions?game_id=eq.' + encodeURIComponent(code), { method: 'DELETE' }); } catch (e3) {}
+      try { await api('games?id=eq.' + encodeURIComponent(code), { method: 'DELETE' }); } catch (e3) {}
       throw e2;
     }
     S.created = { code: code, title: f.title.trim(), prize: f.prize.trim(), start: start, minutes: minutes, count: f.questions.length };
@@ -472,32 +479,103 @@ function renderGames() {
       '<div class="g-actions"><button class="btn-ghost" data-act="winners" data-id="' + esc(g.id) + '" type="button">🏆 Ganadores</button>' +
       '<button class="btn-ghost" data-act="copy-game" data-id="' + esc(g.id) + '" type="button">📋 Código</button>' +
       '<button class="btn-ghost" data-act="use-q" data-id="' + esc(g.id) + '" type="button">Usar sus preguntas</button>' +
-      (now < st ? '<button class="btn-ghost btn-danger" data-act="del-game" data-id="' + esc(g.id) + '" type="button">🗑 Eliminar</button>' : '') + '</div></div>';
+      '<button class="btn-ghost" data-act="attempts" data-id="' + esc(g.id) + '" type="button">👥 Intentos</button>' +
+      '<button class="btn-ghost btn-danger" data-act="del-game" data-id="' + esc(g.id) + '" type="button">🗑 Eliminar</button></div></div>';
   }).join('');
 }
 async function useQuestions(id) {
   try {
     const rows = await (await api('questions?game_id=eq.' + encodeURIComponent(id) + '&select=*&order=display_order.asc')).json();
     if (!rows.length) { toast('Ese reto no tiene preguntas guardadas.', true); return; }
+    const kmap = {};
+    (await (await api('question_keys?game_id=eq.' + encodeURIComponent(id) + '&select=question_id,correct_index')).json()).forEach(function (k) { kmap[k.question_id] = k.correct_index; });
     S.form.questions = rows.slice(0, MAX_Q).map(function (r) {
       const o = Array.isArray(r.options) ? r.options.slice(0, 4) : []; while (o.length < 4) o.push('');
-      return { text: r.question_text || '', opts: o, correct: typeof r.correct_index === 'number' ? r.correct_index : -1 };
+      return { text: r.question_text || '', opts: o, correct: typeof kmap[r.id] === 'number' ? kmap[r.id] : -1 };
     });
     renderQuestions(); refreshSummary(); recheck();
     toast('Cargué las ' + rows.length + ' preguntas de ' + id + '. Edítalas si quieres.');
     document.getElementById('step2').scrollIntoView({ behavior: 'smooth' });
   } catch (e) { if (!e.expired) toast(explain(e), true); }
 }
-function askDelete(id) {
-  openModal('<h3>¿Eliminar el reto ' + esc(id) + '?</h3><p class="muted">Se borrarán también sus preguntas. Esta acción no se puede deshacer.</p>' +
+async function askDelete(id) {
+  let n = 0;
+  try {
+    const res = await api('participations?game_id=eq.' + encodeURIComponent(id) + '&select=id', { method: 'HEAD', headers: { 'Prefer': 'count=exact' } });
+    const m = /\/(\d+)$/.exec(res.headers.get('content-range') || ''); n = m ? +m[1] : 0;
+  } catch (e) { if (e.expired) return; }
+  openModal('<h3>¿Eliminar el reto ' + esc(id) + '?</h3><p class="muted">Se borrarán también sus preguntas, sus intentos' + (n ? ' y <b>' + n + ' resultados de jugadores</b>' : '') + '. Esta acción no se puede deshacer.' + (n ? ' Si ya entregaste premios, guarda antes una captura de los ganadores.' : '') + '</p>' +
     '<div class="modal-actions"><button class="btn-ghost" data-act="close-modal" type="button">Cancelar</button><button class="btn" data-act="confirm-del" data-id="' + esc(id) + '" type="button" style="background:linear-gradient(135deg,#dc2626,#7f1d1d);padding:13px;">Sí, eliminar</button></div>');
 }
 async function deleteGame(id) {
   try {
-    await api('questions?game_id=eq.' + encodeURIComponent(id), { method: 'DELETE' });
+    await api('participations?game_id=eq.' + encodeURIComponent(id), { method: 'DELETE' });
+    await api('questions?game_id=eq.' + encodeURIComponent(id), { method: 'DELETE' });     // sus respuestas e intentos se borran solos
     await api('games?id=eq.' + encodeURIComponent(id), { method: 'DELETE' });
     closeModal(); toast('Reto ' + id + ' eliminado.'); await loadGames();
   } catch (e) { closeModal(); if (!e.expired) toast(explain(e), true); }
+}
+
+// ---------- Seguridad: intentos y revisión ----------
+async function showAttempts(id) {
+  openModal('<h3>👥 Intentos · ' + esc(id) + '</h3><p class="muted">Cargando…</p>');
+  try { S.attempts = await (await api('attempts?game_id=eq.' + encodeURIComponent(id) + '&select=id,username,platform,started_at,finished_at&order=started_at.asc&limit=500')).json(); }
+  catch (e) { closeModal(); if (!e.expired) toast(explain(e), true); return; }
+  S.attemptsFor = id; renderAttempts();
+}
+function renderAttempts() {
+  const id = S.attemptsFor, rows = S.attempts || [];
+  const g = S.games.filter(function (x) { return x.id === id; })[0];
+  const gs = g ? new Date(g.start_time).getTime() : 0, dur = (g ? (g.game_duration_seconds || 300) : 300) * 1000, now = Date.now();
+  let done = 0, open = 0;
+  const list = rows.map(function (r) {
+    const st = new Date(r.started_at).getTime(), ends = Math.min(st + dur, gs + dur);
+    let tag;
+    if (r.finished_at) { tag = '✔ Terminó'; done++; } else if (now <= ends + 30000) { tag = '⏳ Jugando'; open++; } else { tag = '⚠ No terminó'; open++; }
+    return '<div class="at-row"><b>' + esc(r.username) + '</b><span class="muted">' + esc(r.platform || '') + '</span><span>' + tag + '</span>' +
+      '<button class="btn-ghost btn-danger" data-act="free" data-id="' + esc(r.id) + '" type="button">Liberar nombre</button></div>';
+  }).join('');
+  openModal('<h3>👥 Intentos · ' + esc(id) + '</h3><p class="muted">' + rows.length + ' empezaron · ' + done + ' terminaron · ' + open + ' sin terminar. «Liberar nombre» borra su intento y su resultado, para que ese nombre pueda volver a entrar.</p>' +
+    (list || '<div class="empty">Nadie ha empezado este reto.</div>') + '<div class="modal-actions"><button class="btn-ghost" data-act="close-modal" type="button">Cerrar</button></div>');
+}
+async function freeAttempt(attId) {
+  const r = (S.attempts || []).filter(function (x) { return x.id === attId; })[0]; if (!r) return;
+  try {
+    await api('participations?game_id=eq.' + encodeURIComponent(S.attemptsFor) + '&username=eq.' + encodeURIComponent(r.username), { method: 'DELETE' });
+    await api('attempts?id=eq.' + encodeURIComponent(attId), { method: 'DELETE' });
+    S.attempts = S.attempts.filter(function (x) { return x.id !== attId; });
+    toast('Nombre «' + r.username + '» liberado.'); renderAttempts();
+  } catch (e) { if (!e.expired) toast(explain(e), true); }
+}
+async function runSecurityCheck() {
+  openModal('<h3>🛡️ Revisión de seguridad</h3><p class="muted">Probando como lo haría un visitante sin cuenta…</p>');
+  const items = [];
+  async function probe(label, path, opts, judge) {
+    try {
+      const res = await fetch(SUPABASE_URL + '/rest/v1/' + path, Object.assign({}, opts, { headers: Object.assign({ 'apikey': KEY, 'Authorization': 'Bearer ' + KEY, 'Content-Type': 'application/json' }, (opts && opts.headers) || {}) }));
+      items.push({ ok: judge(res.status, (await res.text()).trim()), label: label });
+    } catch (e) { items.push({ ok: null, label: label + ' (sin conexión, no se pudo probar)' }); }
+  }
+  const blocked = function (st, t) { return (st === 401 || st === 403 || st === 404) ? true : (st === 200 && t === '[]' ? null : false); };
+  await probe('Un visitante NO puede leer las preguntas con sus respuestas', 'questions?select=*&limit=1', {}, blocked);
+  await probe('Un visitante NO puede leer las respuestas correctas', 'question_keys?select=*&limit=1', {}, blocked);
+  await probe('Un visitante NO puede ver los intentos de los jugadores', 'attempts?select=*&limit=1', {}, blocked);
+  await probe('Un visitante NO puede inventarse un resultado', 'participations', { method: 'POST', headers: { 'Prefer': 'return=minimal' }, body: JSON.stringify({ game_id: '__prueba__', username: '__prueba__', platform: 'x', correct_answers: 99, time_taken_ms: 1 }) }, function (st) { return st === 401 || st === 403; });
+  await probe('Un visitante NO puede modificar los retos', 'games?id=eq.__prueba__', { method: 'PATCH', headers: { 'Prefer': 'return=minimal' }, body: JSON.stringify({ title: 'x' }) }, function (st) { return st === 401 || st === 403; });
+  await probe('El servidor entrega la hora oficial', 'rpc/server_now', { method: 'POST', body: '{}' }, function (st, t) { return st === 200 && /^\d{12,}$/.test(t); });
+  let missing = false;
+  try {
+    const rep = await (await api('rpc/security_report', { method: 'POST', body: '{}' })).json();
+    (rep || []).forEach(function (r) { items.push({ ok: !!r.ok, label: r.check_name }); });
+  } catch (e) { if (e.expired) return; if (e.status === 404) missing = true; else items.push({ ok: null, label: 'No se pudo leer el informe interno de la base de datos' }); }
+  const bad = items.filter(function (x) { return x.ok === false; }).length, unk = items.filter(function (x) { return x.ok === null; }).length;
+  let head;
+  if (missing) head = '<p style="color:#fca5a5;font-weight:700;">❌ Falta ejecutar seguridad.sql en Supabase (todavía no está aplicada).</p>';
+  else if (bad) head = '<p style="color:#fca5a5;font-weight:700;">❌ Hay ' + bad + ' cosa(s) por corregir. No entregues premios hasta resolverlo.</p>';
+  else if (unk) head = '<p style="color:#fde68a;font-weight:700;">⚠️ Sin problemas, pero ' + unk + ' prueba(s) no se pudieron confirmar.</p>';
+  else head = '<p style="color:#86efac;font-weight:700;">✅ Todo en orden: un visitante no puede ver respuestas ni inventar resultados.</p>';
+  openModal('<h3>🛡️ Revisión de seguridad</h3>' + head + items.map(function (x) { return '<div class="at-row"><span>' + (x.ok === true ? '✅' : x.ok === false ? '❌' : '⚠️') + '</span><span style="flex:1;">' + esc(x.label) + '</span></div>'; }).join('') +
+    '<div class="modal-actions"><button class="btn-ghost" data-act="close-modal" type="button">Cerrar</button></div>');
 }
 
 // ---------- Eventos ----------
@@ -535,8 +613,11 @@ async function showWinners(id) {
   try {
     S.winners = await (await api('participations?game_id=eq.' + encodeURIComponent(id) + '&select=username,platform,correct_answers,time_taken_ms&order=correct_answers.desc,time_taken_ms.asc&limit=10')).json();
   } catch (e) { closeModal(); if (!e.expired) toast(explain(e), true); return; }
+  try { S.winQ = (await (await api('questions?game_id=eq.' + encodeURIComponent(id) + '&select=id')).json()).length; } catch (e) { S.winQ = 0; }
   renderWinners();
 }
+// Alarma: nadie lee, piensa y toca una respuesta en menos de 2,5 s por pregunta. No es una prueba, es un aviso para revisar con cuidado.
+function tooFast(r) { return (S.winQ || 0) > 0 && r.time_taken_ms / S.winQ < 2500; }
 function renderWinners() {
   const id = S.winnersFor, rows = S.winners || [], ver = getVer(), medals = ['🥇', '🥈', '🥉'];
   const my = Object.keys(MY_CHANNELS).map(function (k) { return '<a class="btn-ghost" href="' + MY_CHANNELS[k] + '" target="_blank" rel="noopener noreferrer">' + PROFILE[k].name + ' ↗</a>'; }).join('');
@@ -549,7 +630,7 @@ function renderWinners() {
     const links = shown.map(function (k) { return '<a class="btn-ghost" href="' + esc(PROFILE[k].url(r.username)) + '" target="_blank" rel="noopener noreferrer">Su perfil en ' + PROFILE[k].name + ' ↗</a>'; }).join('');
     const chips = (plats.length ? plats : []).map(function (k) { return '<span class="chip2">' + PROFILE[k].name + '</span>'; }).join('');
     list += '<div class="w-row' + (i < 3 ? ' top3' : '') + (done ? ' ok' : '') + '">' +
-      '<div class="w-top"><span>' + (medals[i] || ('#' + (i + 1))) + '</span><b>' + esc(r.username) + '</b>' + (okName ? '' : '<span class="w-warn">⚠ nombre con espacios o símbolos raros</span>') + '</div>' +
+      '<div class="w-top"><span>' + (medals[i] || ('#' + (i + 1))) + '</span><b>' + esc(r.username) + '</b>' + (okName ? '' : '<span class="w-warn">⚠ nombre con espacios o símbolos raros</span>') + (tooFast(r) ? '<span class="w-warn">⚠ Muy rápido: ' + (r.time_taken_ms / S.winQ / 1000).toFixed(1) + ' s por pregunta. Revísalo bien antes de pagar.</span>' : '') + '</div>' +
       '<div class="w-stat">' + esc(r.correct_answers) + ' ✓ · ' + msClock(r.time_taken_ms) + ' ' + chips + (plats.length ? '' : ' <span class="muted">(no indicó plataforma)</span>') + '</div>' +
       '<div class="w-actions">' + links +
         '<button class="btn-ghost" data-act="copy-name" data-name="' + esc(r.username) + '" type="button">📋 Copiar nombre</button>' +
@@ -562,7 +643,7 @@ function renderWinners() {
       '<li>Pulsa <b>📋 Copiar nombre</b>.</li>' +
       '<li>Abre <b>tu</b> canal con los botones de abajo y entra a tu lista de seguidores.</li>' +
       '<li>Pega el nombre en el buscador de esa lista. Si aparece, pulsa <b>Marcar verificado</b>. En algunas plataformas la lista también muestra desde cuándo te sigue.</li></ol>' +
-      'Hazlo con los 3 primeros antes de entregar el premio. Si alguno no te sigue, pulsa <b>🗑 Descalificar</b> y el siguiente sube un puesto.</div>' +
+      'Hazlo con los 3 primeros antes de entregar el premio. Si ves <b>⚠ Muy rápido</b>, desconfía: es un tiempo casi imposible para una persona. Si alguno no te sigue, pulsa <b>🗑 Descalificar</b> y el siguiente sube un puesto.</div>' +
     '<div class="my-ch"><span>Mis canales:</span>' + my + '</div>' + list +
     '<div class="modal-actions"><button class="btn-ghost" data-act="close-modal" type="button">Cerrar</button></div>');
 }
@@ -646,6 +727,14 @@ document.addEventListener('click', async function (e) {
   if (act === 'back-winners') { renderWinners(); return; }
   if (act === 'use-q') { useQuestions(el.dataset.id); return; }
   if (act === 'del-game') { askDelete(el.dataset.id); return; }
+  if (act === 'attempts') { showAttempts(el.dataset.id); return; }
+  if (act === 'security') { runSecurityCheck(); return; }
+  if (act === 'free') {
+    if (el.dataset.armed) { el.disabled = true; el.textContent = 'Liberando…'; freeAttempt(el.dataset.id); return; }
+    el.dataset.armed = '1'; el.textContent = '¿Seguro? Pulsa otra vez';
+    setTimeout(function () { if (el.isConnected && el.dataset.armed) { delete el.dataset.armed; el.textContent = 'Liberar nombre'; } }, 4000);
+    return;
+  }
   if (act === 'confirm-del') { el.disabled = true; el.textContent = 'Eliminando…'; deleteGame(el.dataset.id); return; }
 });
 
