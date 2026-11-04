@@ -820,6 +820,21 @@
   @media (prefers-reduced-motion: reduce) { .lang-flag svg { animation: none; } }
 
   .option.picked { background: rgba(124,255,60,0.18); border-color: var(--brand-neon); box-shadow: 0 0 16px rgba(124,255,60,0.25); }
+
+  /* ---- REQUISITO: suscribirse a YOU en YouTube ---- */
+  .yt-follow { display: flex; align-items: center; gap: 14px; padding: 14px 16px; border-radius: 16px; text-decoration: none; color: #fff;
+    background: linear-gradient(135deg, rgba(255,0,0,0.30), rgba(120,0,0,0.22)); border: 2px solid rgba(255,70,70,0.65);
+    box-shadow: 0 0 0 rgba(255,0,0,0); animation: ytGlow 6s ease-in-out infinite; animation-delay: var(--sd, 0s);
+    transition: transform .15s ease, border-color .15s ease; -webkit-tap-highlight-color: transparent; }
+  .yt-follow:hover { border-color: #ff8a8a; transform: translateY(-1px); }
+  .yt-follow:active { transform: scale(0.985); }
+  .yt-follow:focus-visible { outline: 3px solid var(--brand-neon); outline-offset: 3px; }
+  .yt-ico { flex: 0 0 auto; width: 46px; height: 46px; border-radius: 12px; display: grid; place-items: center; background: #ff0000; box-shadow: 0 4px 14px rgba(255,0,0,0.45); }
+  .yt-ico svg { width: 28px; height: 28px; }
+  .yt-txt { flex: 1; font-weight: 700; font-size: 15px; line-height: 1.3; text-align: left; }
+  .yt-go { flex: 0 0 auto; font-size: 20px; opacity: 0.85; }
+  @keyframes ytGlow { 0%, 70%, 100% { box-shadow: 0 0 0 rgba(255,0,0,0); } 82% { box-shadow: 0 0 22px rgba(255,0,0,0.55); } }
+  @media (prefers-reduced-motion: reduce) { .yt-follow { animation: none; } }
 </style>
 </head>
 <body>
@@ -1416,9 +1431,7 @@ async function startGame() {
   const errors = {};
   const code = state.gameCodeInput.trim().toUpperCase();
   if (!code) errors.gameCode = 'Ingresa el código del reto';
-  if (state.mode === 'spectator' && !state.usernameInput.trim()) errors.username = 'Ingresa tu nombre';
-  const chosenPlatforms = Object.keys(state.platformSelected).filter(function (k) { return state.platformSelected[k]; });
-  if (state.mode === 'spectator' && chosenPlatforms.length === 0) errors.platform = 'Selecciona al menos una plataforma';
+  if (state.mode === 'spectator' && !state.usernameInput.trim().replace(/^@+/, '')) errors.username = 'Ingresa tu nombre';
 
   if (Object.keys(errors).length > 0) {
     state.errors = errors;
@@ -1463,18 +1476,18 @@ async function startGame() {
       return;
     }
 
-    const username = state.usernameInput.trim().replace(/\s+/g, ' ');
+    const username = state.usernameInput.trim().replace(/^@+/, '').replace(/\s+/g, ' ');
     const alreadyPlayed = await sbCheckAlreadyPlayed(code, username);
     if (alreadyPlayed) {
       state.loading = false;
-      state.errors = { username: 'Este usuario ya participó en este reto, usa el mismo usuario con el que sigues a YOU Inc.' };
+      state.errors = { username: 'Este usuario ya participó en este reto, usa el mismo usuario con el que te suscribiste a YOU Inc.' };
       render();
       return;
     }
 
     state.loading = false;
     state.username = username;
-    state.platform = chosenPlatforms.join(', ');
+    state.platform = 'youtube';          // el requisito es suscribirse a YOU en YouTube
     state.screen = 'waiting';
     state.countdownEndTime = new Date(game.start_time).getTime();
     render();
@@ -1682,9 +1695,10 @@ function getScreenHtml() {
   }
 }
 
+// El enlace sale de la lista del pie (SOCIALS): si cambias tu canal allí, cambia aquí también.
+function ytChannelUrl() { const y = SOCIALS.filter(function (x) { return x.name === 'YouTube'; })[0]; return y ? y.url : 'https://www.youtube.com/'; }
 function htmlHome() {
   const e = state.errors;
-  const ps = state.platformSelected;
   const sd = sdStyle();
   return '' +
     '<div class="home-grid"><section class="home-main">' +
@@ -1713,18 +1727,17 @@ function htmlHome() {
       '</div>' +
       (state.mode === 'spectator' ? (
         '<div>' +
-          '<label>Nombre de Usuario</label>' +
-          '<input type="text" id="input-username" placeholder="Tu nombre de usuario real" maxlength="20" value="' + esc(state.usernameInput) + '">' +
-          (e.username ? '<div class="error-text">' + e.username + '</div>' : '') +
+          '<label>Antes de jugar 👀</label>' +
+          '<a class="yt-follow" style="' + sd + '" href="' + esc(ytChannelUrl()) + '" target="_blank" rel="noopener noreferrer">' +
+            '<span class="yt-ico">' + ICON_YOUTUBE + '</span>' +
+            '<span class="yt-txt">Tienes que suscribirte en YouTube para poder participar</span>' +
+            '<span class="yt-go" aria-hidden="true">↗</span>' +
+          '</a>' +
         '</div>' +
         '<div>' +
-          '<label>¿De dónde nos ves? 👀 <span style="text-transform:none; font-weight:400; color:#9db89a;">(puedes elegir varias)</span></label>' +
-          '<div class="grid3">' +
-            '<button class="btn-outline plat-btn plat-twitch ' + (ps.twitch ? 'active' : '') + '" data-action="toggle-platform" data-platform="twitch">' + ICON_TWITCH + ' Twitch</button>' +
-            '<button class="btn-outline plat-btn plat-tiktok ' + (ps.tiktok ? 'active' : '') + '" data-action="toggle-platform" data-platform="tiktok">' + ICON_TIKTOK + ' TikTok</button>' +
-            '<button class="btn-outline plat-btn plat-youtube ' + (ps.youtube ? 'active' : '') + '" data-action="toggle-platform" data-platform="youtube">' + ICON_YOUTUBE + ' YouTube</button>' +
-          '</div>' +
-          (e.platform ? '<div class="error-text">' + e.platform + '</div>' : '') +
+          '<label>Tu usuario de YouTube</label>' +
+          '<input type="text" id="input-username" placeholder="Tu nombre exacto en YouTube" maxlength="20" autocapitalize="off" autocomplete="off" spellcheck="false" value="' + esc(state.usernameInput) + '">' +
+          (e.username ? '<div class="error-text">' + e.username + '</div>' : '') +
         '</div>'
       ) : '') +
       '<button class="btn btn-lg btn-shine" style="' + sd + '" data-action="play" ' + (state.loading ? 'disabled' : '') + '>' +
@@ -1784,9 +1797,9 @@ function htmlMenu() {
       html: '<div class="menu-rule-list">' +
         ruleItem('Solo pueden competir personas mayores de edad.', '🔞') +
         ruleItem('Escribe el código del reto que el streamer muestra en directo.', '🔑') +
-        ruleItem('Usa tu nombre de usuario real, el mismo con el que sigues al canal.', '👤') +
-        ruleItem('Solo se permite una participación por reto, utilizando el nombre de usuario con el que sigues el canal.', '1️⃣') +
-        ruleItem('Para reclamar el premio en caso de resultar ganador, es necesario seguir a YOU en al menos una de sus plataformas.', '🔔') +
+        ruleItem('Usa tu nombre de usuario real, el mismo con el que te suscribes al canal.', '👤') +
+        ruleItem('Solo se permite una participación por reto, utilizando el nombre de usuario con el que te suscribes al canal.', '1️⃣') +
+        ruleItem('Para participar y poder reclamar el premio en caso de resultar ganador, es necesario suscribirse a YOU en YouTube.', '🔔') +
         ruleItem('Una vez el reto cierra (pasado su tiempo), ya no se puede entrar.', '🔒') +
         ruleItem('Gana quien conteste más preguntas correctas; si hay empate, gana quien las respondió en menos tiempo.', '🏆') +
         ruleItem('El streamer entrega el premio anunciado por sus propios medios (transferencia, efectivo, etc).', '💰') +
@@ -1833,7 +1846,7 @@ function htmlMenu() {
       icon: '⚖️',
       title: 'Aviso Legal',
       html: '<p>YOU GAMES es una plataforma independiente y no está afiliada a Twitch, TikTok, YouTube ni Instagram. ' + glow('🛡️') + '</p>' +
-        '<p>Solo pueden participar usuarios mayores de edad que además sigan a YOU en al menos una de sus plataformas oficiales. ' + glow('🔞') + '</p>' +
+        '<p>Solo pueden participar usuarios mayores de edad que además estén suscritos a YOU en YouTube. ' + glow('🔞') + '</p>' +
         '<p>Los premios ofrecidos en cada reto son entregados voluntariamente por el streamer organizador, no por YOU GAMES. No se requiere compra ni pago alguno para participar. ' + glow('🎁') + '</p>' +
         '<p>El tiempo de entrega del premio depende exclusivamente del streamer organizador y no de YOU GAMES; dicho tiempo puede variar de un reto a otro. ' + glow('⏳') + '</p>' +
         '<p>El streamer organizador es responsable de la entrega del premio y de cumplir la normativa local que aplique a sorteos o promociones en su país. ' + glow('📋') + '</p>' +
@@ -2020,7 +2033,7 @@ A("Ingresa tu nombre", "Enter your name", "Digite seu nome", "Inserisci il tuo n
 A("Selecciona al menos una plataforma", "Select at least one platform", "Selecione pelo menos uma plataforma", "Seleziona almeno una piattaforma", "Wähle mindestens eine Plattform", "请至少选择一个平台");
 A("Ese código no existe. Verifica con el streamer.", "That code does not exist. Check with the streamer.", "Esse código não existe. Confirme com o streamer.", "Questo codice non esiste. Verifica con lo streamer.", "Diesen Code gibt es nicht. Frag den Streamer.", "该代码不存在，请向主播确认。");
 A("Este reto ya cerró 🤦🏼‍♂️ Está atento al próximo juego", "This challenge has closed 🤦🏼‍♂️ Stay tuned for the next game", "Este desafio já encerrou 🤦🏼‍♂️ Fique atento ao próximo jogo", "Questa sfida è chiusa 🤦🏼‍♂️ Resta sintonizzato per la prossima sfida", "Diese Challenge ist beendet 🤦🏼‍♂️ Bleib dran für das nächste Spiel", "本场挑战已结束 🤦🏼‍♂️ 请关注下一场游戏");
-A("Este usuario ya participó en este reto, usa el mismo usuario con el que sigues a YOU Inc.", "This user already took part in this challenge; use the same username you follow YOU Inc. with.", "Este usuário já participou deste desafio; use o mesmo usuário com o qual você segue a YOU Inc.", "Questo utente ha già partecipato a questa sfida; usa lo stesso utente con cui segui YOU Inc.", "Dieser Benutzer hat bereits an dieser Challenge teilgenommen; verwende denselben Benutzernamen, mit dem du YOU Inc. folgst.", "该用户已参加过本场挑战，请使用你关注 YOU Inc. 时的同一用户名。");
+A("Este usuario ya participó en este reto, usa el mismo usuario con el que te suscribiste a YOU Inc.", "This user already took part in this challenge; use the same username you subscribed to YOU Inc. with.", "Este usuário já participou deste desafio; use o mesmo usuário com o qual você se inscreveu na YOU Inc.", "Questo utente ha già partecipato a questa sfida; usa lo stesso utente con cui ti sei iscritto a YOU Inc.", "Dieser Benutzer hat bereits an dieser Challenge teilgenommen; verwende denselben Benutzernamen, mit dem du YOU Inc. abonniert hast.", "该用户已参加过本场挑战，请使用你订阅 YOU Inc. 时的同一用户名。");
 A("No se pudo conectar. Revisa tu internet e intenta de nuevo.", "Could not connect. Check your internet and try again.", "Não foi possível conectar. Verifique sua internet e tente novamente.", "Impossibile connettersi. Controlla la tua connessione e riprova.", "Verbindung nicht möglich. Prüfe dein Internet und versuche es erneut.", "无法连接。请检查网络后重试。");
 A("Se guardó tu resultado, pero no pudimos cargar el ranking completo.", "Your result was saved, but we could not load the full ranking.", "Seu resultado foi salvo, mas não conseguimos carregar o ranking completo.", "Il tuo risultato è stato salvato, ma non siamo riusciti a caricare la classifica completa.", "Dein Ergebnis wurde gespeichert, aber die vollständige Rangliste konnte nicht geladen werden.", "你的成绩已保存，但无法加载完整排行榜。");
 A("Premio", "Prize", "Prêmio", "Premio", "Preis", "奖品");
@@ -2108,9 +2121,9 @@ A("Política de Privacidad", "Privacy Policy", "Política de Privacidade", "Info
 A("‹ Volver", "‹ Back", "‹ Voltar", "‹ Indietro", "‹ Zurück", "‹ 返回");
 A("Solo pueden competir personas mayores de edad.", "Only people of legal age can compete.", "Somente pessoas maiores de idade podem competir.", "Possono partecipare solo persone maggiorenni.", "Nur volljährige Personen dürfen teilnehmen.", "仅限成年人参赛。");
 A("Escribe el código del reto que el streamer muestra en directo.", "Enter the challenge code the streamer shows live.", "Digite o código do desafio que o streamer mostra ao vivo.", "Inserisci il codice della sfida che lo streamer mostra in diretta.", "Gib den Challenge-Code ein, den der Streamer live zeigt.", "输入主播在直播中展示的挑战代码。");
-A("Usa tu nombre de usuario real, el mismo con el que sigues al canal.", "Use your real username, the same one you follow the channel with.", "Use seu nome de usuário real, o mesmo com que você segue o canal.", "Usa il tuo vero nome utente, lo stesso con cui segui il canale.", "Verwende deinen echten Benutzernamen, denselben, mit dem du dem Kanal folgst.", "请使用你的真实用户名，即你关注频道时使用的用户名。");
-A("Solo se permite una participación por reto, utilizando el nombre de usuario con el que sigues el canal.", "Only one entry per challenge is allowed, using the username you follow the channel with.", "Só é permitida uma participação por desafio, usando o nome de usuário com o qual você segue o canal.", "È consentita una sola partecipazione per sfida, usando il nome utente con cui segui il canale.", "Pro Challenge ist nur eine Teilnahme erlaubt, mit dem Benutzernamen, mit dem du dem Kanal folgst.", "每场挑战只能参加一次，并使用你关注频道时的用户名。");
-A("Para reclamar el premio en caso de resultar ganador, es necesario seguir a YOU en al menos una de sus plataformas.", "To claim the prize if you win, you must follow YOU on at least one of its platforms.", "Para reivindicar o prêmio caso você vença, é necessário seguir a YOU em pelo menos uma de suas plataformas.", "Per ritirare il premio in caso di vittoria, devi seguire YOU su almeno una delle sue piattaforme.", "Um den Preis im Gewinnfall zu erhalten, musst du YOU auf mindestens einer seiner Plattformen folgen.", "如果获胜，需要在至少一个平台上关注 YOU 才能领取奖品。");
+A("Usa tu nombre de usuario real, el mismo con el que te suscribes al canal.", "Use your real username, the same one you subscribe to the channel with.", "Use seu nome de usuário real, o mesmo com que você se inscreve no canal.", "Usa il tuo vero nome utente, lo stesso con cui ti iscrivi al canale.", "Verwende deinen echten Benutzernamen, denselben, mit dem du den Kanal abonnierst.", "请使用你的真实用户名，即你订阅频道时使用的用户名。");
+A("Solo se permite una participación por reto, utilizando el nombre de usuario con el que te suscribes al canal.", "Only one entry per challenge is allowed, using the username you subscribe to the channel with.", "Só é permitida uma participação por desafio, usando o nome de usuário com o qual você se inscreve no canal.", "È consentita una sola partecipazione per sfida, usando il nome utente con cui ti iscrivi al canale.", "Pro Challenge ist nur eine Teilnahme erlaubt, mit dem Benutzernamen, mit dem du den Kanal abonnierst.", "每场挑战只能参加一次，并使用你订阅频道时的用户名。");
+A("Para participar y poder reclamar el premio en caso de resultar ganador, es necesario suscribirse a YOU en YouTube.", "To take part, and to claim the prize if you win, you must subscribe to YOU on YouTube.", "Para participar e poder reivindicar o prêmio caso você vença, é necessário se inscrever na YOU no YouTube.", "Per partecipare e ritirare il premio in caso di vittoria, devi iscriverti a YOU su YouTube.", "Um teilzunehmen und den Preis im Gewinnfall zu erhalten, musst du YOU auf YouTube abonnieren.", "要参与并在获胜时领取奖品，需要在 YouTube 上订阅 YOU。");
 A("Una vez el reto cierra (pasado su tiempo), ya no se puede entrar.", "Once the challenge closes (when its time is up), nobody can enter anymore.", "Depois que o desafio fecha (terminado o tempo), não é mais possível entrar.", "Quando la sfida si chiude (scaduto il tempo), non si può più entrare.", "Sobald die Challenge endet (nach Ablauf der Zeit), kann man nicht mehr teilnehmen.", "挑战结束（时间到）后，就不能再加入了。");
 A("Gana quien conteste más preguntas correctas; si hay empate, gana quien las respondió en menos tiempo.", "Whoever answers the most questions correctly wins; in a tie, whoever answered them in the least time wins.", "Vence quem responder mais perguntas corretamente; em caso de empate, vence quem respondeu em menos tempo.", "Vince chi risponde correttamente a più domande; in caso di parità, vince chi ha risposto nel minor tempo.", "Es gewinnt, wer die meisten Fragen richtig beantwortet; bei Gleichstand gewinnt, wer dafür weniger Zeit gebraucht hat.", "答对题数最多者获胜；若并列，用时更短者获胜。");
 A("El streamer entrega el premio anunciado por sus propios medios (transferencia, efectivo, etc).", "The streamer delivers the announced prize through their own means (bank transfer, cash, etc.).", "O streamer entrega o prêmio anunciado por seus próprios meios (transferência, dinheiro em espécie, etc.).", "Lo streamer consegna il premio annunciato con i propri mezzi (bonifico, contanti, ecc.).", "Der Streamer übergibt den angekündigten Preis auf eigene Weise (Überweisung, Bargeld usw.).", "主播通过自己的方式（转账、现金等）发放所公布的奖品。");
@@ -2125,7 +2138,7 @@ A("Estamos preparando la tienda oficial de YOU, con productos exclusivos para la
 A("Síguenos en nuestras redes para ser de los primeros en enterarte.", "Follow us on our social networks to be among the first to know.", "Siga-nos em nossas redes para ser um dos primeiros a saber.", "Seguici sui nostri social per essere tra i primi a saperlo.", "Folge uns in unseren sozialen Netzwerken, um als Erster Bescheid zu wissen.", "关注我们的社交账号，第一时间获取消息。");
 A("¿Tienes dudas o sugerencias? Escríbenos.", "Do you have questions or suggestions? Write to us.", "Tem dúvidas ou sugestões? Escreva para nós.", "Hai dubbi o suggerimenti? Scrivici.", "Hast du Fragen oder Vorschläge? Schreib uns.", "有疑问或建议吗？欢迎联系我们。");
 A("YOU GAMES es una plataforma independiente y no está afiliada a Twitch, TikTok, YouTube ni Instagram.", "YOU GAMES is an independent platform and is not affiliated with Twitch, TikTok, YouTube or Instagram.", "A YOU GAMES é uma plataforma independente e não é afiliada à Twitch, TikTok, YouTube nem Instagram.", "YOU GAMES è una piattaforma indipendente e non è affiliata a Twitch, TikTok, YouTube né Instagram.", "YOU GAMES ist eine unabhängige Plattform und steht in keiner Verbindung zu Twitch, TikTok, YouTube oder Instagram.", "YOU GAMES 是一个独立平台，与 Twitch、TikTok、YouTube 和 Instagram 无任何关联。");
-A("Solo pueden participar usuarios mayores de edad que además sigan a YOU en al menos una de sus plataformas oficiales.", "Only users of legal age who also follow YOU on at least one of its official platforms may take part.", "Só podem participar usuários maiores de idade que também sigam a YOU em pelo menos uma de suas plataformas oficiais.", "Possono partecipare solo utenti maggiorenni che seguano anche YOU su almeno una delle sue piattaforme ufficiali.", "Teilnehmen dürfen nur volljährige Nutzer, die YOU zusätzlich auf mindestens einer seiner offiziellen Plattformen folgen.", "仅限成年用户参与，并且需要在至少一个 YOU 官方平台上关注 YOU。");
+A("Solo pueden participar usuarios mayores de edad que además estén suscritos a YOU en YouTube.", "Only users of legal age who are also subscribed to YOU on YouTube may take part.", "Só podem participar usuários maiores de idade que também estejam inscritos na YOU no YouTube.", "Possono partecipare solo utenti maggiorenni che siano anche iscritti a YOU su YouTube.", "Teilnehmen dürfen nur volljährige Nutzer, die YOU zusätzlich auf YouTube abonniert haben.", "仅限成年用户参与，并且需要在 YouTube 上订阅 YOU。");
 A("Los premios ofrecidos en cada reto son entregados voluntariamente por el streamer organizador, no por YOU GAMES. No se requiere compra ni pago alguno para participar.", "The prizes offered in each challenge are voluntarily provided by the organizing streamer, not by YOU GAMES. No purchase or payment of any kind is required to take part.", "Os prêmios oferecidos em cada desafio são entregues voluntariamente pelo streamer organizador, e não pela YOU GAMES. Não é necessária nenhuma compra nem pagamento para participar.", "I premi offerti in ogni sfida sono consegnati volontariamente dallo streamer organizzatore, non da YOU GAMES. Non è richiesto alcun acquisto né pagamento per partecipare.", "Die Preise jeder Challenge werden freiwillig vom organisierenden Streamer bereitgestellt, nicht von YOU GAMES. Für die Teilnahme ist weder ein Kauf noch eine Zahlung erforderlich.", "每场挑战的奖品由主办主播自愿提供，而非 YOU GAMES。参与无需购买或支付任何费用。");
 A("El tiempo de entrega del premio depende exclusivamente del streamer organizador y no de YOU GAMES; dicho tiempo puede variar de un reto a otro.", "The prize delivery time depends exclusively on the organizing streamer and not on YOU GAMES; it may vary from one challenge to another.", "O prazo de entrega do prêmio depende exclusivamente do streamer organizador e não da YOU GAMES; esse prazo pode variar de um desafio para outro.", "I tempi di consegna del premio dipendono esclusivamente dallo streamer organizzatore e non da YOU GAMES; possono variare da una sfida all’altra.", "Die Lieferzeit des Preises hängt ausschließlich vom organisierenden Streamer ab und nicht von YOU GAMES; sie kann von Challenge zu Challenge variieren.", "奖品的发放时间完全取决于主办主播，而非 YOU GAMES；不同挑战的发放时间可能不同。");
 A("El streamer organizador es responsable de la entrega del premio y de cumplir la normativa local que aplique a sorteos o promociones en su país.", "The organizing streamer is responsible for delivering the prize and for complying with the local regulations that apply to raffles or promotions in their country.", "O streamer organizador é responsável pela entrega do prêmio e pelo cumprimento da legislação local aplicável a sorteios ou promoções em seu país.", "Lo streamer organizzatore è responsabile della consegna del premio e del rispetto della normativa locale applicabile a concorsi o promozioni nel suo paese.", "Der organisierende Streamer ist für die Übergabe des Preises und die Einhaltung der in seinem Land geltenden Vorschriften für Gewinnspiele oder Aktionen verantwortlich.", "主办主播负责发放奖品，并遵守其所在国家适用于抽奖或促销活动的当地法规。");
@@ -2156,12 +2169,12 @@ A("8. Cambios en esta política", "8. Changes to this policy", "8. Alterações 
 A("Podemos actualizar esta página cuando cambie el funcionamiento del sitio. La fecha de la última actualización aparece al inicio.", "We may update this page when the way the site works changes. The date of the latest update appears at the top.", "Podemos atualizar esta página quando o funcionamento do site mudar. A data da última atualização aparece no início.", "Possiamo aggiornare questa pagina quando cambia il funzionamento del sito. La data dell’ultimo aggiornamento compare all’inizio.", "Wir können diese Seite aktualisieren, wenn sich die Funktionsweise der Seite ändert. Das Datum der letzten Aktualisierung steht oben.", "当网站的运作方式发生变化时，我们可能会更新本页面。最近更新日期显示在页面顶部。");
 A("9. Contacto", "9. Contact", "9. Contato", "9. Contatti", "9. Kontakt", "9. 联系方式");
 A("Para participar en un reto:", "To take part in a challenge:", "Para participar de um desafio:", "Per partecipare a una sfida:", "Für die Teilnahme an einer Challenge:", "参加挑战时：");
-A("el nombre de usuario que escribes, la plataforma o plataformas desde las que nos ves (Twitch, TikTok, YouTube), tus respuestas correctas, el tiempo que tardaste y la fecha de tu participación.", "the username you enter, the platform or platforms you watch us on (Twitch, TikTok, YouTube), your correct answers, the time you took and the date of your participation.", "o nome de usuário que você digita, a plataforma ou plataformas em que você nos assiste (Twitch, TikTok, YouTube), suas respostas corretas, o tempo que você levou e a data da sua participação.", "il nome utente che inserisci, la piattaforma o le piattaforme da cui ci guardi (Twitch, TikTok, YouTube), le tue risposte corrette, il tempo impiegato e la data della tua partecipazione.", "der Benutzername, den du eingibst, die Plattform(en), auf der/denen du uns siehst (Twitch, TikTok, YouTube), deine richtigen Antworten, die benötigte Zeit und das Datum deiner Teilnahme.", "你输入的用户名、你观看我们的平台（Twitch、TikTok、YouTube）、你的正确答案、所用时间以及参与日期。");
+A("el nombre de usuario de YouTube que escribes, tus respuestas correctas, el tiempo que tardaste y la fecha de tu participación.", "the YouTube username you enter, your correct answers, the time you took and the date of your participation.", "o nome de usuário do YouTube que você digita, suas respostas corretas, o tempo que você levou e a data da sua participação.", "il nome utente YouTube che inserisci, le tue risposte corrette, il tempo impiegato e la data della tua partecipazione.", "der YouTube-Benutzername, den du eingibst, deine richtigen Antworten, die benötigte Zeit und das Datum deiner Teilnahme.", "你输入的 YouTube 用户名、你的正确答案、所用时间以及参与日期。");
 A("Gestionar los retos, calcular los rankings y mostrar los podios.", "Running the challenges, calculating the rankings and showing the podiums.", "Gerenciar os desafios, calcular os rankings e mostrar os pódios.", "Gestire le sfide, calcolare le classifiche e mostrare i podi.", "Die Challenges verwalten, die Ranglisten berechnen und die Podien anzeigen.", "管理挑战、计算排名并展示领奖台。");
 A("Puedes gestionar o desactivar la publicidad personalizada de Google en {AD}.", "You can manage or turn off Google personalized advertising at {AD}.", "Você pode gerenciar ou desativar a publicidade personalizada do Google em {AD}.", "Puoi gestire o disattivare la pubblicità personalizzata di Google su {AD}.", "Personalisierte Google-Werbung kannst du unter {AD} verwalten oder deaktivieren.", "你可以在 {AD} 管理或关闭 Google 个性化广告。");
 A("Información pública:", "Public information:", "Informação pública:", "Informazioni pubbliche:", "Öffentliche Informationen:", "公开信息：");
 A("tu nombre de usuario y tu resultado aparecen en los rankings (Top 10, podios y panel en vivo). No escribas en el nombre de usuario datos que no quieras hacer públicos.", "your username and result appear in the rankings (Top 10, podiums and live panel). Do not put anything in your username that you do not want to make public.", "seu nome de usuário e seu resultado aparecem nos rankings (Top 10, pódios e painel ao vivo). Não coloque no nome de usuário dados que você não queira tornar públicos.", "il tuo nome utente e il tuo risultato compaiono nelle classifiche (Top 10, podi e pannello live). Non inserire nel nome utente dati che non vuoi rendere pubblici.", "Dein Benutzername und dein Ergebnis erscheinen in den Ranglisten (Top 10, Podien und Live-Panel). Gib im Benutzernamen keine Daten ein, die du nicht veröffentlichen möchtest.", "你的用户名和成绩会显示在排行榜中（前十名、领奖台和实时面板）。请不要在用户名中填写你不想公开的信息。");
-A("Verificar a los ganadores y entregar los premios (el organizador puede contactarte a través de la plataforma donde nos sigues).", "Verifying winners and delivering prizes (the organizer may contact you through the platform where you follow us).", "Verificar os vencedores e entregar os prêmios (o organizador pode entrar em contato com você pela plataforma em que você nos segue).", "Verificare i vincitori e consegnare i premi (l’organizzatore può contattarti tramite la piattaforma su cui ci segui).", "Gewinner überprüfen und Preise übergeben (der Veranstalter kann dich über die Plattform kontaktieren, auf der du uns folgst).", "核实获奖者并发放奖品（组织者可能通过你关注我们的平台联系你）。");
+A("Verificar a los ganadores y entregar los premios (el organizador puede contactarte a través de YouTube, donde estás suscrito).", "Verifying winners and delivering prizes (the organizer may contact you through YouTube, where you are subscribed).", "Verificar os vencedores e entregar os prêmios (o organizador pode entrar em contato com você pelo YouTube, onde você está inscrito).", "Verificare i vincitori e consegnare i premi (l’organizzatore può contattarti tramite YouTube, dove sei iscritto).", "Gewinner überprüfen und Preise übergeben (der Veranstalter kann dich über YouTube kontaktieren, wo du abonniert bist).", "核实获奖者并发放奖品（组织者可能通过你订阅我们的 YouTube 联系你）。");
 A("Puedes saber cómo Google usa la información de los sitios que usan sus servicios en {PA}.", "You can learn how Google uses information from sites that use its services at {PA}.", "Você pode saber como o Google usa as informações dos sites que utilizam seus serviços em {PA}.", "Puoi scoprire come Google usa le informazioni dei siti che utilizzano i suoi servizi su {PA}.", "Wie Google Informationen von Websites nutzt, die seine Dienste verwenden, erfährst du unter {PA}.", "你可以在 {PA} 了解 Google 如何使用使用其服务的网站上的信息。");
 A("No pedimos", "We do not ask for", "Não pedimos", "Non chiediamo", "Wir verlangen keine", "我们不会要求");
 A("contraseñas, no creamos cuentas de jugador y no solicitamos datos de pago para participar.", "passwords, we do not create player accounts and we do not request payment details to take part.", "senhas, não criamos contas de jogador e não solicitamos dados de pagamento para participar.", "password, non creiamo account di giocatore e non richiediamo dati di pagamento per partecipare.", "Passwörter, legen keine Spielerkonten an und fragen für die Teilnahme keine Zahlungsdaten ab.", "密码，不会创建玩家账号，参与时也不会索取支付信息。");
@@ -2171,6 +2184,10 @@ A("Este dispositivo ya participó en este reto con otro nombre de usuario.", "Th
 A("Escribe un nombre de usuario de 1 a 20 caracteres.", "Enter a username of 1 to 20 characters.", "Digite um nome de usuário de 1 a 20 caracteres.", "Inserisci un nome utente da 1 a 20 caratteri.", "Gib einen Benutzernamen mit 1 bis 20 Zeichen ein.", "请输入1到20个字符的用户名。");
 A("Se agotó el tiempo para enviar tu resultado.", "The time to submit your result has run out.", "O tempo para enviar seu resultado esgotou.", "Il tempo per inviare il tuo risultato è scaduto.", "Die Zeit zum Senden deines Ergebnisses ist abgelaufen.", "提交成绩的时间已用完。");
 A("No se pudo guardar tu resultado. Abre la página otra vez para reintentar.", "Your result could not be saved. Open the page again to retry.", "Não foi possível salvar seu resultado. Abra a página novamente para tentar de novo.", "Impossibile salvare il tuo risultato. Riapri la pagina per riprovare.", "Dein Ergebnis konnte nicht gespeichert werden. Öffne die Seite erneut, um es noch einmal zu versuchen.", "无法保存你的成绩。请重新打开页面再试一次。");
+A("Tienes que suscribirte en YouTube para poder participar", "You must subscribe on YouTube to take part", "Você precisa se inscrever no YouTube para participar", "Devi iscriverti su YouTube per partecipare", "Du musst uns auf YouTube abonnieren, um teilnehmen zu können", "你必须在 YouTube 上订阅我们才能参与");
+A("Antes de jugar", "Before you play", "Antes de jogar", "Prima di giocare", "Bevor du spielst", "开始之前");
+A("Tu usuario de YouTube", "Your YouTube username", "Seu usuário do YouTube", "Il tuo nome utente YouTube", "Dein YouTube-Benutzername", "你的 YouTube 用户名");
+A("Tu nombre exacto en YouTube", "Your exact YouTube name", "Seu nome exato no YouTube", "Il tuo nome esatto su YouTube", "Dein genauer YouTube-Name", "你在 YouTube 上的准确名称");
 const PFX = [
   ["Reto #", ["Challenge #", "Desafio #", "Sfida #", "Challenge #", "挑战 #"]],
   ["Pregunta ", ["Question ", "Pergunta ", "Domanda ", "Frage ", "问题 "]],
@@ -2327,8 +2344,8 @@ function privacyHtml() {
   const p = function (k) { return '<p>' + f(k) + '</p>'; };
   const ul = function (arr) { return '<ul class="pv-ul">' + arr.join('') + '</ul>'; };
   return '<p class="menu-note">' + f("Última actualización: octubre de 2026") + '</p>' + p("YOU GAMES es un proyecto de entretenimiento competitivo creado dentro de YOU. Esta página explica qué información tratamos cuando juegas, para qué la usamos y qué opciones tienes.") +
-    h("1. Qué datos recogemos") + ul(['<li><b>' + f("Para participar en un reto:") + '</b> ' + f("el nombre de usuario que escribes, la plataforma o plataformas desde las que nos ves (Twitch, TikTok, YouTube), tus respuestas correctas, el tiempo que tardaste y la fecha de tu participación.") + '</li>', '<li><b>' + f("Información pública:") + '</b> ' + f("tu nombre de usuario y tu resultado aparecen en los rankings (Top 10, podios y panel en vivo). No escribas en el nombre de usuario datos que no quieras hacer públicos.") + '</li>', '<li><b>' + f("No pedimos") + '</b> ' + f("contraseñas, no creamos cuentas de jugador y no solicitamos datos de pago para participar.") + '</li>']) +
-    h("2. Para qué los usamos") + ul(['<li>' + f("Gestionar los retos, calcular los rankings y mostrar los podios.") + '</li>', '<li>' + f("Verificar a los ganadores y entregar los premios (el organizador puede contactarte a través de la plataforma donde nos sigues).") + '</li>', '<li>' + f("Mantener la seguridad y evitar participaciones fraudulentas o repetidas.") + '</li>']) +
+    h("1. Qué datos recogemos") + ul(['<li><b>' + f("Para participar en un reto:") + '</b> ' + f("el nombre de usuario de YouTube que escribes, tus respuestas correctas, el tiempo que tardaste y la fecha de tu participación.") + '</li>', '<li><b>' + f("Información pública:") + '</b> ' + f("tu nombre de usuario y tu resultado aparecen en los rankings (Top 10, podios y panel en vivo). No escribas en el nombre de usuario datos que no quieras hacer públicos.") + '</li>', '<li><b>' + f("No pedimos") + '</b> ' + f("contraseñas, no creamos cuentas de jugador y no solicitamos datos de pago para participar.") + '</li>']) +
+    h("2. Para qué los usamos") + ul(['<li>' + f("Gestionar los retos, calcular los rankings y mostrar los podios.") + '</li>', '<li>' + f("Verificar a los ganadores y entregar los premios (el organizador puede contactarte a través de YouTube, donde estás suscrito).") + '</li>', '<li>' + f("Mantener la seguridad y evitar participaciones fraudulentas o repetidas.") + '</li>']) +
     h("3. Dónde se guardan") + p("Los resultados se almacenan en servidores de Supabase, nuestro proveedor de base de datos. La página se aloja en GitHub Pages. Las tipografías se cargan desde Google Fonts, por lo que Google puede recibir tu dirección IP al cargar la página.") + h("4. Almacenamiento en tu dispositivo") + p("Guardamos en tu navegador (almacenamiento local) los retos en los que participaste con ese dispositivo y el idioma que elegiste. Sirve únicamente para reconocer tu podio y poder compartirlo. Puedes borrarlo en cualquier momento limpiando los datos del sitio en tu navegador.") +
     h("5. Publicidad y cookies de terceros") + p("Este sitio puede mostrar publicidad de Google AdSense y de otros socios publicitarios. Estos proveedores pueden usar cookies o tecnologías similares para mostrar anuncios basados en tus visitas a este y a otros sitios web.") + ul(['<li>' + f("Puedes gestionar o desactivar la publicidad personalizada de Google en {AD}.") + '</li>', '<li>' + f("Puedes saber cómo Google usa la información de los sitios que usan sus servicios en {PA}.") + '</li>', '<li>' + f("Si visitas el sitio desde el Espacio Económico Europeo, el Reino Unido o Suiza, te pediremos tu consentimiento antes de mostrar anuncios personalizados, y podrás cambiar tu decisión cuando quieras.") + '</li>']) + p("Los enlaces de patrocinadores se identifican como tales y pueden llevarte a sitios de terceros con sus propias políticas de privacidad.") +
     h("6. Personas mayores de edad") + p("La participación en los retos está reservada a personas mayores de edad. No recopilamos de forma consciente datos de menores. Si crees que un menor ha participado, escríbenos para eliminar sus datos.") + h("7. Tus derechos") + p("Puedes solicitar el acceso, la corrección o la eliminación de los datos asociados a tu nombre de usuario escribiéndonos a {MAIL}. Responderemos lo antes posible.") + h("8. Cambios en esta política") + p("Podemos actualizar esta página cuando cambie el funcionamiento del sitio. La fecha de la última actualización aparece al inicio.") +
@@ -2378,7 +2395,7 @@ function failStart(err) {
   const code = err && err.code;
   clearTimers();
   state.loading = false; state.screen = 'home'; state.errors = {}; state.loadError = '';
-  if (code === 'name_taken') state.errors = { username: 'Este usuario ya participó en este reto, usa el mismo usuario con el que sigues a YOU Inc.' };
+  if (code === 'name_taken') state.errors = { username: 'Este usuario ya participó en este reto, usa el mismo usuario con el que te suscribiste a YOU Inc.' };
   else if (code === 'device_used') state.errors = { username: 'Este dispositivo ya participó en este reto con otro nombre de usuario.' };
   else if (code === 'bad_username') state.errors = { username: 'Escribe un nombre de usuario de 1 a 20 caracteres.' };
   else if (code === 'closed') state.errors = { gameCode: 'Este reto ya cerró 🤦🏼\u200d♂️ Está atento al próximo juego 😁' };
