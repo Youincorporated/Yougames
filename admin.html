@@ -453,7 +453,7 @@ function createdHtml() {
 }
 function announceText() {
   const c = S.created, w = whenInfo(c.start);
-  return '🎮 ¡Nuevo reto de YOU Games! Entra a ' + PLAYER_URL + ' y escribe el código ' + c.code + '. Empieza el ' + w.date + ' a las ' + w.time + ' (' + w.zone + '). Premio: ' + c.prize + ' 🏆';
+  return '🎮 ¡Nuevo reto de YOU Games! Entra a ' + PLAYER_URL + ' y escribe el código ' + c.code + '. Empieza el ' + w.date + ' a las ' + w.time + ' (' + w.zone + '). Premio: ' + c.prize + ' 🏆 Para participar tienes que suscribirte en YouTube: ' + MY_CHANNELS.youtube + ' 🔔';
 }
 
 // ---------- Lista de retos ----------
@@ -620,7 +620,10 @@ async function showWinners(id) {
 function tooFast(r) { return (S.winQ || 0) > 0 && r.time_taken_ms / S.winQ < 2500; }
 function renderWinners() {
   const id = S.winnersFor, rows = S.winners || [], ver = getVer(), medals = ['🥇', '🥈', '🥉'];
-  const my = Object.keys(MY_CHANNELS).map(function (k) { return '<a class="btn-ghost" href="' + MY_CHANNELS[k] + '" target="_blank" rel="noopener noreferrer">' + PROFILE[k].name + ' ↗</a>'; }).join('');
+  const used = {}; rows.forEach(function (r) { parsePlatforms(r.platform).forEach(function (k) { used[k] = 1; }); });
+  const myKeys = ['youtube'].concat(Object.keys(MY_CHANNELS).filter(function (k) { return k !== 'youtube' && used[k]; }));   // retos antiguos: también sus otras plataformas
+  const my = myKeys.map(function (k) { return '<a class="btn-ghost" href="' + MY_CHANNELS[k] + '" target="_blank" rel="noopener noreferrer">' + (k === 'youtube' ? 'Mi canal de ' : '') + PROFILE[k].name + ' ↗</a>'; }).join('') +
+    '<a class="btn-ghost" href="https://studio.youtube.com" target="_blank" rel="noopener noreferrer">YouTube Studio ↗</a>';
   let list = '';
   if (!rows.length) list = '<div class="empty">Todavía nadie terminó este reto.</div>';
   rows.forEach(function (r, i) {
@@ -639,11 +642,11 @@ function renderWinners() {
       '</div></div>';
   });
   openModal('<h3>🏆 Ganadores · ' + esc(id) + '</h3>' +
-    '<div class="w-note"><b>Cómo comprobar que te sigue (10 segundos por ganador):</b><ol>' +
+    '<div class="w-note"><b>Cómo comprobar que está suscrito (10 segundos por ganador):</b><ol>' +
       '<li>Pulsa <b>📋 Copiar nombre</b>.</li>' +
-      '<li>Abre <b>tu</b> canal con los botones de abajo y entra a tu lista de seguidores.</li>' +
-      '<li>Pega el nombre en el buscador de esa lista. Si aparece, pulsa <b>Marcar verificado</b>. En algunas plataformas la lista también muestra desde cuándo te sigue.</li></ol>' +
-      'Hazlo con los 3 primeros antes de entregar el premio. Si ves <b>⚠ Muy rápido</b>, desconfía: es un tiempo casi imposible para una persona. Si alguno no te sigue, pulsa <b>🗑 Descalificar</b> y el siguiente sube un puesto.</div>' +
+      '<li>Abre <b>YouTube Studio</b> con el botón de abajo y entra a la lista de tus suscriptores.</li>' +
+      '<li>Pega el nombre en el buscador de esa lista. Si aparece, pulsa <b>Marcar verificado</b>. Ojo: en esa lista solo salen quienes tienen su suscripción pública. Si no sale, pídele que te enseñe tu canal con el botón «Suscrito» antes de descalificarlo.</li></ol>' +
+      'Hazlo con los 3 primeros antes de entregar el premio. Si ves <b>⚠ Muy rápido</b>, desconfía: es un tiempo casi imposible para una persona. Si alguno no está suscrito, pulsa <b>🗑 Descalificar</b> y el siguiente sube un puesto.</div>' +
     '<div class="my-ch"><span>Mis canales:</span>' + my + '</div>' + list +
     '<div class="modal-actions"><button class="btn-ghost" data-act="close-modal" type="button">Cerrar</button></div>');
 }
