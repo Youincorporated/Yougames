@@ -146,6 +146,7 @@
   .w-actions a.btn-ghost, .my-ch a.btn-ghost { text-decoration: none; display: inline-block; }
   .btn-ghost.on { background: var(--green); border-color: var(--neon); color: #fff; }
   .w-warn { color: var(--gold); font-size: 12px; }
+.w-prize { font-size: 13px; margin: 0 0 8px; color: var(--gold); }
 .at-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; padding: 8px 0; border-bottom: 1px solid var(--line); font-size: 14px; }
 .at-row b { flex: 1 1 120px; word-break: break-all; }
 </style>
@@ -177,7 +178,7 @@ function loadSession() { try { return JSON.parse(localStorage.getItem(SKEY)); } 
 const S = {
   session: loadSession(),
   games: [], gamesLoaded: false,
-  form: { title: '', code: '', prize: '$50', start: '', minutes: '5', questions: freshQuestions() },
+  form: { title: '', code: '', prize: '10€', start: '', minutes: '5', questions: freshQuestions() },
   errors: {}, errShown: false, busy: false, created: null
 };
 
@@ -277,7 +278,7 @@ function appHtml() {
           '<div><label for="f-title">Nombre del reto</label><input id="f-title" data-f="title" maxlength="40" placeholder="Ej: Trivia General" value="' + esc(f.title) + '"><div class="err" data-err="title"></div></div>' +
           '<div><label for="f-code">Código de acceso</label><div class="inline"><input id="f-code" class="code-input" data-f="code" maxlength="10" autocapitalize="characters" autocomplete="off" spellcheck="false" placeholder="YG18372" value="' + esc(f.code) + '"><button class="btn-ghost" data-act="gen-code" type="button">🎲 Generar</button></div>' +
             '<div class="hint">Lo que tus seguidores escribirán para entrar. Letras y números, hasta 10 (ej: rkfkfkf, Yougu, yg18372).</div><div class="err" data-err="code"></div></div>' +
-          '<div><label for="f-prize">Premio</label><input id="f-prize" data-f="prize" maxlength="30" placeholder="$50" value="' + esc(f.prize) + '"><div class="err" data-err="prize"></div></div>' +
+          '<div><label for="f-prize">Premio base</label><input id="f-prize" data-f="prize" maxlength="30" placeholder="10€" value="' + esc(f.prize) + '"><div class="hint" id="prize-hint">' + esc(prizeHintText(f.prize)) + '</div><div class="err" data-err="prize"></div></div>' +
           '<div><label for="f-minutes">Tiempo límite (minutos)</label><input id="f-minutes" data-f="minutes" type="number" min="1" max="60" inputmode="numeric" value="' + esc(f.minutes) + '">' +
             '<div class="quick"><button class="pill" data-act="quick-min" data-v="3" type="button">3 min</button><button class="pill" data-act="quick-min" data-v="5" type="button">5 min</button><button class="pill" data-act="quick-min" data-v="10" type="button">10 min</button></div>' +
             '<div class="err" data-err="minutes"></div></div>' +
@@ -353,7 +354,7 @@ function validate() {
   if (!code) er.code = 'Escribe un código o pulsa «Generar».';
   else if (!/^[A-Z0-9_-]+$/.test(code)) er.code = 'Usa solo letras (sin acentos ni ñ), números, guion (-) o guion bajo (_). Sin espacios.';
   else if (code.length < 3 || code.length > 10) er.code = 'El código debe tener entre 3 y 10 caracteres.';
-  if (!f.prize.trim()) er.prize = 'Escribe el premio (ej: $50).';
+  if (!f.prize.trim()) er.prize = 'Escribe el premio base (ej: 10€).';
   const d = parseStart(f.start);
   if (!d) er.start = 'Elige la fecha y la hora de inicio.';
   else if (d.getTime() < Date.now() + 60000) er.start = 'Esa hora ya pasó. Elige una hora futura.';
@@ -405,7 +406,8 @@ function startReview() {
   openModal('<h3>Revisa antes de crear</h3>' +
     '<div class="sum-row"><span>Nombre</span><span>' + esc(f.title.trim()) + '</span></div>' +
     '<div class="sum-row"><span>Código</span><span>' + esc(normCode(f.code)) + '</span></div>' +
-    '<div class="sum-row"><span>Premio</span><span>' + esc(f.prize.trim()) + '</span></div>' +
+    '<div class="sum-row"><span>Premio base</span><span>' + esc(f.prize.trim()) + '</span></div>' +
+    (prizeBonus(f.prize) ? '<div class="sum-row"><span>Si está suscrito (x5)</span><span>' + esc(prizeBonus(f.prize)) + '</span></div>' : '') +
     '<div class="sum-row"><span>Empieza</span><span>' + esc(w.date) + '<br>' + esc(w.time) + ' · ' + esc(w.zone) + '</span></div>' +
     '<div class="sum-row"><span>Tiempo límite</span><span>' + esc(parseInt(f.minutes, 10)) + ' min</span></div>' +
     '<div class="sum-row"><span>Preguntas</span><span>' + f.questions.length + '</span></div>' +
@@ -451,9 +453,27 @@ function createdHtml() {
     '<p class="muted" style="margin-top:6px;">Tus seguidores entran a <b>' + esc(PLAYER_URL) + '</b> y escriben el código.</p>' +
     '<div class="actions"><button class="btn-ghost" data-act="copy-code" type="button">📋 Copiar código</button><button class="btn-ghost" data-act="copy-msg" type="button">💬 Copiar mensaje para el directo</button><button class="btn-ghost" data-act="dismiss-created" type="button">Cerrar</button></div></section>';
 }
+// Premio x5 para quienes están suscritos a YOU en YouTube (misma regla que en el juego)
+const SUB_MULTIPLIER = 5;
+function prizeBonus(p) {
+  const m = String(p === null || p === undefined ? '' : p).trim().match(/^(\D*?)(\d+(?:[.,]\d+)?)(\D*)$/);
+  if (!m) return '';
+  const raw = m[2], dec = /[.,](\d+)$/.exec(raw);
+  if (dec && dec[1].length === 3) return '';
+  const n = parseFloat(raw.replace(',', '.')) * SUB_MULTIPLIER;
+  if (!isFinite(n) || n <= 0) return '';
+  let out = dec ? n.toFixed(dec[1].length) : String(Math.round(n));
+  if (dec && raw.indexOf(',') >= 0) out = out.replace('.', ',');
+  return m[1] + out + m[3];
+}
+function prizeHintText(p) {
+  const b = prizeBonus(p), t = String(p || '').trim();
+  if (b) return 'Quien gane y esté suscrito a YOU en YouTube recibe 5 veces el premio base: ' + b + '. Los demás reciben ' + t + '.';
+  return t ? 'No pude calcular el x5 de este premio: escribe una sola cantidad, por ejemplo 10€. Los jugadores no verán el x5.' : 'Escribe el premio base, por ejemplo 10€. El x5 para suscriptores se calcula solo.';
+}
 function announceText() {
   const c = S.created, w = whenInfo(c.start);
-  return '🎮 ¡Nuevo reto de YOU Games! Entra a ' + PLAYER_URL + ' y escribe el código ' + c.code + '. Empieza el ' + w.date + ' a las ' + w.time + ' (' + w.zone + '). Premio: ' + c.prize + ' 🏆 Para participar tienes que suscribirte en YouTube: ' + MY_CHANNELS.youtube + ' 🔔';
+  return '🎮 ¡Nuevo reto de YOU Games! Entra aquí con el código ya puesto: ' + PLAYER_URL + '?code=' + encodeURIComponent(c.code) + ' (código: ' + c.code + '). Empieza el ' + w.date + ' a las ' + w.time + ' (' + w.zone + '). Premio: ' + c.prize + (prizeBonus(c.prize) ? ' (¡x5 = ' + prizeBonus(c.prize) + ' si estás suscrito a YOU en YouTube!)' : '') + ' 🏆 Suscribirte es opcional: ' + MY_CHANNELS.youtube + ' 🔔';
 }
 
 // ---------- Lista de retos ----------
@@ -620,6 +640,7 @@ async function showWinners(id) {
 function tooFast(r) { return (S.winQ || 0) > 0 && r.time_taken_ms / S.winQ < 2500; }
 function renderWinners() {
   const id = S.winnersFor, rows = S.winners || [], ver = getVer(), medals = ['🥇', '🥈', '🥉'];
+  const gm = S.games.filter(function (x) { return x.id === id; })[0], baseP = gm ? gm.prize : '', bonusP = prizeBonus(baseP);
   const used = {}; rows.forEach(function (r) { parsePlatforms(r.platform).forEach(function (k) { used[k] = 1; }); });
   const myKeys = ['youtube'].concat(Object.keys(MY_CHANNELS).filter(function (k) { return k !== 'youtube' && used[k]; }));   // retos antiguos: también sus otras plataformas
   const my = myKeys.map(function (k) { return '<a class="btn-ghost" href="' + MY_CHANNELS[k] + '" target="_blank" rel="noopener noreferrer">' + (k === 'youtube' ? 'Mi canal de ' : '') + PROFILE[k].name + ' ↗</a>'; }).join('') +
@@ -635,18 +656,19 @@ function renderWinners() {
     list += '<div class="w-row' + (i < 3 ? ' top3' : '') + (done ? ' ok' : '') + '">' +
       '<div class="w-top"><span>' + (medals[i] || ('#' + (i + 1))) + '</span><b>' + esc(r.username) + '</b>' + (okName ? '' : '<span class="w-warn">⚠ nombre con espacios o símbolos raros</span>') + (tooFast(r) ? '<span class="w-warn">⚠ Muy rápido: ' + (r.time_taken_ms / S.winQ / 1000).toFixed(1) + ' s por pregunta. Revísalo bien antes de pagar.</span>' : '') + '</div>' +
       '<div class="w-stat">' + esc(r.correct_answers) + ' ✓ · ' + msClock(r.time_taken_ms) + ' ' + chips + (plats.length ? '' : ' <span class="muted">(no indicó plataforma)</span>') + '</div>' +
+      '<div class="w-prize">💰 ' + (bonusP ? (done ? 'Premio a entregar: <b>' + esc(bonusP) + '</b> (suscrito, x5)' : 'Premio a entregar: <b>' + esc(baseP) + '</b> · si está suscrito: ' + esc(bonusP)) : 'Premio: <b>' + esc(baseP) + '</b>') + '</div>' +
       '<div class="w-actions">' + links +
         '<button class="btn-ghost" data-act="copy-name" data-name="' + esc(r.username) + '" type="button">📋 Copiar nombre</button>' +
-        '<button class="btn-ghost' + (done ? ' on' : '') + '" data-act="verify" data-key="' + esc(key) + '" type="button">' + (done ? '✔ Verificado' : 'Marcar verificado') + '</button>' +
+        '<button class="btn-ghost' + (done ? ' on' : '') + '" data-act="verify" data-key="' + esc(key) + '" type="button">' + (done ? '✔ Suscrito' : 'Marcar suscrito') + '</button>' +
         '<button class="btn-ghost btn-danger" data-act="disq" data-name="' + esc(r.username) + '" type="button">🗑 Descalificar</button>' +
       '</div></div>';
   });
   openModal('<h3>🏆 Ganadores · ' + esc(id) + '</h3>' +
-    '<div class="w-note"><b>Cómo comprobar que está suscrito (10 segundos por ganador):</b><ol>' +
+    '<div class="w-note"><b>Cómo decidir el premio de cada ganador (10 segundos):</b><ol>' +
       '<li>Pulsa <b>📋 Copiar nombre</b>.</li>' +
       '<li>Abre <b>YouTube Studio</b> con el botón de abajo y entra a la lista de tus suscriptores.</li>' +
-      '<li>Pega el nombre en el buscador de esa lista. Si aparece, pulsa <b>Marcar verificado</b>. Ojo: en esa lista solo salen quienes tienen su suscripción pública. Si no sale, pídele que te enseñe tu canal con el botón «Suscrito» antes de descalificarlo.</li></ol>' +
-      'Hazlo con los 3 primeros antes de entregar el premio. Si ves <b>⚠ Muy rápido</b>, desconfía: es un tiempo casi imposible para una persona. Si alguno no está suscrito, pulsa <b>🗑 Descalificar</b> y el siguiente sube un puesto.</div>' +
+      '<li>Pega el nombre en el buscador. Si aparece, pulsa <b>Marcar suscrito</b>: su premio pasa a ser el x5. Ojo: en esa lista solo salen quienes tienen su suscripción pública. Si no sale, pídele que te enseñe tu canal con el botón «Suscrito» antes de darle solo el premio base.</li></ol>' +
+      'Quien no está suscrito también gana: recibe el premio base. Descalifica (<b>🗑</b>) solo si hay trampa: nombre falso, resultado imposible o <b>⚠ Muy rápido</b>; entonces el siguiente sube un puesto.</div>' +
     '<div class="my-ch"><span>Mis canales:</span>' + my + '</div>' + list +
     '<div class="modal-actions"><button class="btn-ghost" data-act="close-modal" type="button">Cerrar</button></div>');
 }
@@ -672,6 +694,7 @@ document.addEventListener('input', function (e) {
   const t = e.target, d = t.dataset || {};
   if (d.f) {
     S.form[d.f] = t.value;
+    if (d.f === 'prize') { const ph = document.getElementById('prize-hint'); if (ph) ph.textContent = prizeHintText(t.value); }
     if (d.f === 'start') refreshWhen();
     refreshSummary(); recheck();
   } else if (d.q !== undefined) {
