@@ -147,6 +147,10 @@
   .btn-ghost.on { background: var(--green); border-color: var(--neon); color: #fff; }
   .w-warn { color: var(--gold); font-size: 12px; }
 .w-prize { font-size: 13px; margin: 0 0 8px; color: var(--gold); }
+.w-paid { font-size: 13px; margin: 0 0 8px; color: #86efac; }
+.paid-total { margin: 0 0 12px; padding: 10px 12px; border-radius: 12px; border: 1px solid rgba(250,204,21,0.35); background: rgba(250,204,21,0.08); font-size: 14px; }
+.chk { display: flex; gap: 8px; align-items: center; margin: 12px 0; font-size: 14px; }
+.chk input { width: auto; }
 .at-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; padding: 8px 0; border-bottom: 1px solid var(--line); font-size: 14px; }
 .at-row b { flex: 1 1 120px; word-break: break-all; }
 </style>
@@ -178,7 +182,7 @@ function loadSession() { try { return JSON.parse(localStorage.getItem(SKEY)); } 
 const S = {
   session: loadSession(),
   games: [], gamesLoaded: false,
-  form: { title: '', code: '', prize: '10€', start: '', minutes: '5', questions: freshQuestions() },
+  form: { title: '', code: '', prize: '$10', start: '', minutes: '5', questions: freshQuestions() },
   errors: {}, errShown: false, busy: false, created: null
 };
 
@@ -225,7 +229,7 @@ function explain(err) {
   if (err && err.expired) return 'Tu sesión expiró. Vuelve a entrar.';
   if (err && err.status === 403 && /42501/.test(err.body || '')) return 'Tu cuenta no tiene permiso para crear o borrar retos. Falta ejecutar el SQL de permisos (paso 1 de la configuración) o entraste con otro correo.';
   if (err && (err.status === 409 || /23505/.test(err.body || ''))) return 'Ese código ya existe. Elige otro.';
-  if (err && err.status === 404) return 'Falta ejecutar el SQL de seguridad (seguridad.sql) en Supabase antes de usar esta función.';
+  if (err && err.status === 404) return 'Falta ejecutar el SQL en Supabase (PASO-1 y PASO-1b) antes de usar esta función.';
   if (err instanceof TypeError) return 'No hay conexión. Revisa tu internet e inténtalo de nuevo.';
   return 'No se pudo completar. Inténtalo de nuevo.';
 }
@@ -278,7 +282,7 @@ function appHtml() {
           '<div><label for="f-title">Nombre del reto</label><input id="f-title" data-f="title" maxlength="40" placeholder="Ej: Trivia General" value="' + esc(f.title) + '"><div class="err" data-err="title"></div></div>' +
           '<div><label for="f-code">Código de acceso</label><div class="inline"><input id="f-code" class="code-input" data-f="code" maxlength="10" autocapitalize="characters" autocomplete="off" spellcheck="false" placeholder="YG18372" value="' + esc(f.code) + '"><button class="btn-ghost" data-act="gen-code" type="button">🎲 Generar</button></div>' +
             '<div class="hint">Lo que tus seguidores escribirán para entrar. Letras y números, hasta 10 (ej: rkfkfkf, Yougu, yg18372).</div><div class="err" data-err="code"></div></div>' +
-          '<div><label for="f-prize">Premio base</label><input id="f-prize" data-f="prize" maxlength="30" placeholder="10€" value="' + esc(f.prize) + '"><div class="hint" id="prize-hint">' + esc(prizeHintText(f.prize)) + '</div><div class="err" data-err="prize"></div></div>' +
+          '<div><label for="f-prize">Premio base</label><input id="f-prize" data-f="prize" maxlength="30" placeholder="$10" value="' + esc(f.prize) + '"><div class="hint" id="prize-hint">' + esc(prizeHintText(f.prize)) + '</div><div class="err" data-err="prize"></div></div>' +
           '<div><label for="f-minutes">Tiempo límite (minutos)</label><input id="f-minutes" data-f="minutes" type="number" min="1" max="60" inputmode="numeric" value="' + esc(f.minutes) + '">' +
             '<div class="quick"><button class="pill" data-act="quick-min" data-v="3" type="button">3 min</button><button class="pill" data-act="quick-min" data-v="5" type="button">5 min</button><button class="pill" data-act="quick-min" data-v="10" type="button">10 min</button></div>' +
             '<div class="err" data-err="minutes"></div></div>' +
@@ -354,7 +358,7 @@ function validate() {
   if (!code) er.code = 'Escribe un código o pulsa «Generar».';
   else if (!/^[A-Z0-9_-]+$/.test(code)) er.code = 'Usa solo letras (sin acentos ni ñ), números, guion (-) o guion bajo (_). Sin espacios.';
   else if (code.length < 3 || code.length > 10) er.code = 'El código debe tener entre 3 y 10 caracteres.';
-  if (!f.prize.trim()) er.prize = 'Escribe el premio base (ej: 10€).';
+  if (!f.prize.trim()) er.prize = 'Escribe el premio base (ej: $10).';
   const d = parseStart(f.start);
   if (!d) er.start = 'Elige la fecha y la hora de inicio.';
   else if (d.getTime() < Date.now() + 60000) er.start = 'Esa hora ya pasó. Elige una hora futura.';
@@ -469,7 +473,7 @@ function prizeBonus(p) {
 function prizeHintText(p) {
   const b = prizeBonus(p), t = String(p || '').trim();
   if (b) return 'Quien gane y esté suscrito a YOU en YouTube recibe 5 veces el premio base: ' + b + '. Los demás reciben ' + t + '.';
-  return t ? 'No pude calcular el x5 de este premio: escribe una sola cantidad, por ejemplo 10€. Los jugadores no verán el x5.' : 'Escribe el premio base, por ejemplo 10€. El x5 para suscriptores se calcula solo.';
+  return t ? 'No pude calcular el x5 de este premio: escribe una sola cantidad, por ejemplo $10. Los jugadores no verán el x5.' : 'Escribe el premio base, por ejemplo $10. El x5 para suscriptores se calcula solo.';
 }
 function announceText() {
   const c = S.created, w = whenInfo(c.start);
@@ -482,6 +486,7 @@ async function loadGames() {
     S.games = await (await api('games?select=id,title,prize,start_time,game_duration_seconds&order=start_time.desc&limit=100')).json();
     S.gamesLoaded = true;
   } catch (e) { S.gamesLoaded = true; if (e.expired) return; toast(explain(e), true); }
+  await loadPaid();
   renderGames();
 }
 function renderGames() {
@@ -489,12 +494,12 @@ function renderGames() {
   if (!S.gamesLoaded) { el.innerHTML = '<div class="empty">Cargando…</div>'; return; }
   if (!S.games.length) { el.innerHTML = '<div class="empty">Todavía no hay retos. Crea el primero arriba. 👆</div>'; return; }
   const now = Date.now();
-  el.innerHTML = S.games.map(function (g) {
+  el.innerHTML = paidHeader() + S.games.map(function (g) {
     const st = new Date(g.start_time).getTime(), en = st + (g.game_duration_seconds || 300) * 1000;
     const kind = now < st ? ['Programado', 'b-prog'] : (now <= en ? ['En vivo', 'b-live'] : ['Terminado', 'b-end']);
     const w = whenInfo(new Date(g.start_time));
     return '<div class="g-row"><span class="g-code">' + esc(g.id) + '</span>' +
-      '<div class="g-main"><div class="g-title">' + esc(g.title) + '</div><div class="g-meta">' + esc(w.date.split(',')[0] + ' ' + w.time) + ' · ' + Math.round((g.game_duration_seconds || 300) / 60) + ' min · ' + esc(g.prize) + '</div></div>' +
+      '<div class="g-main"><div class="g-title">' + esc(g.title) + '</div><div class="g-meta">' + esc(w.date.split(',')[0] + ' ' + w.time) + ' · ' + Math.round((g.game_duration_seconds || 300) / 60) + ' min · ' + esc(g.prize) + (S.paidByGame && S.paidByGame[g.id] ? ' · 💸 ' + esc(usd(S.paidByGame[g.id])) + ' entregado' : '') + '</div></div>' +
       '<span class="badge ' + kind[1] + '">' + kind[0] + '</span>' +
       '<div class="g-actions"><button class="btn-ghost" data-act="winners" data-id="' + esc(g.id) + '" type="button">🏆 Ganadores</button>' +
       '<button class="btn-ghost" data-act="copy-game" data-id="' + esc(g.id) + '" type="button">📋 Código</button>' +
@@ -524,7 +529,7 @@ async function askDelete(id) {
     const res = await api('participations?game_id=eq.' + encodeURIComponent(id) + '&select=id', { method: 'HEAD', headers: { 'Prefer': 'count=exact' } });
     const m = /\/(\d+)$/.exec(res.headers.get('content-range') || ''); n = m ? +m[1] : 0;
   } catch (e) { if (e.expired) return; }
-  openModal('<h3>¿Eliminar el reto ' + esc(id) + '?</h3><p class="muted">Se borrarán también sus preguntas, sus intentos' + (n ? ' y <b>' + n + ' resultados de jugadores</b>' : '') + '. Esta acción no se puede deshacer.' + (n ? ' Si ya entregaste premios, guarda antes una captura de los ganadores.' : '') + '</p>' +
+  openModal('<h3>¿Eliminar el reto ' + esc(id) + '?</h3><p class="muted">Se borrarán también sus preguntas, sus intentos' + (n ? ' y <b>' + n + ' resultados de jugadores</b>' : '') + '. Esta acción no se puede deshacer.' + (n ? ' Si ya entregaste premios, guarda antes una captura de los ganadores.' : '') + (S.paidByGame && S.paidByGame[id] ? ' <b>Este reto tiene un premio entregado registrado (' + esc(usd(S.paidByGame[id])) + '): al eliminarlo se borra ese registro y baja el «Dinero repartido» público.</b>' : '') + '</p>' +
     '<div class="modal-actions"><button class="btn-ghost" data-act="close-modal" type="button">Cancelar</button><button class="btn" data-act="confirm-del" data-id="' + esc(id) + '" type="button" style="background:linear-gradient(135deg,#dc2626,#7f1d1d);padding:13px;">Sí, eliminar</button></div>');
 }
 async function deleteGame(id) {
@@ -580,6 +585,7 @@ async function runSecurityCheck() {
   await probe('Un visitante NO puede leer las preguntas con sus respuestas', 'questions?select=*&limit=1', {}, blocked);
   await probe('Un visitante NO puede leer las respuestas correctas', 'question_keys?select=*&limit=1', {}, blocked);
   await probe('Un visitante NO puede ver los intentos de los jugadores', 'attempts?select=*&limit=1', {}, blocked);
+  await probe('Un visitante NO puede ver los premios entregados', 'payouts?select=*&limit=1', {}, blocked);
   await probe('Un visitante NO puede inventarse un resultado', 'participations', { method: 'POST', headers: { 'Prefer': 'return=minimal' }, body: JSON.stringify({ game_id: '__prueba__', username: '__prueba__', platform: 'x', correct_answers: 99, time_taken_ms: 1 }) }, function (st) { return st === 401 || st === 403; });
   await probe('Un visitante NO puede modificar los retos', 'games?id=eq.__prueba__', { method: 'PATCH', headers: { 'Prefer': 'return=minimal' }, body: JSON.stringify({ title: 'x' }) }, function (st) { return st === 401 || st === 403; });
   await probe('El servidor entrega la hora oficial', 'rpc/server_now', { method: 'POST', body: '{}' }, function (st, t) { return st === 200 && /^\d{12,}$/.test(t); });
@@ -634,9 +640,60 @@ async function showWinners(id) {
     S.winners = await (await api('participations?game_id=eq.' + encodeURIComponent(id) + '&select=username,platform,correct_answers,time_taken_ms&order=correct_answers.desc,time_taken_ms.asc&limit=10')).json();
   } catch (e) { closeModal(); if (!e.expired) toast(explain(e), true); return; }
   try { S.winQ = (await (await api('questions?game_id=eq.' + encodeURIComponent(id) + '&select=id')).json()).length; } catch (e) { S.winQ = 0; }
+  S.winPay = {};
+  try { const pr = await (await api('payouts?game_id=eq.' + encodeURIComponent(id) + '&select=id,username,amount,subscribed,note,paid_at')).json(); (Array.isArray(pr) ? pr : []).forEach(function (r) { S.winPay[r.username] = r; }); } catch (e) {}
   renderWinners();
 }
 // Alarma: nadie lee, piensa y toca una respuesta en menos de 2,5 s por pregunta. No es una prueba, es un aviso para revisar con cuidado.
+// ---------- Premios entregados ----------
+function usd(n) { return '$' + Number(n).toLocaleString('en-US', { maximumFractionDigits: 2 }); }
+function shortDate(iso) { try { return new Date(iso).toLocaleDateString('es', { day: 'numeric', month: 'short', year: 'numeric' }); } catch (e) { return ''; } }
+function moneyOf(p) { const m = String(p === null || p === undefined ? '' : p).trim().match(/^\D*?(\d+(?:[.,]\d+)?)\D*$/); return m ? parseFloat(m[1].replace(',', '.')) : 0; }
+// Solo formatos claros: 50 · $50 · 12,5 · 12.50 · 50 USD. Todo lo demás (negativos, letras, miles ambiguos como 1,000) se rechaza.
+function parseAmount(v) { const m = String(v || '').trim().match(/^\$?\s*(\d+(?:[.,]\d{1,2})?)\s*(?:usd)?$/i); return m ? Math.round(parseFloat(m[1].replace(',', '.')) * 100) / 100 : NaN; }
+async function loadPaid() {
+  try {
+    const rows = await (await api('payouts?select=game_id,amount&limit=2000')).json();
+    S.paidByGame = {}; S.paidTotal = 0;
+    (Array.isArray(rows) ? rows : []).forEach(function (r) { const v = Number(r.amount) || 0; S.paidByGame[r.game_id] = (S.paidByGame[r.game_id] || 0) + v; S.paidTotal += v; });
+    S.paidTotal = Math.round(S.paidTotal * 100) / 100;
+  } catch (e) { S.paidByGame = S.paidByGame || {}; S.paidTotal = S.paidTotal || 0; }
+}
+function paidHeader() { const n = Object.keys(S.paidByGame || {}).length; return (S.paidTotal > 0) ? '<div class="paid-total">💸 Total entregado: <b>' + esc(usd(S.paidTotal)) + '</b> en ' + n + (n === 1 ? ' reto' : ' retos') + '. Es lo que ve el público en «Dinero repartido».</div>' : ''; }
+function openPay(i) {
+  const r = (S.winners || [])[i]; if (!r) return;
+  const gm = S.games.filter(function (x) { return x.id === S.winnersFor; })[0], baseP = gm ? gm.prize : '', bonusP = prizeBonus(baseP);
+  const sub = !!getVer()[S.winnersFor + '|' + r.username];
+  S.payDraft = { i: i, base: moneyOf(baseP), bonus: bonusP ? moneyOf(bonusP) : 0 };
+  const amount = (sub && S.payDraft.bonus) ? S.payDraft.bonus : S.payDraft.base;
+  openModal('<h3>💸 Registrar premio entregado</h3><p class="muted">Ganador: <b>' + esc(r.username) + '</b> · reto ' + esc(S.winnersFor) + '. Este monto se suma al «Dinero repartido» que ve el público.</p>' +
+    '<div><label for="pay-amount">Monto entregado (USD)</label><input id="pay-amount" inputmode="decimal" maxlength="12" placeholder="50" value="' + esc(amount ? String(amount) : '') + '"></div>' +
+    '<label class="chk"><input type="checkbox" id="pay-sub"' + (sub ? ' checked' : '') + (S.payDraft.bonus ? '' : ' disabled') + '> Estaba suscrito a YOU en YouTube (x5)</label>' +
+    '<div><label for="pay-note">Nota (opcional, solo la ves tú)</label><input id="pay-note" maxlength="80" placeholder="Ej: enviado por PayPal"></div>' +
+    '<div class="err" id="pay-err"></div>' +
+    '<div class="modal-actions"><button class="btn-ghost" data-act="back-winners" type="button">Cancelar</button><button class="btn" id="pay-save" data-act="pay-save" type="button" style="padding:13px;">Guardar</button></div>');
+}
+async function savePay() {
+  const d = S.payDraft || {}, r = (S.winners || [])[d.i]; if (!r) return;
+  const amount = parseAmount(document.getElementById('pay-amount').value), err = document.getElementById('pay-err'), btn = document.getElementById('pay-save');
+  if (!(amount > 0) || amount > 100000) { err.textContent = 'Escribe el monto entregado (por ejemplo 50).'; return; }
+  btn.disabled = true; btn.textContent = 'Guardando…';
+  try {
+    const res = await api('payouts', { method: 'POST', headers: { 'Prefer': 'return=representation' }, body: JSON.stringify({ game_id: S.winnersFor, username: r.username, amount: amount, subscribed: !!document.getElementById('pay-sub').checked, note: (document.getElementById('pay-note').value || '').trim().slice(0, 80) || null }) });
+    const row = (await res.json())[0]; if (row) S.winPay[r.username] = row;
+    await loadPaid(); renderGames(); renderWinners(); toast('Premio registrado: ' + usd(amount));
+  } catch (e) {
+    if (e.expired) return; btn.disabled = false; btn.textContent = 'Guardar';
+    err.textContent = (e.status === 409 || /duplicate|unique|23505/i.test(String(e.message || ''))) ? 'Ya registraste el premio de este ganador.' : explain(e);
+  }
+}
+async function unpay(id) {
+  try {
+    await api('payouts?id=eq.' + encodeURIComponent(id), { method: 'DELETE' });
+    Object.keys(S.winPay || {}).forEach(function (u) { if (S.winPay[u].id === id) delete S.winPay[u]; });
+    await loadPaid(); renderGames(); renderWinners(); toast('Entrega deshecha.');
+  } catch (e) { if (!e.expired) toast(explain(e), true); }
+}
 function tooFast(r) { return (S.winQ || 0) > 0 && r.time_taken_ms / S.winQ < 2500; }
 function renderWinners() {
   const id = S.winnersFor, rows = S.winners || [], ver = getVer(), medals = ['🥇', '🥈', '🥉'];
@@ -650,15 +707,17 @@ function renderWinners() {
   rows.forEach(function (r, i) {
     const plats = parsePlatforms(r.platform), shown = plats.length ? plats : ['twitch', 'tiktok', 'youtube'];
     const okName = /^[A-Za-z0-9._-]{2,30}$/.test(r.username || '');
-    const key = id + '|' + r.username, done = !!ver[key];
+    const key = id + '|' + r.username, done = !!ver[key], pay = (S.winPay || {})[r.username];
     const links = shown.map(function (k) { return '<a class="btn-ghost" href="' + esc(PROFILE[k].url(r.username)) + '" target="_blank" rel="noopener noreferrer">Su perfil en ' + PROFILE[k].name + ' ↗</a>'; }).join('');
     const chips = (plats.length ? plats : []).map(function (k) { return '<span class="chip2">' + PROFILE[k].name + '</span>'; }).join('');
     list += '<div class="w-row' + (i < 3 ? ' top3' : '') + (done ? ' ok' : '') + '">' +
       '<div class="w-top"><span>' + (medals[i] || ('#' + (i + 1))) + '</span><b>' + esc(r.username) + '</b>' + (okName ? '' : '<span class="w-warn">⚠ nombre con espacios o símbolos raros</span>') + (tooFast(r) ? '<span class="w-warn">⚠ Muy rápido: ' + (r.time_taken_ms / S.winQ / 1000).toFixed(1) + ' s por pregunta. Revísalo bien antes de pagar.</span>' : '') + '</div>' +
       '<div class="w-stat">' + esc(r.correct_answers) + ' ✓ · ' + msClock(r.time_taken_ms) + ' ' + chips + (plats.length ? '' : ' <span class="muted">(no indicó plataforma)</span>') + '</div>' +
+      (pay ? '<div class="w-paid">✔ Entregado: <b>' + esc(usd(pay.amount)) + '</b> · ' + esc(shortDate(pay.paid_at)) + (pay.subscribed ? ' · suscrito (x5)' : '') + (pay.note ? ' · ' + esc(pay.note) : '') + '</div>' : '') +
       '<div class="w-prize">💰 ' + (bonusP ? (done ? 'Premio a entregar: <b>' + esc(bonusP) + '</b> (suscrito, x5)' : 'Premio a entregar: <b>' + esc(baseP) + '</b> · si está suscrito: ' + esc(bonusP)) : 'Premio: <b>' + esc(baseP) + '</b>') + '</div>' +
       '<div class="w-actions">' + links +
         '<button class="btn-ghost" data-act="copy-name" data-name="' + esc(r.username) + '" type="button">📋 Copiar nombre</button>' +
+ (pay ? '<button class="btn-ghost" data-act="unpay" data-id="' + esc(pay.id) + '" type="button">↩ Deshacer entrega</button>' : '<button class="btn-ghost" data-act="pay" data-i="' + i + '" type="button">💸 Registrar premio entregado</button>') +
         '<button class="btn-ghost' + (done ? ' on' : '') + '" data-act="verify" data-key="' + esc(key) + '" type="button">' + (done ? '✔ Suscrito' : 'Marcar suscrito') + '</button>' +
         '<button class="btn-ghost btn-danger" data-act="disq" data-name="' + esc(r.username) + '" type="button">🗑 Descalificar</button>' +
       '</div></div>';
@@ -702,6 +761,9 @@ document.addEventListener('input', function (e) {
     if (d.k === 'text') q.text = t.value; else q.opts[+d.o] = t.value;
     refreshSummary(); recheck();
   }
+});
+document.addEventListener('change', function (e) {
+  if (e.target && e.target.id === 'pay-sub') { const d = S.payDraft || {}, v = (e.target.checked && d.bonus) ? d.bonus : d.base, inp = document.getElementById('pay-amount'); if (inp && v) inp.value = String(v); }
 });
 document.addEventListener('submit', async function (e) {
   if (e.target.id !== 'login-form') return;
@@ -748,6 +810,14 @@ document.addEventListener('click', async function (e) {
   if (act === 'winners') { showWinners(el.dataset.id); return; }
   if (act === 'copy-name') { copyText(el.dataset.name, 'Nombre copiado: ' + el.dataset.name); return; }
   if (act === 'verify') { toggleVerified(el.dataset.key); return; }
+  if (act === 'pay') { openPay(+el.dataset.i); return; }
+  if (act === 'pay-save') { savePay(); return; }
+  if (act === 'unpay') {
+    if (el.dataset.armed) { el.disabled = true; el.textContent = 'Deshaciendo…'; unpay(el.dataset.id); return; }
+    el.dataset.armed = '1'; el.textContent = '¿Seguro? Pulsa otra vez';
+    setTimeout(function () { if (el.isConnected && el.dataset.armed) { delete el.dataset.armed; el.textContent = '↩ Deshacer entrega'; } }, 4000);
+    return;
+  }
   if (act === 'disq') { askDisqualify(el.dataset.name); return; }
   if (act === 'disq-yes') { el.disabled = true; el.textContent = 'Descalificando…'; disqualify(el.dataset.name); return; }
   if (act === 'back-winners') { renderWinners(); return; }

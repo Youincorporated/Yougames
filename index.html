@@ -994,7 +994,7 @@ function fitPanelTitle() {
 function emptyRight() {
   return { loaded: false, error: false, hasData: false, gamesPlayed: 0, moneyTotal: 0, podium: [], nextGame: null, liveGame: null, myPlace: 0, myRow: null, myGame: '' };
 }
-// Premio x5 para quienes están suscritos a YOU en YouTube. El organizador solo escribe el premio base ("10€", "$10", "10 EUR").
+// Premio x5 para quienes están suscritos a YOU en YouTube. El organizador solo escribe el premio base ("$10", "10 USD").
 const SUB_MULTIPLIER = 5;
 function prizeBonus(p) {
   const m = String(p === null || p === undefined ? '' : p).trim().match(/^(\D*?)(\d+(?:[.,]\d+)?)(\D*)$/);   // un solo número, con o sin moneda
@@ -1007,8 +1007,6 @@ function prizeBonus(p) {
   if (dec && raw.indexOf(',') >= 0) out = out.replace('.', ',');
   return m[1] + out + m[3];
 }
-function prizeSym(p) { p = String(p || ''); return /€|EUR/i.test(p) ? '€' : /£|GBP/i.test(p) ? '£' : /\$|USD/i.test(p) ? '$' : ''; }
-function finishedSym(list) { for (let i = 0; i < list.length; i++) { const c = prizeSym(list[i].prize); if (c) return c; } return '$'; }
 function parsePrize(p) {
   const n = parseFloat(String(p === null || p === undefined ? '' : p).replace(/[^0-9.]/g, ''));
   return isNaN(n) ? 0 : n;
@@ -1032,11 +1030,19 @@ async function sbFetchGameWinners() {
   return await res.json();
 }
 
+// Total de premios realmente entregados. Si el registro aún no existe en la base de datos, cuenta 0.
+async function sbFetchPaidTotal() {
+  try {
+    const res = await sbReq(SUPABASE_URL + '/rest/v1/payout_stats?select=total', { method: 'GET', headers: sbHeaders }, 2);
+    const rows = await res.json();
+    return (Array.isArray(rows) && rows[0] && Number(rows[0].total)) || 0;
+  } catch (e) { return 0; }
+}
 async function loadRightData() {
   if (state.screen !== 'home') return;
   try {
-    const results = await Promise.all([sbFetchAllGames(), sbFetchGameWinners()]);
-    const games = results[0], winners = results[1];
+    const results = await Promise.all([sbFetchAllGames(), sbFetchGameWinners(), sbFetchPaidTotal()]);
+    const games = results[0], winners = results[1], paid = results[2];
     const now = nowMs();
     const startOf = function (g) { return new Date(g.start_time).getTime(); };
     const endOf = function (g) { return startOf(g) + (g.game_duration_seconds || 300) * 1000; };
@@ -1056,9 +1062,7 @@ async function loadRightData() {
       loaded: true, error: false, hasData: true,
       myPlace: mine.place, myRow: mine.row, myGame: mine.game,
       gamesPlayed: finished.length,
-      // La estadística cuenta el premio base, en la moneda del reto más reciente (no mezcla monedas)
-      moneySym: finishedSym(finished),
-      moneyTotal: finished.reduce(function (acc, g) { const c = prizeSym(g.prize); return (c && c !== finishedSym(finished)) ? acc : acc + parsePrize(g.prize); }, 0),
+      moneyTotal: paid,      // dinero repartido = premios realmente entregados (los registra el organizador)
       podium: podium, nextGame: upcoming[0] || null, liveGame: live
     };
     if (mine.place) prepareCard();
@@ -1132,7 +1136,7 @@ function htmlStatsPanel() {
   const r = state.right, ok = r.hasData;
   return '<div class="stats-row">' +
     '<div class="stat-cell"><div class="stat-big">' + (ok ? r.gamesPlayed : '—') + '</div><div class="stat-cap">Retos Jugados&nbsp;' + glow('🧠') + '</div></div>' +
-    '<div class="stat-cell money"><div class="stat-big">' + (ok ? fmtMoney(r.moneyTotal, r.moneySym) : '—') + '</div><div class="stat-cap">Dinero repartido&nbsp;' + glow('💰') + '</div></div>' +
+    '<div class="stat-cell money"><div class="stat-big">' + (ok ? fmtMoney(r.moneyTotal) : '—') + '</div><div class="stat-cap">Dinero repartido&nbsp;' + glow('💰') + '</div></div>' +
   '</div>';
 }
 
