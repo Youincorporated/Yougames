@@ -841,6 +841,13 @@
   .yt-go { flex: 0 0 auto; font-size: 20px; opacity: 0.85; }
   @keyframes ytGlow { 0%, 70%, 100% { box-shadow: 0 0 0 rgba(255,0,0,0); } 82% { box-shadow: 0 0 22px rgba(255,0,0,0.55); } }
   @media (prefers-reduced-motion: reduce) { .yt-follow { animation: none; } }
+
+  .live-big { margin: 10px 0 6px; text-align: center; font-family: 'Bebas Neue', sans-serif; font-size: clamp(28px, 5.2vw, 40px); line-height: 1.02; letter-spacing: 0.03em; color: #ff6b6b; text-shadow: 0 0 18px rgba(255,60,60,0.45); animation: livePulse 1.6s ease-in-out infinite; }
+  .live-lbl { text-align: center; margin-top: 10px; font-size: 12px; letter-spacing: 0.2em; color: var(--text-dim); }
+  .live-left { text-align: center; margin: 2px 0 6px; font-family: 'Space Mono', monospace; font-weight: 700; font-size: clamp(44px, 9vw, 60px); letter-spacing: 0.04em; color: #fff; }
+  .live-left.low { color: #ff4d4d; }
+  @keyframes livePulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.72; } }
+  @media (prefers-reduced-motion: reduce) { .live-big { animation: none; } }
 </style>
 </head>
 <body>
@@ -1095,8 +1102,17 @@ function updateRightPanels() {
 // Contador del próximo reto: se recalcula desde la hora real cada 250 ms (nunca acumula retraso)
 let lastNextReload = 0;
 function tickNext() {
-  const g = state.right && state.right.nextGame;
-  if (!g || state.screen !== 'home') return;
+  const r = state.right;
+  if (!r || state.screen !== 'home') return;
+  if (r.liveGame) {   // mientras se juega: el tiempo restante del reto corre aquí
+    const lv = r.liveGame, left = Math.round((new Date(lv.start_time).getTime() + (lv.game_duration_seconds || 300) * 1000 - nowMs()) / 1000);
+    const el = document.getElementById('live-left');
+    if (el) { el.textContent = fmtTime(Math.max(0, left)); el.classList.toggle('low', left <= 30); }
+    if (left <= 0 && nowMs() - lastNextReload > 10000) { lastNextReload = nowMs(); loadHomeData(); }   // al terminar, la portada vuelve a su estado normal
+    return;
+  }
+  const g = r.nextGame;
+  if (!g) return;
   const diff = new Date(g.start_time).getTime() - nowMs();
   const p = cdParts(diff);
   setText('cd-d', pad2(p.d)); setText('cd-h', pad2(p.h)); setText('cd-m', pad2(p.m)); setText('cd-s', pad2(p.s));
@@ -1311,6 +1327,8 @@ function htmlPodiumBanner() {
   '</div>';
 }
 
+// Emoji junto al nombre en el podio: 1.º 😎 · 2.º 😤 · 3.º 🫠 (la corona de arriba del 1.º se queda)
+function podEmoji(pos) { return ' ' + ({ 1: '😎', 2: '😤', 3: '🫠' }[pos] || ''); }
 function htmlPodiumPanel() {
   const r = state.right;
   const head = '<div class="panel-head"><div class="panel-title"><span class="emoji-shine" style="' + sdStyle() + '">🏅</span> PODIO DEL ÚLTIMO RETO</div></div>';
@@ -1330,7 +1348,7 @@ function htmlPodiumPanel() {
     }
     cols += '<div class="pod-col ' + sl.cls + '">' +
       (sl.pos === 1 ? '<span class="crown-shine pod-crown" style="' + sdStyle() + '">👑</span>' : '') +
-      '<div class="pod-name">' + esc(sl.p.username) + '</div>' +
+      '<div class="pod-name">' + esc(sl.p.username) + podEmoji(sl.pos) + '</div>' +
       '<div class="pod-score">' + esc(sl.p.correct_answers) + ' ✓ · ' + fmtMs(sl.p.time_taken_ms || 0) + '</div>' +
       '<div class="pod-block">' + sl.pos + '</div>' +
     '</div>';
@@ -1343,9 +1361,15 @@ function cdCell(id, val, label) {
 }
 
 function htmlNextPanel() {
-  const r = state.right, g = r.nextGame;
+  const r = state.right, g = r.nextGame, lv = r.liveGame;
+  if (lv) {   // hay un reto en juego: nada de "Por anunciar"
+    const left = Math.max(0, Math.round((new Date(lv.start_time).getTime() + (lv.game_duration_seconds || 300) * 1000 - nowMs()) / 1000));
+    return '<div class="panel-head"><div class="panel-title"><span class="emoji-shine soft" style="' + sdStyle() + '">🔴</span> RETO EN VIVO</div></div>' +
+      '<div class="live-big">SE ESTÁ JUGANDO UN RETO AHORA MISMO</div>' +
+      '<div class="live-lbl">TIEMPO RESTANTE</div>' +
+      '<div class="live-left' + (left <= 30 ? ' low' : '') + '" id="live-left">' + fmtTime(left) + '</div>';
+  }
   let out = '<div class="panel-head"><div class="panel-title"><span class="emoji-shine soft" style="' + sdStyle() + '">🕒</span> PRÓXIMO RETO</div></div>';
-  if (r.liveGame) out += '<div class="live-pill">🔴 ¡Reto en vivo ahora!</div>';
   if (g) {
     const p = cdParts(new Date(g.start_time).getTime() - nowMs());
     out += '<div class="cd-grid">' + cdCell('cd-d', p.d, 'días') + cdCell('cd-h', p.h, 'horas') + cdCell('cd-m', p.m, 'min') + cdCell('cd-s', p.s, 'seg') + '</div>';
@@ -2233,6 +2257,8 @@ A("Suscríbete a YOU en YouTube y, si ganas, tu premio se multiplica x5", "Subsc
 A("Suscribirte es opcional: puedes participar igual.", "Subscribing is optional: you can take part either way.", "Inscrever-se é opcional: você pode participar mesmo assim.", "Iscriversi è facoltativo: puoi partecipare comunque.", "Das Abonnieren ist freiwillig: Du kannst trotzdem teilnehmen.", "订阅是可选的：不订阅也可以参与。");
 A("Bonus de suscriptor", "Subscriber bonus", "Bônus de inscrito", "Bonus iscritti", "Abonnenten-Bonus", "订阅者奖励");
 A("Suscrito a YOU en YouTube: {x} (x5)", "Subscribed to YOU on YouTube: {x} (x5)", "Inscrito na YOU no YouTube: {x} (x5)", "Iscritto a YOU su YouTube: {x} (x5)", "Mit Abo bei YOU auf YouTube: {x} (x5)", "已订阅 YouTube 上的 YOU：{x}（x5）");
+A("RETO EN VIVO", "LIVE CHALLENGE", "DESAFIO AO VIVO", "SFIDA IN DIRETTA", "LIVE-CHALLENGE", "直播挑战");
+A("SE ESTÁ JUGANDO UN RETO AHORA MISMO", "A CHALLENGE IS BEING PLAYED RIGHT NOW", "UM DESAFIO ESTÁ ACONTECENDO AGORA MESMO", "UNA SFIDA È IN CORSO ADESSO", "GERADE LÄUFT EINE CHALLENGE", "现在正在进行一场挑战");
 const PFX = [
   ["Reto #", ["Challenge #", "Desafio #", "Sfida #", "Challenge #", "挑战 #"]],
   ["Pregunta ", ["Question ", "Pergunta ", "Domanda ", "Frage ", "问题 "]],
@@ -2774,7 +2800,7 @@ function finaleSlot(pos, row) {
   }
   const n = Number(row.correct_answers) || 0;
   return '<div class="fn-col ' + cls + '" data-p="' + pos + '">' + (pos === 1 ? '<div class="fn-crown">👑</div>' : '') +
-    '<div class="fn-plate"><div class="fn-name">' + esc(row.username) + crownsFor(row.username) + '</div>' +
+    '<div class="fn-plate"><div class="fn-name">' + esc(row.username) + podEmoji(pos) + '</div>' +
     '<div class="fn-stat">' + n + ' ✓ · ' + fmtMs(row.time_taken_ms || 0) + '</div></div>' +
     '<div class="fn-block"><span>' + pos + '</span></div></div>';
 }

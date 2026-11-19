@@ -147,6 +147,40 @@
   .btn-ghost.on { background: var(--green); border-color: var(--neon); color: #fff; }
   .w-warn { color: var(--gold); font-size: 12px; }
 .w-prize { font-size: 13px; margin: 0 0 8px; color: var(--gold); }
+.w-row.no { border-color: rgba(239,68,68,0.55); }
+.sub-yes.on { background: rgba(34,197,94,0.28); border-color: #22c55e; color: #fff; }
+.sub-no.on { background: rgba(239,68,68,0.28); border-color: #ef4444; color: #fff; }
+.modal { z-index: 90 !important; }
+.toast { z-index: 120 !important; }
+.live-overlay { position: fixed; inset: 0; z-index: 40; display: none; overflow-y: auto; background: radial-gradient(900px 500px at 50% -10%, rgba(34,197,94,0.13), transparent 60%), #030a06; }
+.lv-wrap { max-width: 980px; margin: 0 auto; padding: 16px 16px 120px; }
+.lv-head { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 14px; }
+.lv-title { font-family: 'Bebas Neue', sans-serif; font-size: 30px; letter-spacing: 0.05em; margin-right: auto; line-height: 1; }
+.lv-title small { display: block; margin-top: 4px; font-family: 'Inter', sans-serif; font-size: 12px; letter-spacing: 0; color: var(--dim); }
+.lv-head select { max-width: 260px; }
+.lv-status { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; padding: 12px 14px; margin-bottom: 12px; border: 1px solid var(--line); border-radius: 14px; background: rgba(255,255,255,0.03); }
+.lv-chip { display: inline-block; padding: 4px 10px; border: 1px solid var(--line); border-radius: 999px; font-size: 12.5px; font-weight: 700; }
+.lv-chip.live { background: rgba(239,68,68,0.18); border-color: #ef4444; color: #fecaca; }
+.lv-chip.done { background: rgba(34,197,94,0.15); border-color: #22c55e; color: #bbf7d0; }
+.lv-timer { font-family: 'Space Mono', monospace; font-size: 22px; font-weight: 700; }
+.lv-timer.low { color: #ff6b6b; }
+.lv-counts { color: var(--dim); font-size: 14px; }
+.lv-tools { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin-bottom: 14px; }
+.lv-tools .muted { flex: 1 1 280px; font-size: 13px; }
+.lv-h { margin: 18px 0 10px; font-size: 18px; }
+.lv-row { display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-start; margin-bottom: 10px; padding: 12px; border: 1px solid rgba(255,255,255,0.12); border-left: 6px solid rgba(255,255,255,0.18); border-radius: 14px; background: rgba(0,0,0,0.25); }
+.lv-row.st-yes { border-left-color: #22c55e; background: rgba(34,197,94,0.09); }
+.lv-row.st-no { border-left-color: #ef4444; background: rgba(239,68,68,0.09); }
+.lv-rank { width: 42px; font-size: 26px; text-align: center; }
+.lv-main { flex: 1 1 220px; min-width: 0; }
+.lv-name b { font-size: 18px; word-break: break-all; }
+.lv-stat { margin: 2px 0; color: var(--dim); font-size: 13.5px; }
+.lv-prize { font-size: 13px; color: var(--gold); }
+.lv-btns { display: flex; flex-wrap: wrap; gap: 8px; }
+.lv-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.lv-foot { margin-top: 22px; color: var(--dim); font-size: 12.5px; }
+.live-overlay a.btn, .live-overlay a.btn-ghost { text-decoration: none; display: inline-flex; align-items: center; }
+.lv-head select { background: #0c1a10; color: #fff; border: 1px solid var(--line); border-radius: 10px; padding: 9px 12px; font-size: 14px; }
 .w-paid { font-size: 13px; margin: 0 0 8px; color: #86efac; }
 .paid-total { margin: 0 0 12px; padding: 10px 12px; border-radius: 12px; border: 1px solid rgba(250,204,21,0.35); background: rgba(250,204,21,0.08); font-size: 14px; }
 .chk { display: flex; gap: 8px; align-items: center; margin: 12px 0; font-size: 14px; }
@@ -273,7 +307,7 @@ function loginHtml() {
 function appHtml() {
   const f = S.form;
   return '<div class="top"><img src="logo.webp" alt="YOU GAMES"><div class="h-title">PANEL DE RETOS</div>' +
-      '<div class="who">' + esc(S.session.email) + '</div><button class="btn-ghost" data-act="security" type="button">🛡️ Seguridad</button><button class="btn-ghost" data-act="logout">Salir</button></div>' +
+      '<div class="who">' + esc(S.session.email) + '</div><button class="btn-ghost" data-act="live-open" type="button">📡 Sala de control</button><button class="btn-ghost" data-act="security" type="button">🛡️ Seguridad</button><button class="btn-ghost" data-act="logout">Salir</button></div>' +
     '<div class="wrap">' +
       '<div id="created"></div>' +
       '<section class="card" id="step1">' +
@@ -504,6 +538,7 @@ function renderGames() {
       '<div class="g-actions"><button class="btn-ghost" data-act="winners" data-id="' + esc(g.id) + '" type="button">🏆 Ganadores</button>' +
       '<button class="btn-ghost" data-act="copy-game" data-id="' + esc(g.id) + '" type="button">📋 Código</button>' +
       '<button class="btn-ghost" data-act="use-q" data-id="' + esc(g.id) + '" type="button">Usar sus preguntas</button>' +
+      '<button class="btn-ghost" data-act="live-open" data-id="' + esc(g.id) + '" type="button">📡 Sala de control</button>' +
       '<button class="btn-ghost" data-act="attempts" data-id="' + esc(g.id) + '" type="button">👥 Intentos</button>' +
       '<button class="btn-ghost btn-danger" data-act="del-game" data-id="' + esc(g.id) + '" type="button">🗑 Eliminar</button></div></div>';
   }).join('');
@@ -645,6 +680,129 @@ async function showWinners(id) {
   renderWinners();
 }
 // Alarma: nadie lee, piensa y toca una respuesta en menos de 2,5 s por pregunta. No es una prueba, es un aviso para revisar con cuidado.
+// ---------- Estado de suscripción de cada ganador: verde (suscrito) · rojo (no suscrito) · sin comprobar ----------
+function getSubs() { try { return JSON.parse(localStorage.getItem('yg_subs') || '{}'); } catch (e) { return {}; } }
+function getSub(gid, u) { const k = gid + '|' + u, m = getSubs(); if (m[k] === 'yes' || m[k] === 'no') return m[k]; if (m[k] === '-') return ''; return getVer()[k] ? 'yes' : ''; }   // lo marcado antes como "verificado" cuenta como suscrito
+function setSub(gid, u, val) { const m = getSubs(); m[gid + '|' + u] = val || '-'; try { localStorage.setItem('yg_subs', JSON.stringify(m)); } catch (e) {} }
+
+// ---------- Sala de control en vivo (solo la ves tú; no sale en el directo) ----------
+const STUDIO_URL = 'https://studio.youtube.com';
+const LV = { open: false, gid: '', rows: [], att: [], pays: [], q: 0, off: 0, sig: '', phase: '', last: 0, err: '', busy: false, pollMs: 4000, poll: null, tick: null };
+function lpad(n) { return String(n).padStart(2, '0'); }
+function gStart(g) { return new Date(g.start_time).getTime(); }
+function gEnd(g) { return gStart(g) + (g.game_duration_seconds || 300) * 1000; }
+function lnow() { return Date.now() + LV.off; }
+function liveGame() { return S.games.filter(function (g) { return g.id === LV.gid; })[0] || null; }
+function phaseOf(g) { if (!g) return ''; const n = lnow(); return n < gStart(g) ? 'wait' : (n <= gEnd(g) ? 'live' : 'done'); }
+function fmtLeft(ms) { const s = Math.max(0, Math.round(ms / 1000)), h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60); return (h ? lpad(h) + ':' : '') + lpad(m) + ':' + lpad(s % 60); }
+// Qué reto mostrar al abrir: el que se está jugando · el que empieza en las próximas 6 h · el último terminado · el próximo
+function pickLiveGame() {
+  const now = lnow(), gs = S.games.slice();
+  const live = gs.filter(function (g) { return gStart(g) <= now && now <= gEnd(g); })[0]; if (live) return live.id;
+  const soon = gs.filter(function (g) { return gStart(g) > now && gStart(g) - now < 6 * 3600e3; }).sort(function (x, y) { return gStart(x) - gStart(y); })[0]; if (soon) return soon.id;
+  const past = gs.filter(function (g) { return gEnd(g) < now; }).sort(function (x, y) { return gStart(y) - gStart(x); })[0]; if (past) return past.id;
+  const up = gs.filter(function (g) { return gStart(g) > now; }).sort(function (x, y) { return gStart(x) - gStart(y); })[0];
+  return up ? up.id : '';
+}
+async function syncLiveClock() {
+  try {
+    const t0 = Date.now();
+    const res = await fetch(SUPABASE_URL + '/rest/v1/rpc/server_now', { method: 'POST', headers: { 'apikey': KEY, 'Authorization': 'Bearer ' + KEY, 'Content-Type': 'application/json' }, body: '{}' });
+    if (!res.ok) return;
+    const ms = Number(await res.json()); if (isFinite(ms)) LV.off = ms + (Date.now() - t0) / 2 - Date.now();
+  } catch (e) {}
+}
+async function loadLiveQ() { try { LV.q = (await (await api('questions?game_id=eq.' + encodeURIComponent(LV.gid) + '&select=id')).json()).length; } catch (e) { LV.q = 0; } }
+async function openLive(gid) {
+  if (!S.session) return;
+  if (!S.gamesLoaded) { try { await loadGames(); } catch (e) {} }
+  let el = document.getElementById('live-root');
+  if (!el) { el = document.createElement('div'); el.id = 'live-root'; el.className = 'live-overlay'; document.body.appendChild(el); }
+  LV.open = true; LV.rows = []; LV.att = []; LV.pays = []; LV.sig = ''; LV.phase = ''; LV.err = '';
+  el.style.display = 'block'; document.body.style.overflow = 'hidden';
+  el.innerHTML = '<div class="lv-wrap"><div class="lv-head"><div class="lv-title">📡 SALA DE CONTROL<small>Cargando…</small></div><button class="btn-ghost" data-act="live-close" type="button">← Volver al panel</button></div></div>';
+  await syncLiveClock();
+  LV.gid = gid || pickLiveGame();
+  await loadLiveQ();
+  renderLive(); pollLive();
+  clearInterval(LV.poll); LV.poll = setInterval(pollLive, LV.pollMs);
+  clearInterval(LV.tick); LV.tick = setInterval(tickLive, 1000);
+}
+function closeLive() {
+  LV.open = false; clearInterval(LV.poll); clearInterval(LV.tick);
+  const el = document.getElementById('live-root'); if (el) { el.style.display = 'none'; el.innerHTML = ''; }
+  document.body.style.overflow = '';
+}
+async function switchLive(id) { LV.gid = id; LV.rows = []; LV.att = []; LV.pays = []; LV.sig = ''; LV.phase = ''; await loadLiveQ(); renderLive(); pollLive(); }
+async function pollLive() {
+  if (!LV.open || !LV.gid || LV.busy || document.hidden) return;
+  LV.busy = true;
+  const gid = LV.gid, q = encodeURIComponent(gid);
+  try {
+    const got = await Promise.all([
+      api('participations?game_id=eq.' + q + '&select=username,platform,correct_answers,time_taken_ms&order=correct_answers.desc,time_taken_ms.asc&limit=10').then(function (r) { return r.json(); }),
+      api('attempts?game_id=eq.' + q + '&select=id,username,started_at,finished_at&order=started_at.asc&limit=1000').then(function (r) { return r.json(); }),
+      api('payouts?game_id=eq.' + q + '&select=id,username,amount,subscribed,note,paid_at').then(function (r) { return r.json(); }).catch(function () { return []; })
+    ]);
+    if (gid !== LV.gid) { LV.busy = false; return; }
+    LV.rows = Array.isArray(got[0]) ? got[0] : []; LV.att = Array.isArray(got[1]) ? got[1] : []; LV.pays = Array.isArray(got[2]) ? got[2] : [];
+    LV.err = ''; LV.last = Date.now();
+    S.winnersFor = gid; S.winners = LV.rows; S.winPay = {}; LV.pays.forEach(function (p) { S.winPay[p.username] = p; });
+  } catch (e) { if (e && e.expired) { LV.busy = false; closeLive(); return; } LV.err = 'Sin conexión: se reintenta solo.'; }
+  LV.busy = false; if (LV.open) renderLive();
+}
+function liveSig(g) {
+  return JSON.stringify([LV.gid, phaseOf(g), LV.rows, LV.att.map(function (a) { return [a.id, a.finished_at ? 1 : 0]; }), LV.pays.map(function (p) { return p.id; }), LV.rows.map(function (r) { return getSub(LV.gid, r.username); }), LV.err, S.games.map(function (x) { return x.id; })]);
+}
+function renderLive() {
+  const el = document.getElementById('live-root'); if (!el || !LV.open) return;
+  const g = liveGame(), sig = liveSig(g);
+  if (sig === LV.sig && el.innerHTML) return;
+  LV.sig = sig; const keep = el.scrollTop;
+  const ph = phaseOf(g), n = LV.att.length, fin = LV.att.filter(function (a) { return a.finished_at; }).length;
+  const playing = LV.att.filter(function (a) { return !a.finished_at; });
+  const base = g ? g.prize : '', bonus = prizeBonus(base), medals = ['🥇', '🥈', '🥉'];
+  const opts = S.games.slice().sort(function (x, y) { return gStart(y) - gStart(x); }).map(function (x) { return '<option value="' + esc(x.id) + '"' + (x.id === LV.gid ? ' selected' : '') + '>' + esc(x.id) + ' · ' + esc(x.title || '') + '</option>'; }).join('');
+  const chip = ph === 'live' ? '<span class="lv-chip live">🔴 EN VIVO</span>' : ph === 'wait' ? '<span class="lv-chip">⏳ Aún no empieza</span>' : ph === 'done' ? '<span class="lv-chip done">✔ Terminó</span>' : '';
+  const rowsHtml = LV.rows.map(function (r, i) {
+    const st = getSub(LV.gid, r.username), pay = (S.winPay || {})[r.username], fast = LV.q > 0 && r.time_taken_ms / LV.q < 2500, okName = /^[A-Za-z0-9._-]{1,30}$/.test(r.username);
+    const prize = bonus ? (st === 'yes' ? 'Premio a entregar: <b>' + esc(bonus) + '</b> (suscrito, x5)' : (st === 'no' ? 'Premio a entregar: <b>' + esc(base) + '</b> (no suscrito)' : 'Premio a entregar: <b>' + esc(base) + '</b> · si está suscrito: ' + esc(bonus))) : 'Premio: <b>' + esc(base) + '</b>';
+    return '<div class="lv-row' + (st ? ' st-' + st : '') + '"><div class="lv-rank">' + (medals[i] || '#' + (i + 1)) + '</div><div class="lv-main">' +
+      '<div class="lv-name"><b>' + esc(r.username) + '</b>' + (fast ? ' <span class="w-warn">⚠ Muy rápido</span>' : '') + (okName ? '' : ' <span class="w-warn">⚠ nombre raro</span>') + '</div>' +
+      '<div class="lv-stat">' + esc(r.correct_answers) + ' ✓ · ' + msClock(r.time_taken_ms) + '</div><div class="lv-prize">💰 ' + prize + '</div>' +
+      (pay ? '<div class="w-paid">✔ Entregado: <b>' + esc(usd(pay.amount)) + '</b> · ' + esc(shortDate(pay.paid_at)) + (pay.note ? ' · ' + esc(pay.note) : '') + '</div>' : '') + '</div>' +
+      '<div class="lv-btns">' + (okName ? '<a class="btn-ghost" href="' + esc(PROFILE.youtube.url(r.username)) + '" target="_blank" rel="noopener noreferrer">Su canal ↗</a>' : '') +
+      '<button class="btn-ghost" data-act="lv-copy" data-i="' + i + '" type="button">📋 Copiar nombre</button>' +
+      '<button class="btn-ghost sub-yes' + (st === 'yes' ? ' on' : '') + '" data-act="lv-sub" data-val="yes" data-i="' + i + '" type="button">✔ Suscrito</button>' +
+      '<button class="btn-ghost sub-no' + (st === 'no' ? ' on' : '') + '" data-act="lv-sub" data-val="no" data-i="' + i + '" type="button">✖ No suscrito</button>' +
+      (pay ? '<button class="btn-ghost" data-act="unpay" data-id="' + esc(pay.id) + '" type="button">↩ Deshacer entrega</button>' : '<button class="btn-ghost" data-act="lv-pay" data-i="' + i + '" type="button">💸 Registrar premio</button>') + '</div></div>';
+  }).join('');
+  const chips = playing.slice(0, 60).map(function (a) { return '<span class="lv-chip">' + esc(a.username) + '</span>'; }).join('') + (playing.length > 60 ? '<span class="lv-chip">…y ' + (playing.length - 60) + ' más</span>' : '');
+  el.innerHTML = '<div class="lv-wrap">' +
+    '<div class="lv-head"><div class="lv-title">📡 SALA DE CONTROL<small>Solo la ves tú: no sale en el directo.</small></div><select id="lv-game" aria-label="Reto">' + opts + '</select><button class="btn-ghost" data-act="live-close" type="button">← Volver al panel</button></div>' +
+    (g ? '<div class="lv-status">' + chip + '<span id="lv-timer" class="lv-timer"></span><span class="lv-counts">Han entrado: <b>' + n + '</b> · Terminaron: <b>' + fin + '</b> · ' + (ph === 'done' ? 'No terminaron' : 'Jugando ahora') + ': <b>' + playing.length + '</b></span></div>' : '<div class="empty">Aún no hay retos. Crea uno y aparecerá aquí.</div>') +
+    '<div class="lv-tools"><a class="btn" href="' + STUDIO_URL + '" target="_blank" rel="noopener noreferrer">👥 Abrir mis suscriptores</a><span class="muted">En YouTube Studio: <b>Analytics → Público (Audience) → Suscriptores → Ver más</b>. Solo salen quienes tienen la suscripción pública: si alguien no aparece, pídele que te enseñe su suscripción antes de marcarlo en rojo.</span></div>' +
+    (ph === 'done' ? '<div class="paid-total">El reto terminó: comprueba a cada ganador (verde si está suscrito, rojo si no) y registra su premio.</div>' : '') +
+    '<h3 class="lv-h">🏆 Top 10 en vivo</h3>' + (rowsHtml || '<div class="empty">Todavía no ha terminado nadie. Aquí aparecerán solos, de mejor a peor.</div>') +
+    '<h3 class="lv-h">' + (ph === 'done' ? '🚪 No terminaron' : '⏳ Jugando ahora') + ' (' + playing.length + ')</h3>' + (chips ? '<div class="lv-chips">' + chips + '</div>' : '<div class="muted">Nadie jugando ahora mismo.</div>') +
+    '<div class="lv-foot">Se actualiza solo cada ' + (LV.pollMs / 1000) + ' s · última vez: <span id="lv-last">—</span>' + (LV.err ? ' · <span class="w-warn">' + esc(LV.err) + '</span>' : '') + '</div></div>';
+  el.scrollTop = keep; tickLive();
+}
+function tickLive() {
+  if (!LV.open) return;
+  const g = liveGame(), ph = phaseOf(g);
+  if (LV.phase !== ph) { LV.phase = ph; LV.sig = ''; renderLive(); return; }
+  const lb = document.getElementById('lv-last'); if (lb) lb.textContent = LV.last ? new Date(LV.last).toLocaleTimeString('es') : '—';
+  const el = document.getElementById('lv-timer'); if (!el || !g) return;
+  const now = lnow();
+  el.textContent = ph === 'live' ? 'Quedan ' + fmtLeft(gEnd(g) - now) : ph === 'wait' ? 'Empieza en ' + fmtLeft(gStart(g) - now) : 'Terminó hace ' + Math.max(0, Math.round((now - gEnd(g)) / 60000)) + ' min';
+  el.className = 'lv-timer' + (ph === 'live' && gEnd(g) - now <= 30000 ? ' low' : '');
+}
+function afterPay() { if (LV.open) { closeModal(); LV.sig = ''; pollLive(); } else { renderWinners(); } }
+async function lvCopy(t) {
+  try { await navigator.clipboard.writeText(t); toast('Copiado: ' + t); }
+  catch (e) { try { const ta = document.createElement('textarea'); ta.value = t; ta.style.position = 'fixed'; ta.style.opacity = '0'; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove(); toast('Copiado: ' + t); } catch (e2) { toast('No pude copiar. Selecciona el nombre y usa Ctrl+C.', true); } }
+}
 // ---------- Premios entregados ----------
 function usd(n) { return '$' + Number(n).toLocaleString('en-US', { maximumFractionDigits: 2 }); }
 function shortDate(iso) { try { return new Date(iso).toLocaleDateString('es', { day: 'numeric', month: 'short', year: 'numeric' }); } catch (e) { return ''; } }
@@ -663,7 +821,7 @@ function paidHeader() { const n = Object.keys(S.paidByGame || {}).length; return
 function openPay(i) {
   const r = (S.winners || [])[i]; if (!r) return;
   const gm = S.games.filter(function (x) { return x.id === S.winnersFor; })[0], baseP = gm ? gm.prize : '', bonusP = prizeBonus(baseP);
-  const sub = !!getVer()[S.winnersFor + '|' + r.username];
+  const sub = getSub(S.winnersFor, r.username) === 'yes';
   S.payDraft = { i: i, base: moneyOf(baseP), bonus: bonusP ? moneyOf(bonusP) : 0 };
   const amount = (sub && S.payDraft.bonus) ? S.payDraft.bonus : S.payDraft.base;
   openModal('<h3>💸 Registrar premio entregado</h3><p class="muted">Ganador: <b>' + esc(r.username) + '</b> · reto ' + esc(S.winnersFor) + '. Este monto se suma al «Dinero repartido» que ve el público.</p>' +
@@ -681,7 +839,7 @@ async function savePay() {
   try {
     const res = await api('payouts', { method: 'POST', headers: { 'Prefer': 'return=representation' }, body: JSON.stringify({ game_id: S.winnersFor, username: r.username, amount: amount, subscribed: !!document.getElementById('pay-sub').checked, note: (document.getElementById('pay-note').value || '').trim().slice(0, 80) || null }) });
     const row = (await res.json())[0]; if (row) S.winPay[r.username] = row;
-    await loadPaid(); renderGames(); renderWinners(); toast('Premio registrado: ' + usd(amount));
+    await loadPaid(); renderGames(); afterPay(); toast('Premio registrado: ' + usd(amount));
   } catch (e) {
     if (e.expired) return; btn.disabled = false; btn.textContent = 'Guardar';
     err.textContent = (e.status === 409 || /duplicate|unique|23505/i.test(String(e.message || ''))) ? 'Ya registraste el premio de este ganador.' : explain(e);
@@ -691,7 +849,7 @@ async function unpay(id) {
   try {
     await api('payouts?id=eq.' + encodeURIComponent(id), { method: 'DELETE' });
     Object.keys(S.winPay || {}).forEach(function (u) { if (S.winPay[u].id === id) delete S.winPay[u]; });
-    await loadPaid(); renderGames(); renderWinners(); toast('Entrega deshecha.');
+    await loadPaid(); renderGames(); afterPay(); toast('Entrega deshecha.');
   } catch (e) { if (!e.expired) toast(explain(e), true); }
 }
 function tooFast(r) { return (S.winQ || 0) > 0 && r.time_taken_ms / S.winQ < 2500; }
@@ -707,18 +865,19 @@ function renderWinners() {
   rows.forEach(function (r, i) {
     const plats = parsePlatforms(r.platform), shown = plats.length ? plats : ['twitch', 'tiktok', 'youtube'];
     const okName = /^[A-Za-z0-9._-]{2,30}$/.test(r.username || '');
-    const key = id + '|' + r.username, done = !!ver[key], pay = (S.winPay || {})[r.username];
+    const key = id + '|' + r.username, st = getSub(id, r.username), done = st === 'yes', pay = (S.winPay || {})[r.username];
     const links = shown.map(function (k) { return '<a class="btn-ghost" href="' + esc(PROFILE[k].url(r.username)) + '" target="_blank" rel="noopener noreferrer">Su perfil en ' + PROFILE[k].name + ' ↗</a>'; }).join('');
     const chips = (plats.length ? plats : []).map(function (k) { return '<span class="chip2">' + PROFILE[k].name + '</span>'; }).join('');
-    list += '<div class="w-row' + (i < 3 ? ' top3' : '') + (done ? ' ok' : '') + '">' +
+    list += '<div class="w-row' + (i < 3 ? ' top3' : '') + (done ? ' ok' : '') + (st === 'no' ? ' no' : '') + '">' +
       '<div class="w-top"><span>' + (medals[i] || ('#' + (i + 1))) + '</span><b>' + esc(r.username) + '</b>' + (okName ? '' : '<span class="w-warn">⚠ nombre con espacios o símbolos raros</span>') + (tooFast(r) ? '<span class="w-warn">⚠ Muy rápido: ' + (r.time_taken_ms / S.winQ / 1000).toFixed(1) + ' s por pregunta. Revísalo bien antes de pagar.</span>' : '') + '</div>' +
       '<div class="w-stat">' + esc(r.correct_answers) + ' ✓ · ' + msClock(r.time_taken_ms) + ' ' + chips + (plats.length ? '' : ' <span class="muted">(no indicó plataforma)</span>') + '</div>' +
       (pay ? '<div class="w-paid">✔ Entregado: <b>' + esc(usd(pay.amount)) + '</b> · ' + esc(shortDate(pay.paid_at)) + (pay.subscribed ? ' · suscrito (x5)' : '') + (pay.note ? ' · ' + esc(pay.note) : '') + '</div>' : '') +
-      '<div class="w-prize">💰 ' + (bonusP ? (done ? 'Premio a entregar: <b>' + esc(bonusP) + '</b> (suscrito, x5)' : 'Premio a entregar: <b>' + esc(baseP) + '</b> · si está suscrito: ' + esc(bonusP)) : 'Premio: <b>' + esc(baseP) + '</b>') + '</div>' +
+      '<div class="w-prize">💰 ' + (bonusP ? (done ? 'Premio a entregar: <b>' + esc(bonusP) + '</b> (suscrito, x5)' : (st === 'no' ? 'Premio a entregar: <b>' + esc(baseP) + '</b> (no suscrito)' : 'Premio a entregar: <b>' + esc(baseP) + '</b> · si está suscrito: ' + esc(bonusP))) : 'Premio: <b>' + esc(baseP) + '</b>') + '</div>' +
       '<div class="w-actions">' + links +
         '<button class="btn-ghost" data-act="copy-name" data-name="' + esc(r.username) + '" type="button">📋 Copiar nombre</button>' +
  (pay ? '<button class="btn-ghost" data-act="unpay" data-id="' + esc(pay.id) + '" type="button">↩ Deshacer entrega</button>' : '<button class="btn-ghost" data-act="pay" data-i="' + i + '" type="button">💸 Registrar premio entregado</button>') +
-        '<button class="btn-ghost' + (done ? ' on' : '') + '" data-act="verify" data-key="' + esc(key) + '" type="button">' + (done ? '✔ Suscrito' : 'Marcar suscrito') + '</button>' +
+        '<button class="btn-ghost sub-yes' + (done ? ' on' : '') + '" data-act="subset" data-val="yes" data-i="' + i + '" type="button">✔ Suscrito</button>' +
+        '<button class="btn-ghost sub-no' + (st === 'no' ? ' on' : '') + '" data-act="subset" data-val="no" data-i="' + i + '" type="button">✖ No suscrito</button>' +
         '<button class="btn-ghost btn-danger" data-act="disq" data-name="' + esc(r.username) + '" type="button">🗑 Descalificar</button>' +
       '</div></div>';
   });
@@ -726,7 +885,7 @@ function renderWinners() {
     '<div class="w-note"><b>Cómo decidir el premio de cada ganador (10 segundos):</b><ol>' +
       '<li>Pulsa <b>📋 Copiar nombre</b>.</li>' +
       '<li>Abre <b>YouTube Studio</b> con el botón de abajo y entra a la lista de tus suscriptores.</li>' +
-      '<li>Pega el nombre en el buscador. Si aparece, pulsa <b>Marcar suscrito</b>: su premio pasa a ser el x5. Ojo: en esa lista solo salen quienes tienen su suscripción pública. Si no sale, pídele que te enseñe tu canal con el botón «Suscrito» antes de darle solo el premio base.</li></ol>' +
+      '<li>Pega el nombre en el buscador. Si aparece, pulsa <b>✔ Suscrito</b> (verde): su premio pasa a ser el x5. Si no sale, pulsa <b>✖ No suscrito</b> (rojo): recibe el premio base. Ojo: en esa lista solo salen quienes tienen su suscripción pública. Si no sale, pídele que te enseñe tu canal con el botón «Suscrito» antes de darle solo el premio base.</li></ol>' +
       'Quien no está suscrito también gana: recibe el premio base. Descalifica (<b>🗑</b>) solo si hay trampa: nombre falso, resultado imposible o <b>⚠ Muy rápido</b>; entonces el siguiente sube un puesto.</div>' +
     '<div class="my-ch"><span>Mis canales:</span>' + my + '</div>' + list +
     '<div class="modal-actions"><button class="btn-ghost" data-act="close-modal" type="button">Cerrar</button></div>');
@@ -763,6 +922,7 @@ document.addEventListener('input', function (e) {
   }
 });
 document.addEventListener('change', function (e) {
+  if (e.target && e.target.id === 'lv-game') { switchLive(e.target.value); return; }
   if (e.target && e.target.id === 'pay-sub') { const d = S.payDraft || {}, v = (e.target.checked && d.bonus) ? d.bonus : d.base, inp = document.getElementById('pay-amount'); if (inp && v) inp.value = String(v); }
 });
 document.addEventListener('submit', async function (e) {
@@ -782,7 +942,7 @@ document.addEventListener('click', async function (e) {
   const el = e.target.closest ? e.target.closest('[data-act]') : null; if (!el) return;
   const act = el.dataset.act;
   if (act === 'modal-bg') { if (e.target === el) closeModal(); return; }
-  if (act === 'logout') { try { fetch(SUPABASE_URL + '/auth/v1/logout', { method: 'POST', headers: { 'apikey': KEY, 'Authorization': 'Bearer ' + S.session.access_token } }); } catch (x) {} dropSession(); S.games = []; S.gamesLoaded = false; render(); return; }
+  if (act === 'logout') { closeLive(); try { fetch(SUPABASE_URL + '/auth/v1/logout', { method: 'POST', headers: { 'apikey': KEY, 'Authorization': 'Bearer ' + S.session.access_token } }); } catch (x) {} dropSession(); S.games = []; S.gamesLoaded = false; render(); return; }
   if (act === 'gen-code') { S.form.code = genCode(); const i = document.getElementById('f-code'); i.value = S.form.code; refreshSummary(); recheck(); return; }
   if (act === 'quick-min') { S.form.minutes = el.dataset.v; document.getElementById('f-minutes').value = el.dataset.v; refreshSummary(); recheck(); return; }
   if (act === 'quick-start') {
@@ -811,6 +971,16 @@ document.addEventListener('click', async function (e) {
   if (act === 'copy-name') { copyText(el.dataset.name, 'Nombre copiado: ' + el.dataset.name); return; }
   if (act === 'verify') { toggleVerified(el.dataset.key); return; }
   if (act === 'pay') { openPay(+el.dataset.i); return; }
+  if (act === 'live-open') { openLive(el.dataset.id || ''); return; }
+  if (act === 'live-close') { closeLive(); return; }
+  if (act === 'subset') {
+    const r = (S.winners || [])[+el.dataset.i];
+    if (r) { const cur = getSub(S.winnersFor, r.username); setSub(S.winnersFor, r.username, cur === el.dataset.val ? '' : el.dataset.val); const box = document.querySelector('.modal-box'), top = box ? box.scrollTop : 0; renderWinners(); const nb = document.querySelector('.modal-box'); if (nb) nb.scrollTop = top; }
+    return;
+  }
+  if (act === 'lv-sub') { const r = LV.rows[+el.dataset.i]; if (r) { const cur = getSub(LV.gid, r.username); setSub(LV.gid, r.username, cur === el.dataset.val ? '' : el.dataset.val); LV.sig = ''; renderLive(); } return; }
+  if (act === 'lv-copy') { const r = LV.rows[+el.dataset.i]; if (r) lvCopy(r.username); return; }
+  if (act === 'lv-pay') { S.winnersFor = LV.gid; S.winners = LV.rows; openPay(+el.dataset.i); return; }
   if (act === 'pay-save') { savePay(); return; }
   if (act === 'unpay') {
     if (el.dataset.armed) { el.disabled = true; el.textContent = 'Deshaciendo…'; unpay(el.dataset.id); return; }
@@ -820,7 +990,7 @@ document.addEventListener('click', async function (e) {
   }
   if (act === 'disq') { askDisqualify(el.dataset.name); return; }
   if (act === 'disq-yes') { el.disabled = true; el.textContent = 'Descalificando…'; disqualify(el.dataset.name); return; }
-  if (act === 'back-winners') { renderWinners(); return; }
+  if (act === 'back-winners') { if (LV.open) { closeModal(); } else { renderWinners(); } return; }
   if (act === 'use-q') { useQuestions(el.dataset.id); return; }
   if (act === 'del-game') { askDelete(el.dataset.id); return; }
   if (act === 'attempts') { showAttempts(el.dataset.id); return; }
